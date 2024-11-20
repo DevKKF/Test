@@ -5,7 +5,7 @@
 }
 
 [class*=sidebar-dark-] .nav-treeview>.nav-item>.nav-link:focus, [class*=sidebar-dark-] .nav-treeview>.nav-item>.nav-link:hover {
-    background-color: #138496;
+    background-color: #FF7722;
     color: #fff !important;
 }
 
@@ -14,13 +14,13 @@
 }
 
 [class*=sidebar-dark-] .nav-treeview>.nav-item>.nav-link.active, [class*=sidebar-dark-] .nav-treeview>.nav-item>.nav-link.active:focus, [class*=sidebar-dark-] .nav-treeview>.nav-item>.nav-link.active:hover {
-    background-color: #138496;
+    background-color: #FF7722;
     color: #fff !important;
 }
 
 
 .sidebar-dark-primary .nav-sidebar>.nav-item>.nav-link.active, .sidebar-light-primary .nav-sidebar>.nav-item>.nav-link.active {
-    background: #138496;
+    background: #FF7722;
     color: #fff !important;
 }
 
@@ -74,7 +74,7 @@ img.custom-logo.brand-image {
 /****** TOP BAR CSS ******/
 
 .navbar-white {
-    background: linear-gradient(45deg, #138496, #138496);
+    background: linear-gradient(45deg, #FF7722, #FF7722);
     color: #fff;
 }
 
@@ -132,12 +132,12 @@ img.custom-logo.brand-image {
 }
 
 .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
-    background-color: #138496 !important;
+    background-color: #FF7722 !important;
     color: white;
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected], .select2-container--default .select2-results__option--highlighted[aria-selected]:hover {
-    background-color: #138496;
+    background-color: #FF7722;
     color: #fff;
 }
 
@@ -151,7 +151,7 @@ img.custom-logo.brand-image {
 }
 
 .accent-primary .btn-link, .accent-primary .nav-tabs .nav-link, .accent-primary a:not(.dropdown-item):not(.btn-app):not(.nav-link):not(.brand-link):not(.page-link):not(.btn) {
-    color: #138496;
+    color: #FF7722;
 }
 
 .accent-primary .btn-link:hover, .accent-primary .nav-tabs .nav-link:hover, .accent-primary a:not(.dropdown-item):not(.btn-app):not(.nav-link):not(.brand-link):not(.page-link):not(.btn):hover {
@@ -253,8 +253,8 @@ table.table_v_middle th, table.table_v_middle td{
 
 
 :root {
-  --couleur_olea: #138496;
-  --colorPrimary: #138496;
+  --couleur_olea: #FF7722;
+  --colorPrimary: #FF7722;
   --colorJauneOlea: #EFBF77;
   --colorAccent: gray;
 }
@@ -526,7 +526,7 @@ article .shimmer{
     color: white;
 }
 .badge-entree-en-cours{
-    background-color: #138496;
+    background-color: #FF7722#FF7722;
     color: white;
 }
 
