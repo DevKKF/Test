@@ -430,12 +430,12 @@ JAZZMIN_SETTINGS = {
             },
         ],
         "configurations": [
-            {
-                "name": "Gestion Ws Boby",
-                "url": "ws_bobys",
+            #{
+                #"name": "Gestion Ws Boby",
+                #"url": "ws_bobys",
                 # "icon": "fa fa-times",
-                "permissions": ["configurations.view_wsbooby"],
-            },
+                #"permissions": ["configurations.view_wsbooby"],
+            #},
             {
                 "name": "Action super admin",
                 "url": "db_super_admin_query",
