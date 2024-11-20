@@ -1,0 +1,204 @@
+{% extends "admin/base_site.html" %}
+{% block extrastyle %} {% endblock %}
+{% block content %}
+
+<div class="col-12 col-md-12 order-2 order-md-1">
+  <div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><b>{{_('LISTE_DES_ACTES')}}</b></h3>
+        <div class="card-tools">
+            <a class="btn btn-sm btn-default" data-toggle="modal"  data-target="#add_modal_acte"><i class="fas fa-plus mr-2"></i>{{_('Creer_un_acte')}}</a>
+        </div>
+    </div>
+
+  <div style="display:none__;background:blanchedalmond;padding:10px;border-bottom:1px solid #eee;padding-bottom:10px;margin-bottom:10px;">
+    <form method="get"><label style="font-weight:normal;font-size:12px;display:none;"><i>{{_('Formulaire_de_recherche')}}</i></label>
+        <div class="row">
+        <div class="col-12 col-md-12 col-sm-12 row">
+            <div class="col-sm-6 col-md-3 col-lg-2 mt-2">
+                <span class="col-sm-3 text-right" style="margin-top:5px;">{{_('Code')}} : </span>
+                <div class="col-sm-9">
+                    <input autocomplete="off" class="form-control" type="text" id="search_code" style="border-radius:3px;border:1px solid grey;text-transform:uppercase;">
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-4 col-lg-3 mt-2">
+                <span class="col-sm-3 text-right" style="margin-top:5px;">{{_('Libelle')}} : </span>
+                <div class="col-sm-9">
+                    <input autocomplete="off" class="form-control" type="text" id="search_libelle" style="border-radius:3px;border:1px solid grey;text-transform:uppercase;">
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 mt-2">
+                <span class="col-sm-3 text-right" style="margin-top:5px;">{{_('Rubrique')}} : </span>
+                <div class="col-sm-9">
+                    <select class="form-control tags-multiple" id="search_rubrique" style="border:1px solid rgba(0, 0, 0, 0.3);">
+                        <option  value="">Choisir</option>
+                        {% for rubrique in rubriques %}
+                            <option  value="{{ rubrique.id }}">{{ rubrique }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3 col-lg-2 mt-2 ml-4">
+                <span class="col-sm-3 text-right" style="margin-top:5px;">{{_('Regroupement_de_acte')}}: </span>
+                <div class="col-sm-9">
+                    <select class="form-control tags-multiple" id="search_regroupement_acte" style="border:1px solid rgba(0, 0, 0, 0.3);">
+                        <option  value="">Choisir</option>
+                        {% for regroupement_acte in liste_regroupements_actes %}
+                            <option  value="{{ regroupement_acte.id }}">{{ regroupement_acte.libelle }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-2 col-lg-2 mt-2 ml-4">
+                <span class="col-sm-3 text-right" style="margin-top:5px;">{{_('Entente_prealable')}}: </span>
+                <div class="col-sm-9">
+                    <select class="form-control tags-multiple" id="search_entente_prealable" style="border:1px solid rgba(0, 0, 0, 0.3);">
+                        <option  value="">{{_('Choisir')}}</option>
+                        <option  value="1">{{_('OUI')}}</option>
+                        <option  value="0">{{_('NON')}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    </form>
+  </div>
+
+    <div class="card-body">
+      <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+        <div class="row">
+          <div class="col-12 col-md-12 col-sm-12">
+              <div class="spinner-border__" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;"></div>
+
+              <table class="table table-bordered table-striped dataTable customDataTable dtr-inline" id="table_actes">
+                  <thead>
+                    <tr>
+                      <th scope="col">{{_('Code')}}</th>
+                      <th scope="col">{{_('Libelle')}}</th>
+                      <th scope="col">{{_('Rubrique')}}</th>
+                      <th scope="col">{{_('Regroupement')}}</th>
+                      <th scope="col">{{_('Lettre_cle')}}</th>
+                      <th scope="col">{{_('Base_calcul_TM')}}</th>
+                      <th scope="col">{{_('Delais_controle')}}</th>
+                      <th scope="col">{{_('Entente_prealable')}}</th>
+                      <th scope="col">{{_('Avec_seances')}}</th>
+                      <th scope="col">{{_('Specialiste_uniquement')}}</th>
+                      <th scope="col">{{_('Statut')}}</th>
+                      <th>{{_('Actions')}}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+              </table>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock %}
+
+
+{% block extrajs %}
+<script>
+    $(document).ready(function() {
+
+        dataTable = $('#table_actes').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+            },
+            "serverSide": true,
+            "ajax": {
+                "url": "{% url 'actes_datatable' %}",
+                "data": function (data) {
+                    data.page = data.start / data.length + 1;
+                    data.search_code = $('#search_code').val();
+                    data.search_libelle = $('#search_libelle').val();
+                    data.search_rubrique = $('#search_rubrique').val();
+                    data.search_entente_prealable = $('#search_entente_prealable').val();
+                },
+                "dataSrc": function (json) {
+                    return json.data;
+                }
+            },
+            "columns": [
+                {"data": "code", "orderable": true},
+                {"data": "libelle", "orderable": true},
+                {"data": "rubrique", "orderable": true},
+                {"data": "regroupement", "orderable": true},
+                {"data": "lettre_cle", "orderable": true},
+                {"data": "base_calcul_tm", "orderable": true},
+                {"data": "delais_controle", "orderable": true},
+                {
+                    "data": "entente_prealable",
+                    "render": function (data, type, row) {
+                        return data ? 'OUI' : 'NON';
+                    },
+                    "orderable": false,
+                    "searchable": false
+                },
+                {
+                    "data": "option_seance",
+                    "render": function (data, type, row) {
+                        return data ? 'OUI' : 'NON';
+                    },
+                    "orderable": true,
+                    "searchable": false
+                },
+                {
+                    "data": "specialiste_uniquement",
+                    "render": function (data, type, row) {
+                        return data ? 'OUI' : 'NON';
+                    },
+                    "orderable": true,
+                    "searchable": false
+                },
+                {
+                    "data": "status",
+                    "render": function (data, type, row) {
+                        return data ? '<span class="badge badge-actif">ACTIF</span>' : '<span class="badge badge-inactif">INACTIF</span>';
+                    },
+                    "orderable": true,
+                    "searchable": false
+                },
+                {"data": "actions", "orderable": false, "searchable": false},
+            ],
+            "paging": true,
+            "pageLength": 10,
+            "processing": false,
+            "searching": false,
+            "search": {
+                "search": $('#table_actes-table_filter input').val()
+            }
+        });
+
+         dataTable.on('xhr.dt', function (e, settings, json, xhr) {
+            // Hide the spinner when the data is loaded
+            $('.spinner-border').hide();
+         });
+
+        // Show the spinner when the table is processing
+        dataTable.on('processing.dt', function (e, settings, processing) {
+            if (processing) {
+                $('.spinner-border').show();
+            }
+        });
+
+
+        // Add custom search functionality for code and name columns
+        $('#search_code, #search_libelle, #search_rubrique, #search_regroupement_acte, #search_entente_prealable').on('keyup change', function() {
+            dataTable.search('').draw();
+            dataTable.draw();
+        });
+
+    });
+
+</script>
+
+{% include './modal_add_acte.html' %}
+
+{% endblock %}

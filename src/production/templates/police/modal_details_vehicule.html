@@ -1,0 +1,195 @@
+{% load my_filters %}
+{% load i18n static jazzmin admin_urls %}
+{% get_jazzmin_settings request as jazzmin_settings %}
+<div  class="modal fade"  id="modal-details_vehicule" data-backdrop="static" data-keyboard="false" aria-hidden="true"  style="display: none">
+	<div class="modal-dialog modal-xl">
+		<div class="modal-content">
+			<div id="form_update_vehicule">
+			<div class="modal-header">
+				<h4 class="modal-title"><img class="" src="{% if aliment.photo %} {{ aliment.photo.url }} {% endif %}" style="height:40px;border-radius:360px;"/> {{_('FICHE_VEHICULE')}} - <b>{{ vehicule.marque }} {{ vehicule.modele }}</b></h4>
+				<button type="button"class="close"data-dismiss="modal"aria-label="Close">
+					<span aria-hidden="true">×</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="alert  alert-dismissible fade show hidden" role="alert">
+				  <span class="message"> {{_('TRAITEMENT_EN_COURS')}}</span>
+				</div>
+				<div class="col-md-12 offset-0">
+					<ul class="nav nav-tabs" id="myTab" role="tablist">
+						<li class="nav-item"><a class="nav-link active" id="detail_vehicule-tab" data-toggle="tab" href="#detail_vehicule" role="tab" aria-controls="detail_vehicule" aria-selected="true">{{_('IDENTITE')}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="sinistres-tab" data-toggle="tab" href="#sinistres" role="tab" aria-controls="sinistres" aria-selected="false">{{_('SES_SINISTRES')}}</a></li>
+					</ul>
+					<div class="tab-content" id="myTabContent">
+
+						<div class="tab-pane fade show active mt-3" id="detail_vehicule" role="tabpanel" aria-labelledby="detail_vehicule-tab">
+							<div class="row">								
+								<div class="col-md-6">
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Numero_immatriculation ')}}<span class="required">*</span></label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.numero_immatriculation|default_if_none:''}} </span>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Numero_immatric_provisoire ')}}<span class="required">*</span></label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.numero_immat_provisoire|default_if_none:''}} </span>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Marque')}} </label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.marque|default_if_none:''}} </span>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Modele')}}</label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.modele|default_if_none:''}} </span>
+										</div>
+									</div>
+
+
+
+
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Conducteur')}}</label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.conducteur|default_if_none:''}} </span>
+										</div>
+									</div>
+									<div class="form-group row" id="box_adherent_principal">
+										<label class="col-sm-5 col-form-label">{{_('Energie')}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.energie|default_if_none:''}} </span>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Place')}}</label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.place|default_if_none:''}} </span>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Puissance')}}</label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.puissance|default_if_none:''}} </span>
+										</div>
+									</div>
+								</div>
+								<div class="vl"></div>
+								<div class="col-md-5" style="border-left:0px;">
+
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Numero_serie')}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.numero_serie|default_if_none:''}} </span>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Categorie_vehicule')}}<span class="required">*</span></label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.categorie_vehicule|default_if_none:''}} </span>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Type_carrosserie')}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.type_carosserie|default_if_none:''}} </span>
+										</div>
+									</div>
+
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Date_de_mise_en_circulation ')}}</label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.date_mis_en_circulation|default_if_none:''}} </span>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Valeur_neuve')}} </label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.valeur_neuve|default_if_none:''}} </span>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Valeur_actuelle')}}</label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.valeur_actuelle|default_if_none:''}} </span>
+										</div>
+									</div>
+
+
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Poids_a_vide')}}</label>
+										<div class="col-sm-7">
+											<span class="form-control">{{vehicule.poids_a_vide|default_if_none:''}} </span>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Poids_a_charge')}}</label>
+										<div class="col-sm-7">
+											{% comment %} <span class="form-control">{{|default_if_none:''}} </span> {% endcomment %}
+											<span class="form-control">{{vehicule.poids_a_charge|default_if_none:''}} </span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="tab-pane fade mt-3" id="sinistres" role="tabpanel" aria-labelledby="sinistres-tab">
+							<div class="rowd" style="padding-top:0px;">
+								<div class="card">
+									<div class="card-header nobg">
+										<div class="card-tools">
+										  <span class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-sinistre"><i class="fas fa-plus"></i> {{_('Nouveau_sinistre')}}</span>
+										</div>
+									</div>
+									<div class="">
+										<table class="table table-bordered table-striped dataTable dtr-inline" id="table_sinistres">
+											<thead>
+											  <tr>
+												<th scope="col">{{_('Numero_sinistre')}}</th>
+												<th scope="col">{{_('Ouverture')}}</th>
+												<th scope="col">{{_('Prestation')}}</th>
+												<th scope="col">{{_('Prestataire')}}</th>
+												<th scope="col">{{_('Garantie')}}</th>
+												<th scope="col">{{_('Acte')}}</th>
+												<th scope="col">{{_('Frais_reel')}}</th>
+												<th scope="col">{{_('PEC')}}</th>
+												<th scope="col">{{_('Statut')}}</th>
+											  </tr>
+											</thead>
+											<tbody>
+											{% for sinistre in sinistres %}
+											  <tr>
+												<td>&nbsp;</td>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td></td>
+											  </tr>
+											{% endfor %}
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+
+					</div>
+
+				</div>
+				<div class="modal-footer justify-content-between">
+					<!--button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button-->
+					<button type="button" class="btn btn-default" data-dismiss="modal">{{_('Fermer')}}</button>
+				</div>
+			</div>
+			</div>
+		</div>
+	</div>
+</div>

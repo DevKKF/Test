@@ -1,0 +1,81 @@
+{% extends 'police/base.html' %} {% block extrastyle %} {% endblock %} {% block content %}
+<div class="col-12 col-md-12 order-2 order-md-1">{% include 'police/header.html' %}
+
+  <!--div class="row mb-2">
+    <div class="col-sm-8 offset-2 mb-5">
+      <div class="float-left">
+        <a href="#" class="btn o-bg-primary mr-5" data-toggle="modal" data-target="#modal-import"><i class="fas fa-cloud-upload-alt"></i>Importation</a>
+        <a href="#" class="btn o-bg-primary mr-5"><i class="fas fa-exclamation-circle"></i>Vérification des bénéficiaires</a>
+        <a href="#" class="btn o-bg-primary mr-5"><i class="fas fa-users"></i>Prime par famille</a>
+        <a href="{% url 'benefs_pictures' 9 %}" class="btn o-bg-primary"><i class="fas fa-image"></i>Charger les photos</a>
+      </div>
+    </div>
+  </div-->
+
+  <div class="card">
+    <div class="card-header">
+        <h3 class="card-title text-white">{{_('VEHICULES')}}</h3>
+        <div class="card-tools">
+          <a href="#" class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-import_vehicules"><i class="fas fa-cloud-upload-alt"></i> {{_('Importation')}}</a>
+          <a class="btn btn-sm btn-default" data-toggle="modal"  data-target="#modal-vehicule"><i class="fas fa-plus"></i> {{_('Nouveau_vehicule')}}</a>
+          
+        </div>
+    </div>
+    <div class="card-body">
+      <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+        <div class="row">
+          <div class="col-12 col-md-12 col-sm-12 table-responsive">
+            <table class="table table-bordered table-striped dataTable dtr-inline" id="table_vehicules">
+              <thead>
+                <tr>
+                  <th scope="col">{{_('Numero_immatriculation')}}</th>
+                  <th scope="col">{{_('Marque')}}</th>
+                  <th scope="col">{{_('Modele')}}</th>
+                  <th scope="col">{{_('Numero_Serie')}}</th>
+                  <th scope="col">{{_('Conducteur')}}</th>
+                  <th scope="col">{{_('Valeur_neuve')}}</th>
+                  <th scope="col">{{_('Valeur_actuelle')}}</th>
+                  <th scope="col">{{_('Mise_en_circulation')}}</th>
+                  <th scope="col">{{_('Type_carrosserie')}}</th>
+                  <th scope="col">{{_('Place')}}</th>
+                  <th scope="col">{{_('Poids')}}</th>
+                  <th scope="col">{{_('Actions')}}</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for vehicule in vehicules %}
+                <tr>
+                  <td>{{ vehicule.numero_immatriculation|default_if_none:"" }}</td>
+                  <td>{{ vehicule.marque|default_if_none:"" }}</td>
+                  <td>{{ vehicule.modele|default_if_none:"" }}</td>
+                  <td>{{ vehicule.numero_serie|default_if_none:"" }}</td>
+                  <td>{{ vehicule.conducteur|default_if_none:"" }}</td>
+                  <td>{{ vehicule.valeur_neuve|default_if_none:"" }}</td>
+                  <td>{{ vehicule.valeur_actuelle|default_if_none:"" }}</td>
+                  <td>{{ vehicule.date_mis_en_circulation|default_if_none:"" }}</td>
+                  <td>{{ vehicule.type_carosserie|default_if_none:"" }}</td>
+                  <td>{{ vehicule.place|default_if_none:"" }}</td>
+                  <td>{{ vehicule.poids_a_vide|default_if_none:"" }}</td>
+                  <td>
+                    <span style="cursor:pointer;" class="btn_details_vehicule" data-vehicule_id="{{ vehicule.id }}" data-model_name="vehicule" data-modal_title="INFORMATIONS VEHICULE - {{ vehicule.marque }} {{ vehicule.place }}" data-href="{% url 'details_vehicule' police.id vehicule.id %}"><i class="fas fa-eye text-info"></i></span>&nbsp;&nbsp;
+                    <span style="cursor:pointer;" class="btn_modifier_vehicule" data-vehicule_id="{{ vehicule.id }}" data-model_name="vehicule" data-modal_title="MODIFICATION D'UN VEHICULE" data-href="{% url 'update_vehicule' police.id vehicule.id %}"><i class="fas fa-edit text-warning"></i></span>&nbsp;&nbsp;
+                    <span style="cursor:pointer;" class="btn_supprimer_vehicule" data-vehicule_id="{{ vehicule.id }}" data-model_name="vehicule" data-modal_title="SUPPRESSION D'UN VEHICULE" data-href="{% url 'supprimer_vehicule' police.id vehicule.id %}"><i class="fas fa-times text-danger"></i></span>
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block extrajs %}
+<script>
+  $(document).ready(function() {
+      $('#vehicule').removeClass('o-bg-primary');
+      $('#vehicule').addClass('o-active');
+  });
+</script>{% endblock %}
