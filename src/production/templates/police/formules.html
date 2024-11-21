@@ -1,17 +1,34 @@
-{% extends 'police/menu_police.html' %} {% block extrastyle %} {% endblock %}
+{% extends 'police/menu_police.html' %}
+{% load i18n %}
+{% block extrastyle %} {% endblock %}
+{% block content_title %}
+    <div class="row mb-2">
+          <div class="col-sm-6">
+                <h1 class="m-0">Liste des formules de garantie </h1>
+          </div>
+          <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                      <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
+                      <li class="breadcrumb-item">Production</li>
+                      <li class="breadcrumb-item"><a href="{% url 'clients' %}">Clients</a></li>
+                      <li class="breadcrumb-item"><a href="{% url 'police.details' police.id %}">Police</a></li>
+                      <li class="breadcrumb-item active">Formule de garantie</li>
+                </ol>
+          </div>
+    </div>
+{% endblock %}
 {% block content %}
 <div class="col-12 col-md-12 order-2 order-md-1">
-  {% include 'police/header.html' %}
-  <div class="card">
+    <div class="card">
     <div class="card-header">
-        <h3 class="card-title text-white">{{_('FORMULE_DE_GARANTIE')}}</h3>
-        <div class="card-tools">
-          {% if police.etat_police == "En cours" or police.etat_police == "En attente" %}
-          <a class="btn btn-sm btn-default btn-complement-rouge" data-toggle="modal"  data-target="#modal-formule"><i class="fas fa-plus"></i> {{_('Creer_une_formule_de_garantie')}}</a>
-          {% endif %}
-        </div>
+        <h3 class="card-title text-white">{{_('FORMULE DE GARANTIE')}}</h3>
     </div>
     <div class="card-body">
+        <div class="button-link pull-right mb-2">
+          {% if police.etat_police == "En cours" or police.etat_police == "En attente" %}
+          <a class="btn btn-sm btn-primary mb-1" data-toggle="modal"  data-target="#modal-formule"><i class="fas fa-plus"></i> {{_('Creer une formule de garantie')}}</a>
+          {% endif %}
+        </div>
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
         <div class="row">
           <div class="col-12 col-md-12 col-sm-12">
@@ -21,10 +38,10 @@
                     <tr>
                       <th scope="col">{{_('Libelle')}}</th>
                       <th scope="col">{{_('Code')}}</th>
-                      <th scope="col">{{_('Taux_Couverture')}}</th>
+                      <th scope="col">{{_('Taux Couverture')}}</th>
                       <th scope="col">{{_('Territorialite')}}</th>
-                      <th scope="col">{{_('Type_tarif')}}</th>
-                      <th scope="col">{{_('Reseau_de_soins')}}</th>
+                      <th scope="col">{{_('Type tarif')}}</th>
+                      <th scope="col">{{_('Reseau de soins')}}</th>
                       <th scope="col">{{_('Préfinancement')}}</th>
                       <!--th scope="col">Date fin</th-->
                       <th scope="col">{{_('Statut')}}</th>
@@ -60,7 +77,7 @@
       </div>
     </div>
   </div>
-</div
+</div>
 {% endblock %}
 
 {% block extrajs %}
