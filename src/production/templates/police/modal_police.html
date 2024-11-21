@@ -27,34 +27,7 @@
 						<div class="tab-pane fade mt-3 show active" id="general" role="tabpanel" aria-labelledby="general-tab">
 							<div class="row">
 								<div class="col-md-6">
-									<!--div class="form-group row">
-										<label class="col-sm-5 col-form-label">Client <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control notreset" name="client" value="{{ client.nom }}" readonly/>
-										</div>
-									</div-->
-									<!--div class="form-group row">
-										<label class="col-sm-5 col-form-label">Contrat ou Projet <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control " name="statut_contrat" id="statut_contrat" required>
-												<option value="">Choisir</option>
-												<option value="{{ statut_contrat.PROJET }}">{{ statut_contrat.PROJET }}</option>
-												<option value="{{ statut_contrat.CONTRAT }}">{{ statut_contrat.CONTRAT }}</option>
-											</select>
-										</div>
-									</div-->
 									<input type="hidden" class="form-control notreset" name="statut_contrat" value="{{ statut_contrat }}" readonly/>
-									<!--div class="form-group row">
-										<label class="col-sm-5 col-form-label">Branche <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control " name="branche" id="branche" required>
-												<option value="">Choisir</option>
-												{% for branche in branches %}
-												<option value="{{ branche.id }}" data-branche_code="{{ branche.code }}">{{ branche.nom }}</option>
-												{% endfor %}
-											</select>
-										</div>
-									</div-->
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Produit')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
@@ -148,17 +121,6 @@
 											</div>
 										</div>
 									</div>
-									<!--div class="form-group row">
-										<label class="col-sm-5 col-form-label">Devise <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<select class="form-control" name="devise" required>
-												<option selected value="">Choisir</option>
-												{% for devise in devises %}
-												<option value="{{ devise.id }}">{{ devise.libelle }}</option>
-												{% endfor %}
-											</select>
-										</div>
-									</div-->
 
 									<div class="form-group row  ">
 										<label class="col-sm-6 col-form-label">{{_("Logo du partenaire")}}<span class="required"></span></label>
@@ -319,17 +281,6 @@
 										</div>
 									</div>
 
-<!--									<div class="form-group row">-->
-<!--										<label class="col-sm-6 col-form-label">Type préfinancement <span class="required">*</span></label>-->
-<!--										<div class="col-sm-6">-->
-<!--											<select class="form-control" name="type_prefinancement" autocomplete="off" required>-->
-<!--												<option value="">Choisir</option>-->
-<!--												{% for type_prefinancement in types_prefinancements %}-->
-<!--												<option value="{{ type_prefinancement.id }}">{{ type_prefinancement.libelle }}</option>-->
-<!--												{% endfor %}-->
-<!--											</select>-->
-<!--										</div>-->
-<!--									</div>-->
 									<div class="form-group row">
 										<label class="col-sm-6 col-form-label">{{_('Autofinancement')}} <span class="required">*</span></label>
 										<div class="col-sm-6">
@@ -393,7 +344,7 @@
 
 						<div class="tab-pane fade mt-3" id="intermediaire" role="tabpanel" aria-labelledby="intermediaire-tab">
 							<div class="row">
-								<div class="col-md-12">
+								<div class="col-md-12" id="rep_apporteur">
 									<div class="form-group row">
 										<label class="col-sm-6 col-form-label">{{_('Apporteur')}} <span class="required"></span></label>
 										<div class="col-sm-6">
@@ -458,7 +409,7 @@
 												</tr>
 											</tbody>
 											<tfoot style="display:none;">
-												<tr class="add-row"><td colspan="5"><span id="btnAddLigneApporteur" style="cursor:pointer;" class="btn btn-sm btn-default float-right"><i class="fa fa-plus" style="font-size:12px;"></i> {{_('Ajouter_une_ligne')}}</span></td></tr>
+												<tr class="add-row"><td colspan="5"><span id="btnAddLigneApporteur" style="cursor:pointer;" class="btn btn-sm btn-default float-right"><i class="fa fa-plus" style="font-size:12px;"></i> {{_("Ajouter une ligne")}}</span></td></tr>
 											</tfoot>
 										</table>
 								</div>

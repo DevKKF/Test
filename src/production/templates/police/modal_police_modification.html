@@ -4,7 +4,7 @@
 			<form enctype="multipart/form-data" id="form_update_police" action="{% url 'modifier_police' police.id %}" method="post">
 			{% csrf_token %}
 			<div class="modal-header">
-				<h4 class="modal-title">{{_("MODIFICATION DE LA POLICE")}}<b>N° {{ police.numero }}</b></h4>
+				<h4 class="modal-title">{{_("MODIFICATION DE LA POLICE")}} <b>N° {{ police.numero }}</b></h4>
 				<button type="button"class="close"data-dismiss="modal"aria-label="Close">
 					<span aria-hidden="true">×</span>
 				</button>
@@ -106,19 +106,6 @@
 											</select>
 										</div>
 									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Apporteur')}} <span class="required"></span></label>
-										<div class="col-sm-7">
-											<div class="icheck-danger d-inline">
-											  <input type="radio" name="apporteur" value="OUI" id="yes_apporteur_modification"/>
-											  <label for="yes_apporteur_modification"> {{_('OUI')}} </label>
-											</div>
-											<div class="icheck-danger d-inline" style="margin-left:50px;">
-											  <input type="radio" name="apporteur" value="NON" id="no_apporteur_modification" checked/>
-											  <label for="no_apporteur_modification">{{_('NON')}} </label>
-											</div>
-										</div>
-									</div>
 
 									<div class="form-group row  ">
 										<label class="col-sm-5 col-form-label">{{_("Logo du partenaire")}}<span class="required"></span></label>
@@ -138,8 +125,24 @@
 
 						<div class="tab-pane fade mt-3" id="intermediaire_modification" role="tabpanel" aria-labelledby="intermediaire-tab_modification">
 							<div class="row">
-								<div class="col-md-12">
-									<div class="col-sm-12" style="padding-right:0px;" id="test">
+								<div class="col-md-12" id="rep_apporteur_modification">
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Apporteur')}} <span class="required"></span></label>
+										<div class="col-sm-7">
+											<div class="icheck-danger d-inline">
+											  <input type="radio" name="apporteur" value="OUI" id="yes_apporteur_modification" {% if police.apporteur == "OUI" %} checked {% endif %}>
+											  <label for="yes_apporteur_modification"> {{_('OUI')}} </label>
+											</div>
+											<div class="icheck-danger d-inline" style="margin-left:50px;">
+											  <input type="radio" name="apporteur" value="NON" id="no_apporteur_modification" {% if police.apporteur == "NON" %} checked {% endif %}>
+											  <label for="no_apporteur_modification">{{_('NON')}} </label>
+											</div>
+										</div>
+									</div>
+								</div>
+								<hr>
+								<div class="col-md-12" id="test_modification" style="display: {% if police.apporteur == 'OUI' %} block {% else %} none {% endif %};">
+									<div class="col-sm-12" style="padding-right:0px;">
 										<table id="table_apporteurs_police_modification" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
 											<thead>
 												<tr>
@@ -316,15 +319,15 @@
 											  <label for="yes_participation_modification"> {{_('OUI')}} </label>
 											</div>
 											<div class="icheck-danger d-inline" style="margin-left:50px;">
-											  <input type="radio" {% if optionYesNo.NO == police.participation %} checked {% endif %} name="participation" value="NON" class="participation" id="no_participation_modification" checked/>
+											  <input type="radio" {% if optionYesNo.NON == police.participation %} checked {% endif %} name="participation" value="NON" class="participation" id="no_participation_modification"/>
 											  <label for="no_participation_modification">{{_('NON')}} </label>
 											</div>
 										</div>
 									</div>
-									<div class="form-group row" id="box_taux_participation" style="display:none;">
-										<label class="col-sm-6 col-form-label">{{_('Taux_de_participation ')}}</label>
+									<div class="form-group row" id="box_taux_participation_modification">
+										<label class="col-sm-6 col-form-label">{{_("Taux de participation")}} <span class="required">*</span></label>
 										<div class="col-sm-6">
-											<input type="text" class="form-control money_field" name="taux_participation" id="taux_participation_modification" value="{{ police.taux_participation|default_if_none:'0' }}"/>
+											<input type="text" class="form-control money_field" name="taux_participation" id="taux_participation_modification" value="{{ police.taux_participation|default_if_none:'0' }}">
 										</div>
 									</div>
 								</div>
@@ -397,10 +400,10 @@
 
 				</div>
 				<div class="modal-footer justify-content-between">
-					<button type="button" class="btn btn-default" data-dismiss="modal">{{_('Retour')}}</button>
+					<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
 					<div></div>
 					<input type="hidden" id="liste_autres_taxes_modification" name="liste_autres_taxes_modification">
-					<button type="button" id="btn_save_modification_police" class="btn o-bg-primary">{{_('Valider')}}</button>
+					<button type="button" id="btn_save_modification_police" class="btn btn-info o-bg-primary"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
 				</div>
 			</div>
 			</form>

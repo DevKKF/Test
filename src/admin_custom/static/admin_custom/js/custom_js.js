@@ -6032,7 +6032,7 @@ $(document).ready(function () {
     //
 
 
-    function on_change_participation(participation) {
+    /*function on_change_participation(participation) {
 
         if (participation == 'OUI') {
 
@@ -6052,16 +6052,91 @@ $(document).ready(function () {
 
         }
 
+    }*/
+    function on_change_participation(participation) {
+        if (participation == 'OUI') {
+            // Gestion pour #modal-police
+            $('#modal-police #box_taux_participation').show();
+            $("#modal-police #taux_participation").attr('required', true);
+            $('#modal-police #box_taux_participation').find('label').html('Taux de participation <span class="text-red">*</span>');
+
+            // Gestion pour #modal-modification_police
+            $('#modal-modification_police #box_taux_participation_modification').show();
+            $("#modal-modification_police #taux_participation_modification").attr('required', true);
+            $('#modal-modification_police #box_taux_participation_modification').find('label').html('Taux de participation <span class="text-red">*</span>');
+        } else {
+            // Gestion pour #modal-police
+            $('#modal-police #box_taux_participation').hide();
+            $("#modal-police #taux_participation").val('0').removeAttr('required');
+            $('#modal-police #box_taux_participation').find('label').html('Taux de participation ');
+
+            // Gestion pour #modal-modification_police
+            $('#modal-modification_police #box_taux_participation_modification').hide();
+            $("#modal-modification_police #taux_participation_modification").val('0').removeAttr('required');
+            $('#modal-modification_police #box_taux_participation_modification').find('label').html('Taux de participation ');
+        }
     }
 
-    //on_change_participation();
-    $(document).on("change", "#modal-police .participation", function () {
-
+    $(document).on("change", "#modal-police .participation, #modal-modification_police .participation", function () {
         let participation = $(this).val();
-
         on_change_participation(participation);
-
     });
+
+
+    function on_change_apporteur(apporteur, context) {
+        const creation = context === 'creation';
+        const modification = context === 'modification';
+
+        if (apporteur === 'OUI') {
+            // Affichage pour la création
+            if (creation) {
+                $('#test').show();
+                $('#table_apporteurs_police').find('input, select').attr('required', true);
+            }
+
+            // Affichage pour la modification
+            if (modification) {
+                $('#test_modification').show();
+                $('#table_apporteurs_police_modification').find('input, select').attr('required', true);
+            }
+        } else {
+            // Masquage pour la création
+            if (creation) {
+                $('#test').hide();
+                $('#table_apporteurs_police').find('input, select').removeAttr('required').val('');
+            }
+
+            // Masquage pour la modification
+            if (modification) {
+                $('#test_modification').hide();
+                $('#table_apporteurs_police_modification').find('input, select').removeAttr('required').val('');
+            }
+        }
+    }
+
+    // Gestionnaire pour les radios de la création
+    $('#yes_apporteur, #no_apporteur').on('change', function() {
+        const value = $(this).val();
+        on_change_apporteur(value, 'creation');
+    });
+
+    // Gestionnaire pour les radios de la modification
+    $('#yes_apporteur_modification, #no_apporteur_modification').on('change', function() {
+        const value = $(this).val();
+        on_change_apporteur(value, 'modification');
+    });
+
+    // Initialisation au chargement
+    $(document).ready(function() {
+        // Initialisation pour la création
+        const apporteurCreation = $('input[name="apporteur"]:checked').val();
+        on_change_apporteur(apporteurCreation, 'creation');
+
+        // Initialisation pour la modification
+        const apporteurModification = $('input[name="apporteur"]:checked').val();
+        on_change_apporteur(apporteurModification, 'modification');
+    });
+
 
 
     //gestion autres taxes
@@ -6606,6 +6681,8 @@ $(document).ready(function () {
         calculer_montant_divers_quittance();
 
     });
+
+
     function calculer_montant_divers_quittance() {
 
         let nature_quittance_id = $('#modal-quittance #nature_quittance').val();
@@ -8521,6 +8598,7 @@ $(document).ready(function () {
 
     });
 
+
     //********** FAIRE UN REGLEMENT FACTURES GARANTS | SUIVI DE TRÉSORERIE */
     $("#btnOpenDialogReglementFacturesGarant").on('click', function () {
 
@@ -8846,6 +8924,7 @@ $(document).ready(function () {
 
     });
     //fin reglement de facture garant unique / TRESO
+
 
     // Annulation de facture garant / TRESO
     $(document).on('click', '.btn_annuler_une_facture_compagnie_treso', function () {
@@ -13632,7 +13711,7 @@ $(document).ready(function () {
 });
 
 //Affichage du tableau si réponse apporteur est oui.
-document.addEventListener('DOMContentLoaded', function () {
+/*document.addEventListener('DOMContentLoaded', function () {
     const yesRadio = document.getElementById('yes_apporteur');
     const noRadio = document.getElementById('no_apporteur');
     const tableDiv = document.getElementById('test');
@@ -13668,4 +13747,4 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     });
-});
+});*/

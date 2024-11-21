@@ -71,6 +71,7 @@ urlpatterns = [
     path('del_tarif_specifique', views.del_tarif_specifique, name='del_tarif_specifique'),
     path('police/<int:police_id>/ged', PoliceGedView.as_view(), name='police_ged'),
     path('police/<int:police_id>/add_document', views.police_add_document, name='police_add_document'),
+    path('police/vider-session-apporteur/', views.vider_apporteurs_modification, name='vider_apporteurs_modification'),
 
     path('police/<int:police_id>/beneficiaires', PoliceBeneficiairesView.as_view(), name='police_beneficiaires'),
     path('police/<int:police_id>/beneficiaires_datatable', views.police_beneficiaires_datatable, name='police_beneficiaires_datatable'),

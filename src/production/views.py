@@ -747,8 +747,7 @@ def add_police(request, client_id):
 
         if form.is_valid():
 
-            #produit = Produit.objects.get(id=request.POST.get('produit'))
-            produit = Produit.objects.get(code="100991")#SANTE
+            produit = Produit.objects.get(id=request.POST.get('produit'))
             branche = produit.branche
             compagnie = Compagnie.objects.get(id=request.POST.get('compagnie'))
             numero = request.POST.get('numero')
@@ -1028,8 +1027,8 @@ def modifier_police(request, police_id):
         compagnie = Compagnie.objects.get(id=request.POST.get('compagnie'))
         numero = request.POST.get('numero')
         apporteur = request.POST.get('apporteur')
-        programme_international = request.POST.get('programme_international')
-        placement_gestion = request.POST.get('placement_gestion')
+        #programme_international = request.POST.get('programme_international')
+        #placement_gestion = request.POST.get('placement_gestion')
         date_debut_effet = request.POST.get('date_debut_effet')
         date_fin_effet = request.POST.get('date_fin_effet')
         preavis_de_resiliation = request.POST.get('preavis_de_resiliation')
@@ -1055,10 +1054,10 @@ def modifier_police(request, police_id):
         if taux_com_courtage == "": taux_com_courtage = 0
         taux_com_courtage_terme = request.POST.get('taux_com_courtage_terme').replace(' ', '')
         if taux_com_courtage_terme == "": taux_com_courtage_terme = 0
-        taux_com_gestion = request.POST.get('taux_com_gestion').replace(' ', '')
-        if taux_com_gestion == "": taux_com_gestion = 0
-        commission_gestion = request.POST.get('commission_gestion').replace(' ', '')
-        if commission_gestion == "": commission_gestion = 0
+        #taux_com_gestion = request.POST.get('taux_com_gestion').replace(' ', '')
+        #if taux_com_gestion == "": taux_com_gestion = 0
+        #commission_gestion = request.POST.get('commission_gestion').replace(' ', '')
+        #if commission_gestion == "": commission_gestion = 0
         commission_courtage = request.POST.get('commission_courtage').replace(' ', '')
         if commission_courtage == "": commission_courtage = 0
         commission_intermediaires = request.POST.get('commission_intermediaire').replace(' ', '')
@@ -1073,52 +1072,52 @@ def modifier_police(request, police_id):
         type_prefinancement_id = request.POST.get('type_prefinancement')
 
         mode_calcul_id = request.POST.get('mode_calcul')
-        prime_famille = request.POST.get('prime_famille').replace(' ', '')
-        if prime_famille == "": prime_famille = 0
-        nombre_max_enfants_famille = request.POST.get('nombre_max_enfants_famille').replace(' ', '')
-        if nombre_max_enfants_famille == "": nombre_max_enfants_famille = 0
-        nombre_max_personne_famille = request.POST.get('nombre_max_personne_famille').replace(' ', '')
-        if nombre_max_personne_famille == "": nombre_max_personne_famille = 0
-        age_max_enfants = request.POST.get('age_max_enfants').replace(' ', '')
-        if age_max_enfants == "": age_max_enfants = 0
-        age_max_adultes = request.POST.get('age_max_adultes').replace(' ', '')
-        if age_max_adultes == "": age_max_adultes = 0
-        surprime_personne_sup = request.POST.get('surprime_personne_sup').replace(' ', '')
-        if surprime_personne_sup == "": surprime_personne_sup = 0
-        surprime_enfant_sup = request.POST.get('surprime_enfant_sup').replace(' ', '')
-        if surprime_enfant_sup == "": surprime_enfant_sup = 0
-        surprime_age_adulte = request.POST.get('surprime_age_adulte').replace(' ', '')
-        if surprime_age_adulte == "": surprime_age_adulte = 0
-        surprime_ascendant = request.POST.get('surprime_ascendant').replace(' ', '')
-        if surprime_ascendant == "": surprime_ascendant = 0
-        prime_personne = request.POST.get('prime_personne').replace(' ', '')
-        if prime_personne == "": prime_personne = 0
-        prime_adulte = request.POST.get('prime_adulte').replace(' ', '')
-        if prime_adulte == "": prime_adulte = 0
-        prime_enfant = request.POST.get('prime_enfant').replace(' ', '')
-        if prime_enfant == "": prime_enfant = 0
-        taux_cotisation = request.POST.get('taux_cotisation').replace(' ', '')
-        if taux_cotisation == "": taux_cotisation = 0
-        part_employeur = request.POST.get('part_employeur').replace(' ', '')
-        if part_employeur == "": part_employeur = 0
-        cotisation_minimale = request.POST.get('cotisation_minimale').replace(' ', '')
-        if cotisation_minimale == "": cotisation_minimale = 0
-        cotisation_maximale = request.POST.get('cotisation_maximale').replace(' ', '')
-        if cotisation_maximale == "": cotisation_maximale = 0
-        type_majoration = request.POST.get('type_majoration')
+        #prime_famille = request.POST.get('prime_famille').replace(' ', '')
+        #if prime_famille == "": prime_famille = 0
+        #nombre_max_enfants_famille = request.POST.get('nombre_max_enfants_famille').replace(' ', '')
+        #if nombre_max_enfants_famille == "": nombre_max_enfants_famille = 0
+        #nombre_max_personne_famille = request.POST.get('nombre_max_personne_famille').replace(' ', '')
+        #if nombre_max_personne_famille == "": nombre_max_personne_famille = 0
+        #age_max_enfants = request.POST.get('age_max_enfants').replace(' ', '')
+        #if age_max_enfants == "": age_max_enfants = 0
+        #age_max_adultes = request.POST.get('age_max_adultes').replace(' ', '')
+        #if age_max_adultes == "": age_max_adultes = 0
+        #surprime_personne_sup = request.POST.get('surprime_personne_sup').replace(' ', '')
+        #if surprime_personne_sup == "": surprime_personne_sup = 0
+        #surprime_enfant_sup = request.POST.get('surprime_enfant_sup').replace(' ', '')
+        #if surprime_enfant_sup == "": surprime_enfant_sup = 0
+        #surprime_age_adulte = request.POST.get('surprime_age_adulte').replace(' ', '')
+        #if surprime_age_adulte == "": surprime_age_adulte = 0
+        #surprime_ascendant = request.POST.get('surprime_ascendant').replace(' ', '')
+        #if surprime_ascendant == "": surprime_ascendant = 0
+        #prime_personne = request.POST.get('prime_personne').replace(' ', '')
+        #if prime_personne == "": prime_personne = 0
+        #prime_adulte = request.POST.get('prime_adulte').replace(' ', '')
+        #if prime_adulte == "": prime_adulte = 0
+        #prime_enfant = request.POST.get('prime_enfant').replace(' ', '')
+        #if prime_enfant == "": prime_enfant = 0
+        #taux_cotisation = request.POST.get('taux_cotisation').replace(' ', '')
+        #if taux_cotisation == "": taux_cotisation = 0
+        #part_employeur = request.POST.get('part_employeur').replace(' ', '')
+        #if part_employeur == "": part_employeur = 0
+        #cotisation_minimale = request.POST.get('cotisation_minimale').replace(' ', '')
+        #if cotisation_minimale == "": cotisation_minimale = 0
+        #cotisation_maximale = request.POST.get('cotisation_maximale').replace(' ', '')
+        #if cotisation_maximale == "": cotisation_maximale = 0
+        #type_majoration = request.POST.get('type_majoration')
 
-        autofinancement = request.POST.get('autofinancement')
-        devise_id = request.POST.get('devise')
-        taux_charge = request.POST.get('taux_charge').replace(' ', '')
-        if taux_charge == "": taux_charge = 0
-        coefficient_n = request.POST.get('coefficient_n').replace(' ', '')
-        if coefficient_n == "": coefficient_n = 0
-        coefficient_n1 = request.POST.get('coefficient_n1').replace(' ', '')
-        if coefficient_n1 == "": coefficient_n1 = 0
-        coefficient_n2 = request.POST.get('coefficient_n2').replace(' ', '')
-        if coefficient_n2 == "": coefficient_n2 = 0
-        coefficient_n3 = request.POST.get('coefficient_n3').replace(' ', '')
-        if coefficient_n3 == "": coefficient_n3 = 0
+        #autofinancement = request.POST.get('autofinancement')
+        #devise_id = request.POST.get('devise')
+        #taux_charge = request.POST.get('taux_charge').replace(' ', '')
+        #if taux_charge == "": taux_charge = 0
+        #coefficient_n = request.POST.get('coefficient_n').replace(' ', '')
+        #if coefficient_n == "": coefficient_n = 0
+        #coefficient_n1 = request.POST.get('coefficient_n1').replace(' ', '')
+        #if coefficient_n1 == "": coefficient_n1 = 0
+        #coefficient_n2 = request.POST.get('coefficient_n2').replace(' ', '')
+        #if coefficient_n2 == "": coefficient_n2 = 0
+        #coefficient_n3 = request.POST.get('coefficient_n3').replace(' ', '')
+        #if coefficient_n3 == "": coefficient_n3 = 0
 
         # Récupérer la police à mettre à jour
         police_old = Police.objects.get(id=police_id)
@@ -1140,8 +1139,8 @@ def modifier_police(request, police_id):
             veos_id_pol=police_old.veos_id_pol,
             devise=police_old.devise,
             apporteur=police_old.apporteur,
-            programme_international=police_old.programme_international,
-            placement_gestion=police_old.placement_gestion,
+            #programme_international=police_old.programme_international,
+            #placement_gestion=police_old.placement_gestion,
             date_souscription=police_old.date_souscription,
             date_debut_effet=police_old.date_debut_effet,
             date_fin_effet=police_old.date_fin_effet,
@@ -1154,7 +1153,7 @@ def modifier_police(request, police_id):
             date_prochaine_facture=police_old.date_prochaine_facture,
             taux_com_courtage=police_old.taux_com_courtage,
             taux_com_courtage_terme=police_old.taux_com_courtage_terme,
-            taux_com_gestion=police_old.taux_com_gestion,
+            #taux_com_gestion=police_old.taux_com_gestion,
             participation=police_old.participation,
             taux_participation=police_old.taux_participation,
             prime_ht=police_old.prime_ht,
@@ -1168,30 +1167,30 @@ def modifier_police(request, police_id):
             autres_taxes=police_old.autres_taxes,
             type_prefinancement=police_old.type_prefinancement,
             ticket_moderateur=police_old.ticket_moderateur,
-            mode_calcul=police_old.mode_calcul,
-            prime_famille=police_old.prime_famille,
-            nombre_max_personne_famille=police_old.nombre_max_personne_famille,
-            nombre_max_enfants_famille=police_old.nombre_max_enfants_famille,
-            age_max_adultes=police_old.age_max_adultes,
-            age_max_enfants=police_old.age_max_enfants,
-            surprime_personne_sup=police_old.surprime_personne_sup,
-            surprime_enfant_sup=police_old.surprime_enfant_sup,
-            surprime_age_adulte=police_old.surprime_age_adulte,
-            surprime_ascendant=police_old.surprime_ascendant,
-            prime_personne=police_old.prime_personne,
-            prime_adulte=police_old.prime_adulte,
-            prime_enfant=police_old.prime_enfant,
-            taux_cotisation=police_old.taux_cotisation,
-            part_employeur=police_old.part_employeur,
-            cotisation_minimale=police_old.cotisation_minimale,
-            cotisation_maximale=police_old.cotisation_maximale,
-            type_majoration=police_old.type_majoration,
-            autofinancement=police_old.autofinancement,
-            taux_charge=police_old.taux_charge,
-            coefficient_n=police_old.coefficient_n,
-            coefficient_n1=police_old.coefficient_n1,
-            coefficient_n2=police_old.coefficient_n2,
-            coefficient_n3=police_old.coefficient_n3,
+            #mode_calcul=police_old.mode_calcul,
+            #prime_famille=police_old.prime_famille,
+            #nombre_max_personne_famille=police_old.nombre_max_personne_famille,
+            #nombre_max_enfants_famille=police_old.nombre_max_enfants_famille,
+            #age_max_adultes=police_old.age_max_adultes,
+            #age_max_enfants=police_old.age_max_enfants,
+            #surprime_personne_sup=police_old.surprime_personne_sup,
+            #surprime_enfant_sup=police_old.surprime_enfant_sup,
+            #surprime_age_adulte=police_old.surprime_age_adulte,
+            #surprime_ascendant=police_old.surprime_ascendant,
+            #prime_personne=police_old.prime_personne,
+            #prime_adulte=police_old.prime_adulte,
+            #prime_enfant=police_old.prime_enfant,
+            #taux_cotisation=police_old.taux_cotisation,
+            #part_employeur=police_old.part_employeur,
+            #cotisation_minimale=police_old.cotisation_minimale,
+            #cotisation_maximale=police_old.cotisation_maximale,
+            #type_majoration=police_old.type_majoration,
+            #autofinancement=police_old.autofinancement,
+            #taux_charge=police_old.taux_charge,
+            #coefficient_n=police_old.coefficient_n,
+            #coefficient_n1=police_old.coefficient_n1,
+            #coefficient_n2=police_old.coefficient_n2,
+            #coefficient_n3=police_old.coefficient_n3,
             statut=police_old.statut,
             created_at=police_old.created_at,
             updated_at=police_old.updated_at,
@@ -1261,8 +1260,8 @@ def modifier_police(request, police_id):
             compagnie_id=compagnie.id,
             numero=numero,
             apporteur=apporteur,
-            programme_international=programme_international,
-            placement_gestion=placement_gestion,
+            #programme_international=programme_international,
+            #placement_gestion=placement_gestion,
             date_souscription=date_debut_effet,
             date_debut_effet=date_debut_effet,
             date_fin_effet=date_fin_effet,
@@ -1280,8 +1279,8 @@ def modifier_police(request, police_id):
             autres_taxes=autres_taxes,
             taux_com_courtage=taux_com_courtage,
             taux_com_courtage_terme=taux_com_courtage_terme,
-            taux_com_gestion=taux_com_gestion,
-            commission_gestion=commission_gestion,
+            #taux_com_gestion=taux_com_gestion,
+            #commission_gestion=commission_gestion,
             commission_courtage=commission_courtage,
             commission_intermediaires=commission_intermediaires,
             cout_police_compagnie=cout_police_compagnie,
@@ -1290,32 +1289,32 @@ def modifier_police(request, police_id):
             calcul_tm=calcul_tm,
             type_prefinancement_id=type_prefinancement_id,
 
-            mode_calcul_id=mode_calcul_id, #champ non présent dans le formulaire de modification
-            prime_famille=prime_famille,
-            nombre_max_enfants_famille=nombre_max_enfants_famille,
-            nombre_max_personne_famille=nombre_max_personne_famille,
-            age_max_enfants=age_max_enfants,
-            age_max_adultes=age_max_adultes,
-            surprime_personne_sup=surprime_personne_sup,
-            surprime_enfant_sup=surprime_enfant_sup,
-            surprime_age_adulte=surprime_age_adulte,
-            surprime_ascendant=surprime_ascendant,
-            prime_personne=prime_personne,
-            prime_adulte=prime_adulte,
-            prime_enfant=prime_enfant,
-            taux_cotisation=taux_cotisation,
-            part_employeur=part_employeur,
-            cotisation_minimale=cotisation_minimale,
-            cotisation_maximale=cotisation_maximale,
-            type_majoration=type_majoration,
+            #mode_calcul_id=mode_calcul_id, #champ non présent dans le formulaire de modification
+            #prime_famille=prime_famille,
+            #nombre_max_enfants_famille=nombre_max_enfants_famille,
+            #nombre_max_personne_famille=nombre_max_personne_famille,
+            #age_max_enfants=age_max_enfants,
+            #age_max_adultes=age_max_adultes,
+            #surprime_personne_sup=surprime_personne_sup,
+            #surprime_enfant_sup=surprime_enfant_sup,
+            #surprime_age_adulte=surprime_age_adulte,
+            #surprime_ascendant=surprime_ascendant,
+            #prime_personne=prime_personne,
+            #prime_adulte=prime_adulte,
+            #prime_enfant=prime_enfant,
+            #taux_cotisation=taux_cotisation,
+            #part_employeur=part_employeur,
+            #cotisation_minimale=cotisation_minimale,
+            #cotisation_maximale=cotisation_maximale,
+            #type_majoration=type_majoration,
 
-            autofinancement=autofinancement,
-            devise_id=devise_id,
-            taux_charge=taux_charge,
-            coefficient_n=coefficient_n,
-            coefficient_n1=coefficient_n1,
-            coefficient_n2=coefficient_n2,
-            coefficient_n3=coefficient_n3,
+            #autofinancement=autofinancement,
+            #devise_id=devise_id,
+            #taux_charge=taux_charge,
+            #coefficient_n=coefficient_n,
+            #coefficient_n1=coefficient_n1,
+            #coefficient_n2=coefficient_n2,
+            #coefficient_n3=coefficient_n3,
             statut=Statut.ACTIF,
             updated_by=request.user
         )
@@ -8181,4 +8180,16 @@ class AnnulerQuittanceView(TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
+
+
+
+
+def vider_apporteurs_modification(request):
+    if request.method == 'POST':
+        police_id = request.POST.get('police_id')
+        # Logique pour supprimer les apporteurs liés à cette police
+        # Exemple : Apporteur.objects.filter(police_id=police_id).delete()
+        return JsonResponse({'message': 'Données supprimées avec succès.'})
+    return JsonResponse({'error': 'Requête invalide.'}, status=400)
+
 

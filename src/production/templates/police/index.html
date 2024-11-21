@@ -77,12 +77,6 @@
                                 <span class="form-control">{{ police.produit|default_if_none:"" }}</span>
                                 </div>
                             </div>
-                            <div class="form-group row d-none">
-                                <label class="col-sm-6 col-form-label">{{_("Type de prefinancement")}}</label>
-                                <div class="col-sm-6">
-                                <span class="form-control">{{ police.type_prefinancement|default_if_none:"" }}</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
                     <hr>
@@ -222,12 +216,6 @@
                                 <span class="form-control text-right">{{police.taux_com_courtage|default_if_none:''}} %</span>
                                 </div>
                             </div>
-                            <div class="form-group row d-none">
-                                <label class="col-sm-6 col-form-label">{{_("Taux Com Gestion")}}</label>
-                                <div class="col-sm-6">
-                                <span class="form-control text-right">{{police.taux_com_gestion|default_if_none:''}} %</span>
-                                </div>
-                            </div>
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_("Taux Participation")}}</label>
                                 <div class="col-sm-6">
@@ -352,7 +340,7 @@
                                 <label class="col-sm-6 col-form-label">{{_("Logo du partenaire")}}</label>
                                 <div class="col-sm-6">
                                     {% if police.logo_partenaire %}
-                                    <img style="width:50px;" src="{{request.scheme}}://{{request.META.HTTP_HOST}}{{police.logo_partenaire.url}}" alt="" srcset="" class="logo-partenaire">
+                                        <img style="width:50px;" src="{{request.scheme}}://{{request.META.HTTP_HOST}}{{police.logo_partenaire.url}}" alt="" srcset="" class="logo-partenaire">
                                     {% endif %}
                                 </div>
                             </div>
