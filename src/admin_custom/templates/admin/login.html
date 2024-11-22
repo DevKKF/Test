@@ -19,6 +19,18 @@
           background-color: white;
           float: left;
     }
+
+    .btn-primary {
+      color: #fff;
+      background-color: #F16623 !important;
+      border-color: #F16623 !important;
+    }
+
+    .logo-img{
+        width:350px;
+        margin:auto;
+        margin-bottom:15px
+    }
 </style>
 <div class="d-lg-flex half">
     <div class="bg order-1 order-md-2" style=""></div>
@@ -27,8 +39,9 @@
       <div class="container">
         <div class="row align-items-center justify-content-center">
           <div class="col-md-7">
-            <h3>Se connecter à <strong>INOV</strong></h3><br>
-            <form action="{{ app_path }}" method="post">
+              <!--img src="{% static 'admin_custom/img/logo.png' %}" alt="AXIS | Cabinet de courtage en assurance" class="logo-img"-->
+              <h3>Se connecter à <strong>INOV</strong></h3><br>
+              <form action="{{ app_path }}" method="post">
               {% csrf_token %}
               {% if user.is_authenticated %}
                   <p class="errornote">
