@@ -152,7 +152,7 @@ img.custom-logo.brand-image {
 }
 
 .accent-primary .btn-link, .accent-primary .nav-tabs .nav-link, .accent-primary a:not(.dropdown-item):not(.btn-app):not(.nav-link):not(.brand-link):not(.page-link):not(.btn) {
-    color: #FFF;
+    color: #000;
 }
 
 .accent-primary .btn-link:hover, .accent-primary .nav-tabs .nav-link:hover, .accent-primary a:not(.dropdown-item):not(.btn-app):not(.nav-link):not(.brand-link):not(.page-link):not(.btn):hover {
@@ -604,4 +604,15 @@ article .shimmer{
 
 #table_clients tbody a{
     color: #EF6630;
+}
+
+.card-header-gray{
+    background : #6B726A !important;
+    font-weight: bold;
+}
+
+.bordered_block {
+  box-shadow: none !important;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
 }

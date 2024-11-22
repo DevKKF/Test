@@ -13633,22 +13633,71 @@ $(document).ready(function () {
 
 function on_change_apporteur(response) {
     if (response === 'OUI') {
-        $('#test').show(); // Afficher la table
-        $('#test input, #test select, #test textarea').attr('required', true); // Rendre les champs obligatoires si nécessaire
+        $('#test').show(); // Afficher la section apporteur
+        $('#test input, #test select, #test textarea').attr('required', true); // Rendre les champs apporteur obligatoires
     } else {
-        $('#test').hide(); // Cacher la table
+        $('#test').hide(); // Cacher la section apporteur
         $('#test input, #test select, #test textarea').val('').removeAttr('required'); // Réinitialiser les champs
         $('#total_commission_intermediaire').val('0'); // Réinitialiser le champ de commission
     }
 }
 
-// Exemple d'attachement de l'événement si les boutons radio ont les ID "yes_apporteur" et "no_apporteur"
+function on_change_garantie(response) {
+    if (response === 'OUI') {
+        $('#test_garantie').show(); // Afficher la section garantie
+        $('#test_garantie input').attr('required', true); // Rendre les champs garantie obligatoires
+    } else {
+        $('#test_garantie').hide(); // Cacher la section garantie
+        $('#test_garantie input').val('').removeAttr('required'); // Réinitialiser les champs garantie
+    }
+}
+
+// Attachement des événements pour les boutons radio apporteur
 $('input[name="apporteur"]').on('change', function () {
     on_change_apporteur($(this).val());
 });
 
+// Attachement des événements pour les boutons radio garantie
+$('input[name="garantie"]').on('change', function () {
+    on_change_garantie($(this).val());
+});
+
 // Initialisation basée sur l'état initial des boutons radio
 $(document).ready(function () {
-    const response = $('input[name="apporteur"]:checked').val();
-    on_change_apporteur(response);
+    // Initialiser la section apporteur
+    const response_apporteur = $('input[name="apporteur"]:checked').val();
+    on_change_apporteur(response_apporteur);
+
+    // Initialiser la section garantie
+    const response_garantie = $('input[name="garantie"]:checked').val();
+    on_change_garantie(response_garantie);
+});
+
+$(document).ready(function () {
+    // Masquer les onglets spécifiques au chargement
+    $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab').addClass('d-none');
+
+    // Gérer le changement de produit
+    $("#produit").on('change', function () {
+        // Récupérer les données de l'option sélectionnée
+        let produit_id = $(this).val();
+        let typeproduit_id = $(this).find('option:selected').data('typeproduit_id');
+        let branche_code = $(this).find('option:selected').data('branche_code');
+
+        // Masquer les onglets spécifiques par défaut
+        $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab').addClass('d-none');
+
+        // Logique pour afficher les onglets en fonction des conditions
+        if (typeproduit_id == 1) {
+            $('#garantie-tab').removeClass('d-none');
+            if (branche_code == 100991) {
+                $('#vehicule-tab').removeClass('d-none');
+            }
+            if (branche_code == 100992) {
+                $('#aliment-tab').removeClass('d-none');
+            }
+        } else if (typeproduit_id == 2) {
+            $('#risque-tab').removeClass('d-none');
+        }
+    });
 });

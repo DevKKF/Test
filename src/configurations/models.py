@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django_currentuser.middleware import (get_current_user, get_current_authenticated_user)
+from django.core.exceptions import ValidationError
 
 from shared.enum import StatutReversementCompagnie, StatutEncaissementCommission, BaseCalculTM, Statut, PasswordType, \
     StatutValidite, TypeAlerte, TypeBonConsultation
@@ -1362,6 +1363,19 @@ class Garantie(models.Model):
         verbose_name_plural = 'Garanties'
 
 
+class TypeProduit(models.Model):
+    nom = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.nom} - {self.created_at}"
+
+    class Meta:
+        db_table = 'type_produit'
+        verbose_name = 'Type Produit'
+        verbose_name_plural = 'Type Produit'
+
 class Branche(models.Model):
     code = models.CharField(max_length=10, blank=True, null=True)
     nom = models.CharField(max_length=100, blank=True, null=True)
@@ -1380,6 +1394,7 @@ class Branche(models.Model):
 
 class Produit(models.Model):
     branche = models.ForeignKey(Branche, null=True, on_delete=models.RESTRICT)
+    type_produit = models.ForeignKey(TypeProduit, null=True, on_delete=models.RESTRICT)
     code = models.CharField(max_length=10, blank=True, null=True)
     nom = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -2043,6 +2058,46 @@ class TypeCarosserie(models.Model):
         verbose_name = 'Type de carosserie'
         verbose_name_plural = "Types de carosserie"
 
+class Carosserie(models.Model):
+    libelle = models.CharField(max_length=50, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'carosserie'
+        verbose_name = 'Carosseries'
+        verbose_name_plural = "Carosseries"
+
+
+class Carburant(models.Model):
+    libelle = models.CharField(max_length=50, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'carburant'
+        verbose_name = 'Carburants'
+        verbose_name_plural = "Carburants"
+
+class Usage(models.Model):
+    libelle = models.CharField(max_length=50, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'usage'
+        verbose_name = 'Usages'
+        verbose_name_plural = "Usages"
+
 
 class MarqueVehicule(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
@@ -2499,3 +2554,4 @@ class BusinessUnit(models.Model):
         db_table = 'business_unit'
         verbose_name = 'Business Unit'
         verbose_name_plural = 'Business Unit'
+

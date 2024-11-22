@@ -48,7 +48,7 @@ from configurations.models import Compagnie, MarqueVehicule, Pays, Civilite, Qua
     Territorialite, ModeCalcul, Duree, TicketModerateur, TypeCarosserie, User, Fractionnement, ModeReglement, \
     Regularisation, Bureau, BusinessUnit, \
     Devise, Taxe, BureauTaxe, Apporteur, BaseCalcul, TypeQuittance, NatureQuittance, TypeClient, TypePersonne, Langue, \
-    Branche, ParamProduitCompagnie, CategorieVehicule, Banque, \
+    Branche, ParamProduitCompagnie, CategorieVehicule, Banque, Carburant, Usage, Carosserie, \
     NatureOperation, TypeTarif, Prestataire, Acte, Rubrique, ReseauSoin, Periodicite, PrescripteurPrestataire, \
     AuthGroup, ActionLog, SousRubrique, RegroupementActe, TypePrefinancement, CompteTresorerie, SousRegroupementActe, \
     GroupeInter
@@ -6289,7 +6289,10 @@ class PoliceClientView(TemplateView):
             taxes = Taxe.objects.all().order_by('libelle')
             bureau_taxes = BureauTaxe.objects.filter(bureau_id=client.bureau_id)
             bases_calculs = BaseCalcul.objects.all().order_by('libelle')
-            modes_calculs = ModeCalcul.objects.all().order_by('libelle')
+            catgories = CategorieVehicule.objects.all().order_by('libelle')
+            carburants = Carburant.objects.all().order_by('libelle')
+            usages = Usage.objects.all().order_by('libelle')
+            carosseries = Carosserie.objects.all().order_by('libelle')
 
             placement_gestion = PlacementEtGestion
             mode_renouvellement = ModeRenouvellement
@@ -6310,11 +6313,15 @@ class PoliceClientView(TemplateView):
                              'devises': devises, 'utilisateurs': utilisateurs, 'bureaux': bureaux, 'taxes': taxes,
                              'bureau_taxes': bureau_taxes,
                              'apporteurs': apporteurs, 'bases_calculs': bases_calculs,
-                             'type_majoration_contrat': type_majoration_contrat, 'modes_calculs': modes_calculs,
+                             'type_majoration_contrat': type_majoration_contrat,
                              'statut_contrat': statut_contrat,
                              'types_prefinancements': types_prefinancements,
                              'anciennes_polices': anciennes_polices,
-                             'nouvelles_polices': nouvelles_polices
+                             'nouvelles_polices': nouvelles_polices,
+                             'catgories': catgories,
+                             'carburants': carburants,
+                             'usages': usages,
+                             'carosseries':carosseries,
                              }
 
             context = {**context_original, **context_perso}

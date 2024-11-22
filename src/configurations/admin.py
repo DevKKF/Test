@@ -1065,6 +1065,7 @@ class BusinessUnitAdmin(ImportExportModelAdmin):
     list_per_page = 10
 
 
+
 admin.site.register(Bureau, BureausAdmin)
 admin.site.register(Compagnie, CompagnieAdmin)
 admin.site.register(Prestataire, PrestataireAdmin)
@@ -1096,6 +1097,11 @@ admin.site.register(CompteTresorerie)
 admin.site.register(BackgroundQueryTask, BackgroundQueryTaskAdmin)
 admin.site.register(BordereauLettreCheque, BordereauLettreChequeAdmin)
 admin.site.register(BusinessUnit, BusinessUnitAdmin)
+admin.site.register(TypeProduit)
+admin.site.register(CategorieVehicule)
+admin.site.register(Carburant)
+admin.site.register(Usage)
+admin.site.register(Carosserie)
 
 admin.site.register(User, CustomUserAdmin)
 
@@ -1151,7 +1157,6 @@ admin.site.register(User, CustomUserAdmin)
 
 #admin.site.register(MarqueVehicule) #à réactiver plus tard
 #admin.site.register(TypeCarosserie) #à réactiver plus tard
-#admin.site.register(CategorieVehicule) #à réactiver plus tard
 
 
 #admin.site.register(TypeDocument,TypeDocumentAdmin) #à réactiver plus tard

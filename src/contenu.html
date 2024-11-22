@@ -1,28 +1,64 @@
-$(document).on('change', '#option_calcul_prime, #option_calcul_prime_modification', function () {
+Le menu que nous voulons traiter.
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item"><a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true">{{_('GENERAL')}}</a></li>
+    <li class="nav-item"><a class="nav-link" id="intermediaire-tab" data-toggle="tab" href="#intermediaire" role="tab" aria-controls="intermediaire" aria-selected="false">{{_('INTERMEDIAIRES')}}</a></li>
+    <li class="nav-item"><a class="nav-link" id="garantie-tab" data-toggle="tab" href="#garantie" role="tab" aria-controls="garantie" aria-selected="false">{{_('GARANTIE')}}</a></li>
+    <li class="nav-item"><a class="nav-link" id="risque-tab" data-toggle="tab" href="#risque" role="tab" aria-controls="risque" aria-selected="false">{{_('RISQUE')}}</a></li>
+    <li class="nav-item"><a class="nav-link" id="aliment-tab" data-toggle="tab" href="#aliment" role="tab" aria-controls="aliment" aria-selected="false">{{_('ALIMENTS')}}</a></li>
+    <li class="nav-item"><a class="nav-link" id="vehicule-tab" data-toggle="tab" href="#vehicule" role="tab" aria-controls="vehicule" aria-selected="false">{{_('VEHICULE')}}</a></li>
+    <li class="nav-item"><a class="nav-link" id="facturation-tab" data-toggle="tab" href="#facturation" role="tab" aria-controls="facturation" aria-selected="false">{{_('FACTURATION')}}</a></li>
+    <li class="nav-item"><a class="nav-link" id="prime-tab" data-toggle="tab" href="#prime" role="tab" aria-controls="prime" aria-selected="false">{{_('PRIME')}}</a></li>
+</ul>
 
-    $('.champ_variable').hide();
-    $('.champ_variable input').removeAttr('required')
+L'élément qui sera utilisé pour traiter le menu.
+<div class="form-group row">
+    <label class="col-sm-5 col-form-label">{{_('Produit')}} <span class="required">*</span></label>
+    <div class="col-sm-7">
+        <select class="form-control " name="produit" id="produit" autocomplete="off" required>
+            <option value="">{{_('Choisir')}}</option>
+            {% for produit in produits %}
+            <option value="{{ produit.id }}" data-branche_code="{{ produit.code }}">{{ produit.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
 
-    let option_calcul_prime_id = parseInt($(this).val());
-    let option_calcul_prime_code = $(this).children('option:selected').data('code');
+Nous avons une table nommée "TypeProduit" qui est en relation avec la table "Produit" donc en fonction du type de produit choisie tu vérifies
+> Si type_produit_id est égal à 1 alors on affiche les menus suivants :
+- GARANTIE
+. Si le code du produit choisi est 100991 alors affiche le menu
+- VEHICULE
+. Si le code du produit choisi est 100992 alors affiche le menu
+- ALIMENTS
+> Si type_produit_id est égal à 2 alors on affiche le menu suivant :
+- RISQUE
 
-    switch (option_calcul_prime_id) {
-        case 1://prime par famille
-            $('.if_prime_famille').show();
-            //$('.if_prime_famille input:not(.not_required)').attr('required','required');
-            break;
-        case 2://prime par personne
-            $('.if_prime_personne').show();
-            //$('.if_prime_personne input:not(.not_required)').attr('required','required');
-            break;
-        case 3://prime par adulte/enfant
-            $('.if_prime_adulte_enfant').show();
-            //$('.if_prime_adulte_enfant input:not(.not_required)').attr('required','required');
-            break;
-        case 4://prime proportionnelle
-            $('.if_prime_proportionnelle').show();
-            //$('.if_prime_proportionnelle input:not(.not_required)').attr('required','required');
-            break;
+Fait un code allant dans le style suivant :
+
+function on_change_apporteur(response) {
+    if (response === 'OUI') {
+        $('#test').show(); // Afficher la section apporteur
+        $('#test input, #test select, #test textarea').attr('required', true); // Rendre les champs apporteur obligatoires
+    } else {
+        $('#test').hide(); // Cacher la section apporteur
+        $('#test input, #test select, #test textarea').val('').removeAttr('required'); // Réinitialiser les champs
+        $('#total_commission_intermediaire').val('0'); // Réinitialiser le champ de commission
     }
+}
 
+$(document).ready(function () {
+    // Initialiser la section apporteur
+    const response_apporteur = $('input[name="apporteur"]:checked').val();
+    on_change_apporteur(response_apporteur);
+
+    // Initialiser la section garantie
+    const response_garantie = $('input[name="garantie"]:checked').val();
+    on_change_garantie(response_garantie);
 });
+
+NB : Sachant que les menus :
+- GENERAL
+- INTERMEDIAIRES
+- FACTURATION
+- PRIME
+eux sont standard c'est-à-dire eux ne changent pas quelqu'en soit le produit choisi.
