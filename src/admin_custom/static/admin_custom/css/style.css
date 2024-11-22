@@ -561,7 +561,26 @@ article .shimmer{
 }
 
 .nav-tabs{
-    margin-top:-17px
+    margin-top:-17px;
+    /*width: 1137.9px;*/
+    background: orange;
+    /*margin-left: -23.5px;*/
+    border-bottom: 1px solid #ccc;
+    font-weight: bold;
+}
+
+.nav-tabs a{
+    color:#FFF !important;
+}
+
+.nav-tabs .nav-link.active{
+    background: #6B726A;
+    color: #000 !important;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+    border-bottom: 1px solid #ccc;
+    border: 1px solid orange;
+    font-weight: bold;
 }
 
 .button-link{
@@ -581,4 +600,8 @@ article .shimmer{
 .bg-inov-variation{
     background:  #658348 ;
     color: #fff;
+}
+
+#table_clients tbody a{
+    color: #EF6630;
 }

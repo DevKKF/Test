@@ -1,0 +1,28 @@
+$(document).on('change', '#option_calcul_prime, #option_calcul_prime_modification', function () {
+
+    $('.champ_variable').hide();
+    $('.champ_variable input').removeAttr('required')
+
+    let option_calcul_prime_id = parseInt($(this).val());
+    let option_calcul_prime_code = $(this).children('option:selected').data('code');
+
+    switch (option_calcul_prime_id) {
+        case 1://prime par famille
+            $('.if_prime_famille').show();
+            //$('.if_prime_famille input:not(.not_required)').attr('required','required');
+            break;
+        case 2://prime par personne
+            $('.if_prime_personne').show();
+            //$('.if_prime_personne input:not(.not_required)').attr('required','required');
+            break;
+        case 3://prime par adulte/enfant
+            $('.if_prime_adulte_enfant').show();
+            //$('.if_prime_adulte_enfant input:not(.not_required)').attr('required','required');
+            break;
+        case 4://prime proportionnelle
+            $('.if_prime_proportionnelle').show();
+            //$('.if_prime_proportionnelle input:not(.not_required)').attr('required','required');
+            break;
+    }
+
+});
