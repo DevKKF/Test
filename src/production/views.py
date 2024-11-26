@@ -42,9 +42,10 @@ from django_dump_die.middleware import dd
 # from django_dump_die.middleware import dd
 from fpdf import FPDF
 from xhtml2pdf import pisa
+from django.core.exceptions import ObjectDoesNotExist
 
 from configurations.models import Compagnie, MarqueVehicule, Pays, Civilite, QualiteBeneficiaire, Profession, \
-    Produit, \
+    Produit, Formule, GarantieBranche, GarantieFormule, \
     Territorialite, ModeCalcul, Duree, TicketModerateur, TypeCarosserie, User, Fractionnement, ModeReglement, \
     Regularisation, Bureau, BusinessUnit, \
     Devise, Taxe, BureauTaxe, Apporteur, BaseCalcul, TypeQuittance, NatureQuittance, TypeClient, TypePersonne, Langue, \
@@ -75,7 +76,7 @@ from django.core.files.base import File
 
 
 ## INOV API MOBILE
-# from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt
 # from rest_framework.views import APIView
 # from rest_framework.response import Response
 # from rest_framework import status, generics
@@ -747,14 +748,11 @@ def add_police(request, client_id):
 
         if form.is_valid():
 
-            #produit = Produit.objects.get(id=request.POST.get('produit'))
-            produit = Produit.objects.get(code="100991")#SANTE
+            produit = Produit.objects.get(id=request.POST.get('produit'))
             branche = produit.branche
             compagnie = Compagnie.objects.get(id=request.POST.get('compagnie'))
             numero = request.POST.get('numero')
             apporteur = request.POST.get('apporteur')
-            programme_international = request.POST.get('programme_international')
-            placement_gestion = request.POST.get('placement_gestion')
             date_debut_effet = request.POST.get('date_debut_effet')
             date_fin_effet = request.POST.get('date_fin_effet')
             preavis_de_resiliation = request.POST.get('preavis_de_resiliation')
@@ -827,7 +825,6 @@ def add_police(request, client_id):
             if cotisation_minimale == "": cotisation_minimale = 0
             cotisation_maximale = request.POST.get('cotisation_maximale').replace(' ', '')
             if cotisation_maximale == "": cotisation_maximale = 0
-            type_majoration = request.POST.get('type_majoration')
 
             autofinancement = request.POST.get('autofinancement')
             devise_id = request.POST.get('devise')
@@ -851,8 +848,6 @@ def add_police(request, client_id):
                                            produit_id=produit.id,
                                            numero=numero,
                                            apporteur=apporteur,
-                                           #programme_international=programme_international,
-                                           #placement_gestion=placement_gestion,
                                            date_souscription=date_debut_effet,
                                            date_debut_effet=date_debut_effet,
                                            date_fin_effet=date_fin_effet,
@@ -870,7 +865,6 @@ def add_police(request, client_id):
                                            autres_taxes=autres_taxes,
                                            taux_com_courtage=taux_com_courtage,
                                            taux_com_courtage_terme=taux_com_courtage_terme,
-                                           #taux_com_gestion=taux_com_gestion,
                                            commission_gestion=commission_gestion,
                                            commission_courtage=commission_courtage,
                                            commission_intermediaires=commission_intermediaires,
@@ -898,6 +892,9 @@ def add_police(request, client_id):
                                            #cotisation_minimale=cotisation_minimale,
                                            #cotisation_maximale=cotisation_maximale,
                                            #type_majoration=type_majoration,
+                                           #taux_com_gestion=taux_com_gestion,
+                                           #programme_international=programme_international,
+                                           #placement_gestion=placement_gestion,
 
                                            #autofinancement=autofinancement,
                                            #devise_id=devise_id,
@@ -1506,6 +1503,158 @@ def list_polices(request, client_id):
     # request.session['client_id_for_new_police'] = client_id
 
     return redirect('/production/clien/?client__id__exact=' + str(client_id))
+
+
+# Importer des aliments
+@login_required
+def import_aliments(request):
+    if request.method == 'POST':
+        # Si un fichier est importé
+        if request.FILES.get('aliments'):
+            fichier = request.FILES['aliments']
+
+            try:
+                # Lire le fichier Excel
+                data = pd.read_excel(fichier)
+
+                # Colonnes requises
+                colonnes_requises = [
+                    'num_parc', 'immat', 'immat_prov', 'num_serie', 'proprietaire',
+                    'chauffeur', 'marque', 'modele', 'place', 'energie', 'valeur_neuve',
+                    'valeur_actuelle', 'date_entree', 'date_sortie', 'mis_en_circulation',
+                    'puissance', 'poids_a_vide', 'poids_a_charge', 'T_carosserie_id',
+                    'T_categorie_id', 'T_usage_id', 'T_formule_id', 'comment'
+                ]
+
+                # Vérifier que toutes les colonnes requises sont présentes
+                if not all(col in data.columns for col in colonnes_requises):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Les colonnes suivantes sont obligatoires : ' + ', '.join(colonnes_requises)
+                    }, status=400)
+
+                # Prendre les données à partir de la ligne 2 (ignorer la première ligne si en-tête présent)
+                data = data.iloc[1:]
+
+                # Remplacer les IDs de catégories par leurs libellés
+                categories = {cat.id: cat.libelle for cat in CategorieVehicule.objects.all()}
+                data['T_categorie_id'] = data['T_categorie_id'].map(categories)
+
+                # Vérifier si des catégories ne sont pas trouvées
+                if data['T_categorie_id'].isnull().any():
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Certaines catégories dans le fichier ne correspondent pas à la base de données.'
+                    }, status=400)
+
+                # Extraire les colonnes nécessaires pour le tableau
+                aliments = data[[
+                    'immat', 'marque', 'modele', 'T_categorie_id',
+                    'date_entree', 'date_sortie', 'proprietaire', 'chauffeur'
+                ]].to_dict(orient='records')
+
+                # Charger les aliments existants de la session
+                aliments_existant = request.session.get('aliments', [])
+
+                # Ajouter les aliments du fichier à la session
+                request.session['aliments'] = aliments + aliments_existant
+
+                return JsonResponse({'success': True, 'data': aliments}, status=200)
+
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': f"Erreur lors de l'importation : {str(e)}"}, status=500)
+
+        # Sinon, enregistrer les données saisies dans le formulaire
+        else:
+            try:
+
+                categorie_id = request.POST.get('categorie_id')
+                categorie = CategorieVehicule.objects.filter(id=categorie_id).first()
+                print(categorie)
+                # Récupérer les données saisies dans le formulaire
+                if categorie:
+                    aliment = {
+                        'immat': request.POST.get('immatriculation'),
+                        'immat_prov': request.POST.get('immatriculation_provisioire'),
+                        'num_serie': request.POST.get('num_serie'),
+                        'proprietaire': request.POST.get('proprietaire'),
+                        'chauffeur': request.POST.get('conducteur'),
+                        'marque': request.POST.get('marque'),
+                        'modele': request.POST.get('modele'),
+                        'place': request.POST.get('places_assises'),
+                        'energie': request.POST.get('carburant_id'),
+                        'valeur_neuve': request.POST.get('valeur_a_neuf'),
+                        'valeur_actuelle': request.POST.get('valeur_actuelle'),
+                        'date_entree': request.POST.get('date_entree'),
+                        'date_sortie': request.POST.get('date_sortie'),
+                        'mis_en_circulation': request.POST.get('date_mise_circulation'),
+                        'puissance': request.POST.get('puissance_fiscale'),
+                        'poids_a_vide': request.POST.get('poid_vide'),
+                        'poids_a_charge': request.POST.get('poid_tac'),
+                        'T_carosserie_id': request.POST.get('carosserie_id'),
+                        'T_categorie_id': categorie.libelle,
+                        'T_usage_id': request.POST.get('usage_id'),
+                        'comment': request.POST.get('commentaire')
+                    }
+                    print(aliment)
+                else:
+                    return JsonResponse({'success': False, 'error': 'Catégorie non trouvée.'}, status=400)
+
+                # Charger les aliments existants de la session
+                aliments = request.session.get('aliments', [])
+
+                # Ajouter le nouvel aliment
+                aliments.append(aliment)
+
+                # Mettre à jour la session
+                request.session['aliments'] = aliments
+
+                # Retourner les aliments avec les nouveaux
+                return JsonResponse({'success': True, 'data': aliments}, status=200)
+
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': f"Erreur lors de l'enregistrement : {str(e)}"}, status=500)
+
+    return JsonResponse({'success': False, 'error': 'Requête invalide ou données manquantes.'}, status=400)
+
+@csrf_exempt
+def supprimer_aliment(request, index):
+    if request.method == 'POST':
+        try:
+            # Supposons que vous stockez les aliments en session
+            aliments = request.session.get('aliments', [])
+            if 0 <= index < len(aliments):
+                aliments.pop(index)  # Supprimer l'aliment de la session
+                request.session['aliments'] = aliments  # Mettre à jour la session
+                return JsonResponse({'success': True, 'message': 'Aliment supprimé.'})
+            return JsonResponse({'success': False, 'error': 'Index invalide.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
+
+
+def clear_session(request):
+    if request.method == 'POST':
+        request.session['aliments'] = []  # Vider la session
+        return JsonResponse({'success': True, 'message': 'Session vidée avec succès.'})
+    return JsonResponse({'success': False, 'error': 'Méthode invalide.'}, status=400)
+
+
+#Chargement des garanties de la branche liée au produit
+def get_garanties_by_produit(request):
+    branche_id = request.GET.get('produit_id')
+    garanties = GarantieBranche.objects.filter(branche_id=branche_id).values('garantie__id', 'garantie__nom')
+    garanties = [{'id': g['garantie__id'], 'nom': g['garantie__nom']} for g in garanties]
+    return JsonResponse({'garanties': list(garanties)})
+
+
+#Chargement des garanties de la formule
+def get_garanties_by_formule(request):
+    formule_id = request.GET.get('formule_id')
+    garanties = GarantieFormule.objects.filter(formule_id=formule_id).values('garantie__id', 'garantie__nom')
+    garanties = [{'id': g['garantie__id'], 'nom': g['garantie__nom']} for g in garanties]
+    return JsonResponse({'garanties': list(garanties)})
+
 
 
 @login_required
@@ -6293,6 +6442,7 @@ class PoliceClientView(TemplateView):
             carburants = Carburant.objects.all().order_by('libelle')
             usages = Usage.objects.all().order_by('libelle')
             carosseries = Carosserie.objects.all().order_by('libelle')
+            formules = Formule.objects.filter(status=True).order_by('libelle')
 
             placement_gestion = PlacementEtGestion
             mode_renouvellement = ModeRenouvellement
@@ -6322,6 +6472,7 @@ class PoliceClientView(TemplateView):
                              'carburants': carburants,
                              'usages': usages,
                              'carosseries':carosseries,
+                             'formules':formules,
                              }
 
             context = {**context_original, **context_perso}

@@ -1353,6 +1353,7 @@ class Garantie(models.Model):
     nom = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
 
     def __str__(self):
         return self.nom
@@ -2074,6 +2075,7 @@ class Carosserie(models.Model):
 
 class Carburant(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
+    code = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -2555,3 +2557,51 @@ class BusinessUnit(models.Model):
         verbose_name = 'Business Unit'
         verbose_name_plural = 'Business Unit'
 
+class GarantieBranche(models.Model):
+    branche = models.ForeignKey(Branche, on_delete=models.RESTRICT)
+    garantie = models.ForeignKey(Garantie, on_delete=models.RESTRICT)
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.created_at}'
+
+    class Meta:
+        db_table = 'garantie_branche'
+        verbose_name = 'Garanties / Branche'
+        verbose_name_plural = 'Garanties / Branche'
+
+
+
+class Formule(models.Model):
+    code = models.CharField(max_length=10, blank=True, null=True)
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.code} - {self.libelle} - {self.status} - {self.created_at}'
+
+    class Meta:
+        db_table = 'formules'
+        verbose_name = 'Formules'
+        verbose_name_plural = 'Formules'
+
+
+
+class GarantieFormule(models.Model):
+    formule = models.ForeignKey(Formule, on_delete=models.RESTRICT)
+    garantie = models.ForeignKey(Garantie, on_delete=models.RESTRICT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.formule} - {self.created_at}'
+
+    class Meta:
+        db_table = 'garantie_formule'
+        verbose_name = 'Garanties / Formules'
+        verbose_name_plural = 'Garanties / Formules'

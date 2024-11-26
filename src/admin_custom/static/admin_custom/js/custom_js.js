@@ -111,32 +111,6 @@ $(document).ready(function () {
         ]
     });
 
-
-    //liste pour les autres:ordre décroissant
-    $('#table_dossiers_sinistre').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        order: [[0, 'desc']],
-        lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
-        ]
-    });
-
-    // Custom 2 order date
-    $('#table_dossiers_sinistre2').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        order: [[6, 'desc']],
-        lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
-        ]
-    });
-
-
     // Custom 2 order date
     $('#table_dossiers_sinistre2_med').DataTable({
         "language": {
@@ -1388,54 +1362,6 @@ $(document).ready(function () {
 
 
     //----------------- BORDEREAU -----------------------------//
-
-    /*
-    $(document).on("click", "#btn_generation_bordereau" , function(e) {
-
-        console.log(localStorage.getItem('selectedItems'));
-         var selectedItems = JSON.parse(localStorage.getItem('selectedItems'));// || []
-         console.log(selectedItems);
-        //demander confirmation
-
-         $('#btn_generation_bordereau').prop('disabled', true);
-         $('#loader').show();
-         $.ajax({
-            type:'post',
-            url:'/sinistre/submit_generate_bordereau',
-            data: {'periode_id':$('#search_periode_comptable').val(),'prestataire_id':$('#search_prestataire').val(), 'type_remboursement_id':$('#search_type_remboursement').val() , "selectedItems": JSON.stringify(selectedItems)},
-            success: function(response){
-
-                console.log(response);
-
-                if (response.statut == 1){
-
-                    $('#btn_generation_bordereau').prop('disabled', false);
-                    var link = response.bordereau_pdf;
-                    var a = document.createElement('a');
-                    a.href = link;
-                    a.download = link.substr(link.lastIndexOf('/') + 1);
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-
-                    location.reload();
-
-                }else{
-                    notifyWarning(response.message);
-                }
-
-            },
-            error: function(){
-                notifyWarning("Erreur lors de la génération du bordereau");
-                $('#loader').hide();
-            }
-
-        });
-
-
-    });
-    */
-
 
     $(document).on("click", "#btn_generation_bordereau_validation", function (e) {
 
@@ -3378,111 +3304,6 @@ $(document).ready(function () {
             //
             $('#modal-details_vehicule').modal();
 
-
-
-            //sortir le bénéficiaire de la police
-            // $(document).on("click", "#btn_save_sortie_police", function(e) {
-            //     e.stopPropagation();
-
-            //     let btn_valider = $(this);
-
-            //     let formulaire = $('#form_sortie_police');
-            //     let href = formulaire.attr('action');
-
-            //     if(formulaire.valid()){
-
-            //         btn_valider.prop('disabled', true).attr('disabled', true);
-
-            //         //demander confirmation
-            //         let n = noty({
-            //         text        : 'Voulez-vous vraiment le sortir de la police ?',
-            //         type        : 'warning',
-            //         dismissQueue: true,
-            //         layout      : 'center',
-            //         theme       : 'defaultTheme',
-            //         buttons     : [
-            //             {addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
-            //                 $noty.close();
-
-            //                  //confirmation obtenu
-
-
-
-            //                 $.ajax({
-            //                     type:'post',
-            //                     url:href,
-            //                     data: formulaire.serialize(),
-            //                     success: function(response){
-
-            //                         btn_valider.removeAttr('disabled');
-
-            //                         if(response.statut == 1){
-
-            //                             $('.col_statut').text("INACTIF");
-
-            //                             notifySuccess(response.message);
-            //                             //location.reload();
-
-            //                         }else{
-
-            //                             let errors = JSON.parse(JSON.stringify(response.errors));
-            //                             let errors_list_to_display = '';
-            //                             for(field in errors){
-            //                                 errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
-            //                             }
-
-            //                             $('#modal-carte .alert .message').html(errors_list_to_display);
-
-            //                             $('#modal-carte .alert ').fadeTo(2000, 500).slideUp(500, function(){
-            //                                 $(this).slideUp(500);
-            //                             }).removeClass('alert-success').addClass('alert-warning');
-
-            //                         }
-
-            //                     },
-            //                     error:function(request, status, error){
-            //                         btn_valider.removeAttr('disabled');
-            //                         notifyWarning("Erreur lors de l'enregistrement" + request.responseText);
-            //                     }
-
-            //                 });
-
-
-
-            // 				 //fin confirmation obtenue
-
-            //                 }
-            //                 },
-            //                 {addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
-            //                     //confirmation refusée
-            //                     $noty.close();
-
-            //                 }
-            //                 }
-            //             ]
-            //         });
-            //         //fin demande confirmation
-
-
-            //     }else{
-
-            //         btn_valider.removeAttr('disabled');
-
-            //         $('label.error').css({display:'none',height:'0px'}).removeClass('error').text('');
-
-            //         let validator = formulaire.validate();
-
-            //         $.each(validator.errorMap, function (index, value) {
-
-            //             console.log('Id: ' + index + ' Message: ' + value);
-
-            //         });
-
-            //         notifyWarning('Veuillez renseigner tous les champs obligatoires');
-            //     }
-
-            // });
-
         });
 
 
@@ -4971,150 +4792,6 @@ $(document).ready(function () {
 
     //fin champ liés à l'option de calcul de la prime
 
-
-    /*$("#btn_save_police").on('click', function () {
-        let btn_submit = $(this);
-
-        btn_submit.attr('disabled', true);
-
-        let formulaire = $('#form_add_police');
-        let href = formulaire.attr('action');
-
-        $.validator.setDefaults({ ignore: [] });
-
-        let formData = new FormData();
-
-        if (formulaire.valid()) {
-
-            //demander confirmation
-            let n = noty({
-                text: 'Voulez-vous vraiment créer cette police ?',
-                type: 'warning',
-                dismissQueue: true,
-                layout: 'center',
-                theme: 'defaultTheme',
-                buttons: [
-                    {
-                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
-                            $noty.close();
-
-                            //confirmation obtenu
-
-
-                            let data_serialized = formulaire.serialize();
-                            $.each(data_serialized.split('&'), function (index, elem) {
-                                let vals = elem.split('=');
-
-                                let key = vals[0];
-                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
-
-                                formData.append(key, valeur);
-
-                            });
-
-                            // Add logo_partenaire file to FormData
-                            let logo_partenaire_input = $('#logo_partenaire')[0]; // Replace 'id_logo_partenaire' with the actual ID of your logo_partenaire input field
-                            let logo_partenaire_file = logo_partenaire_input.files[0];
-
-                            formData.append('logo_partenaire', logo_partenaire_file);
-
-
-                            $.ajax({
-                                type: 'post',
-                                url: href,
-                                data: formData,
-                                processData: false,
-                                contentType: false,
-                                success: function (response) {
-
-                                    btn_submit.removeAttr('disabled');
-
-                                    if (response.statut == 1) {
-
-
-                                        let police = response.data;
-
-
-                                        //Vider le formulaire
-                                        resetFields('#' + formulaire.attr('id'));
-                                        resetFields('#form_add_autres_taxes');
-
-                                        //vider les cookies enregistrées pour l'occation
-                                        document.cookie = "taxes=";
-
-
-                                        notifySuccess(response.message, function () {
-                                            location.reload();
-                                        });
-
-                                    } else {
-
-                                        let errors = JSON.parse(JSON.stringify(response.errors));
-                                        let errors_list_to_display = '';
-                                        for (field in errors) {
-                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
-                                        }
-
-                                        $('#modal-police .alert .message').html(errors_list_to_display);
-
-                                        $('#modal-police .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                                            $(this).slideUp(500);
-                                        }).removeClass('alert-success').addClass('alert-warning');
-
-
-                                    }
-
-                                },
-                                error: function (request, status, error) {
-
-                                    btn_submit.removeAttr('disabled');
-
-                                    notifyWarning("Erreur lors de l'enregistrement ");
-
-                                }
-
-                            });
-
-                            btn_submit.removeAttr('disabled');
-
-
-                            //fin confirmation obtenue
-
-                        }
-                    },
-                    {
-                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
-                            //confirmation refusée
-                            btn_submit.removeAttr('disabled');
-
-                            $noty.close();
-                        }
-                    }
-                ]
-            });
-            //fin demande confirmation
-
-
-        } else {
-
-            btn_submit.removeAttr('disabled');
-
-            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
-
-            let validator = formulaire.validate();
-
-            $.each(validator.errorMap, function (index, value) {
-
-                console.log('Id: ' + index + ' Message: ' + value);
-
-            });
-
-            notifyWarning('Veuillez renseigner tous les champs obligatoires');
-        }
-
-
-    });*/
-
     $("#btn_save_police").on('click', function () {
         let btn_submit = $(this);
 
@@ -5753,36 +5430,6 @@ $(document).ready(function () {
     //fin modification de police
 
     //calculs divers
-
-    /*$("#modal-police #compagnie, #modal-police #produit").on('change', function () {
-
-        let compagnie_id = $("#modal-police #compagnie").val();
-        let produit_id = $('#modal-police #produit').val();
-
-        $.ajax({
-            type: 'get',
-            url: '/production/compagnie/ajax_infos_compagnie/' + compagnie_id + '/' + produit_id,
-            dataType: 'json',
-            success: function (data) {
-
-                let taux_com_courtage = parseFloat(data.taux_com_courtage);
-                let taux_com_courtage_terme = parseFloat(data.taux_com_courtage_terme);
-                let taux_com_gestion = parseFloat(data.taux_com_gestion);
-
-                $('#modal-police #taux_com_courtage').val(taux_com_courtage);
-                $('#modal-police #taux_com_courtage_terme').val(taux_com_courtage_terme);
-                $('#modal-police #taux_com_gestion').val(taux_com_gestion);
-
-                calculer_montant_divers_police();
-
-            },
-            error: function () {
-                console.log('Erreur de chargement : ajax_infos_compagnie ');
-            }
-        });
-
-
-    });*/
 
     $("#modal-police #compagnie, #modal-police #produit").on('change', function () {
 
@@ -13633,22 +13280,24 @@ $(document).ready(function () {
 
 function on_change_apporteur(response) {
     if (response === 'OUI') {
-        $('#test').show(); // Afficher la section apporteur
-        $('#test input, #test select, #test textarea').attr('required', true); // Rendre les champs apporteur obligatoires
+        $('#test').show();
+        $('#test input, #test select, #test textarea').attr('required', true);
     } else {
-        $('#test').hide(); // Cacher la section apporteur
-        $('#test input, #test select, #test textarea').val('').removeAttr('required'); // Réinitialiser les champs
-        $('#total_commission_intermediaire').val('0'); // Réinitialiser le champ de commission
+        $('#test').hide();
+        $('#test input, #test select, #test textarea').val('').removeAttr('required');
+        $('#total_commission_intermediaire').val('0');
     }
 }
 
 function on_change_garantie(response) {
     if (response === 'OUI') {
-        $('#test_garantie').show(); // Afficher la section garantie
-        $('#test_garantie input').attr('required', true); // Rendre les champs garantie obligatoires
+        $('#test_garantie').show();
+        $('#formule_block').show();
+        $('#test_garantie input').attr('required', true);
     } else {
-        $('#test_garantie').hide(); // Cacher la section garantie
-        $('#test_garantie input').val('').removeAttr('required'); // Réinitialiser les champs garantie
+        $('#test_garantie').hide();
+        $('#formule_block').hide();
+        $('#test_garantie input').val('').removeAttr('required');
     }
 }
 
@@ -13674,6 +13323,21 @@ $(document).ready(function () {
 });
 
 $(document).ready(function () {
+
+    function getCSRFToken() {
+        let csrfToken = null;
+        const cookies = document.cookie.split(';');
+        cookies.forEach(cookie => {
+            const [key, value] = cookie.trim().split('=');
+            if (key === 'csrftoken') {
+                csrfToken = value;
+            }
+        });
+        return csrfToken;
+    }
+
+    const csrf_token = getCSRFToken();
+
     // Masquer les onglets spécifiques au chargement
     $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab').addClass('d-none');
 
@@ -13689,6 +13353,11 @@ $(document).ready(function () {
 
         // Logique pour afficher les onglets en fonction des conditions
         if (typeproduit_id == 1) {
+
+            // Effacer les lignes existantes du tableau
+            const tbody = $('#table_liste_aliment tbody');
+            tbody.empty();
+
             $('#garantie-tab').removeClass('d-none');
             if (branche_code == 100991) {
                 $('#vehicule-tab').removeClass('d-none');
@@ -13700,4 +13369,366 @@ $(document).ready(function () {
             $('#risque-tab').removeClass('d-none');
         }
     });
+
+    // Pour le téléchargement du fichier modèle de création d'aliment
+    $('#telecharger_modele').on('click', function () {
+        // Récupérer le chemin du fichier depuis l'attribut "download-fichier"
+        const filePath = $(this).attr('download-fichier');
+
+        // Vérifier l'existence du fichier via une requête fetch
+        fetch(filePath, { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    // Si le fichier existe, déclencher le téléchargement
+                    const link = document.createElement('a');
+                    link.href = filePath;
+                    link.download = filePath.split('/').pop();
+                    link.click();
+                } else {
+                    // Si le fichier n'existe pas, afficher un message d'erreur
+                    alert('Le fichier demandé est introuvable.');
+                }
+            })
+            .catch(error => {
+                // Gérer les erreurs réseau ou autres
+                console.error('Erreur lors de la vérification du fichier:', error);
+                alert('Une erreur est survenue. Veuillez réessayer plus tard.');
+            });
+    });
+
+    // Bouton pour enregistrer via le fichier d'importation
+    $('#importation_aliment').on('click', function () {
+        // Effacer tout message précédent
+        $('#message-error').text('');
+        $('#message-success').text('');
+        $('#message-warning').text('');
+
+
+        // Récupérer le fichier sélectionné
+        const fichier = $('#fichier_aliment')[0].files[0];
+
+        if (!fichier) {
+            $('#fichier_aliment').addClass('is-invalid');
+            $('#message-error').text('Veuillez sélectionner un fichier à importer.');
+
+            // Temps d'affichage du message
+            setTimeout(function () {
+                $('#message-error').text('');
+            }, 5000);
+
+            return;
+        }
+
+        // Préparer les données du formulaire
+        const formData = new FormData();
+        formData.append('aliments', fichier);
+
+        // Requête Ajax pour envoyer le fichier au backend
+        $.ajax({
+            url: '/production/import-aliments/',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    // Effacer les lignes existantes du tableau
+                    const tbody = $('#table_liste_aliment tbody');
+                    //tbody.empty();
+
+                    // Ajouter les nouvelles lignes au tableau
+                    response.data.forEach((row, index) => {
+                        tbody.append(`
+                            <tr data-index="${index}">
+                                <td>
+                                    <button class="btn btn-danger btn-sm"  onclick="supprimerAliment(${index})"><i class="fa fa-trash-o"></i></button>
+                                </td>
+                                <td>${row.immat || ''}</td>
+                                <td>${row.marque || ''}</td>
+                                <td>${row.modele || ''}</td>
+                                <td>${row.T_categorie_id || ''}</td>
+                                <td>${row.date_entree || ''}</td>
+                                <td>${row.date_sortie || ''}</td>
+                                <td>${row.proprietaire || ''}</td>
+                                <td>${row.chauffeur || ''}</td>
+                            </tr>
+                        `);
+                    });
+
+                    // Vider le champ fichier après importation réussie
+                    $('#fichier_aliment').removeClass('is-invalid').val('');
+
+                    $('#message-success').text('Importation réussie !');
+
+                    setTimeout(function () {
+                        $('#message-success').text('');
+                    }, 5000);
+
+                } else {
+                    $('#message-error').text(response.error || 'Une erreur est survenue lors de l\'importation.');
+                    $('#fichier_aliment').addClass('is-invalid');
+
+                    setTimeout(function () {
+                        $('#message-error').text('');
+                    }, 5000);
+                }
+            },
+            error: function (xhr) {
+                $('#message-warning').text('Une erreur est survenue lors de l\'importation.');
+                $('#fichier_aliment').addClass('is-invalid');
+
+                setTimeout(function () {
+                    $('#message-warning').text('');
+                }, 5000);
+            }
+        });
+    });
+
+    // Bouton pour enregistrer via le formulaire modal
+    $('#btn_save_police_aliment').on('click', function () {
+        // Supprimer les erreurs précédentes
+        $('.champ_obligatoire').removeClass('is-invalid').removeClass('is-valid');
+        $('#message-error').text('').hide();
+        $('#message-success').text('').hide();
+
+        // Valider les champs obligatoires
+        let valide = true;
+        $('.champ_obligatoire').each(function () {
+            if (!$(this).val().trim()) {
+                $(this).addClass('is-invalid'); // Ajouter classe invalide
+                valide = false;
+            } else {
+                $(this).removeClass('is-invalid')
+            }
+        });
+
+        if (!valide) {
+            // Afficher un message si un champ obligatoire est vide
+            $('#message-error').text('Veuillez remplir tous les champs obligatoires.').show();
+            setTimeout(() => $('#message-error').fadeOut(), 5000);
+            return;
+        }
+
+        // Récupérer les données du formulaire
+        const formData = new FormData($('#form_add_police_aliment')[0]);
+
+        // Requête Ajax pour envoyer les données au backend
+        $.ajax({
+            url: '/production/import-aliments/',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    // Réinitialiser le formulaire et les classes
+                    $('#form_add_police_aliment')[0].reset();
+                    $('.champ_obligatoire').removeClass('is-invalid');
+
+                    // Ajouter les nouvelles données au tableau
+                    const tbody = $('#table_liste_aliment tbody');
+                    //tbody.empty(); // Effacer les données existantes
+                    response.data.forEach((row, index) => {
+                        tbody.append(`
+                            <tr data-index="${index}">
+                                <td>
+                                    <button class="btn btn-danger btn-sm"  onclick="supprimerAliment(${index})"><i class="fa fa-trash-o"></i></button>
+                                </td>
+                                <td>${row.immat || ''}</td>
+                                <td>${row.marque || ''}</td>
+                                <td>${row.modele || ''}</td>
+                                <td>${row.T_categorie_id || ''}</td>
+                                <td>${row.date_entree || ''}</td>
+                                <td>${row.date_sortie || ''}</td>
+                                <td>${row.proprietaire || ''}</td>
+                                <td>${row.chauffeur || ''}</td>
+                            </tr>
+                        `);
+                    });
+
+                    // Afficher le message de succès
+                    $('#message-success').text('Données enregistrées avec succès.').show();
+                    setTimeout(() => $('#message-success').fadeOut(), 5000);
+                } else {
+                    // Afficher le message d'erreur retourné par le backend
+                    $('#message-error').text(response.error || 'Une erreur est survenue lors de l’enregistrement des données.').show();
+                    setTimeout(() => $('#message-error').fadeOut(), 5000);
+                }
+            },
+            error: function () {
+                // Afficher une erreur générique en cas de problème de communication avec le serveur
+                $('#message-error').text('Une erreur s’est produite lors de la communication avec le serveur.').show();
+                setTimeout(() => $('#message-error').fadeOut(), 5000);
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-danger', function () {
+        const index = $(this).closest('tr').data('index');
+        supprimerAliment(index);
+    });
+
+    // Fonction pour supprimer un aliment via AJAX en utilisant l'index
+    function supprimerAliment(index) {
+        $.ajax({
+            url: `/production/supprimer_aliment/${index}/`,
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            success: function (response) {
+                if (response.success) {
+                    // Si la suppression est réussie, supprime la ligne correspondante du tableau
+                    $(`tr[data-index="${index}"]`).remove();
+                } else {
+                    console.error(response.error || 'Erreur lors de la suppression.');
+                }
+            },
+            error: function () {
+                console.error('Erreur de communication avec le serveur.');
+            }
+        });
+    }
+
+    // Fonction pour mettre à jour le tableau des garanties
+    function chargementGarantiesProduitTable(produitId) {
+        // Efface le contenu existant du tableau sauf l'entête
+        $("#table_garantie_police tbody").empty();
+
+        // Effacer tout message précédent
+        $('#garantie-message-error').text('').hide();
+        $('#garantie-message-warning').text('').hide();
+
+        // Vérifie qu'un ID produit a été sélectionné
+        if (!produitId) {
+            return;
+        }
+
+        // Appel AJAX pour récupérer les garanties liées au produit
+        $.ajax({
+            url: "/production/get_garanties_by_produit/",
+            type: "GET",
+            data: { produit_id: produitId },
+            success: function (data) {
+                if (data && data.garanties) {
+                    // Parcourt les garanties et les ajoute dans le tableau
+                    data.garanties.forEach((garantie, index) => {
+                        let row = `
+                            <tr>
+                                <td style="vertical-align:middle;">
+                                    <input type="checkbox" class="form-control" name="garantie_${garantie.id}" value="${garantie.id}" style="width: 1rem; height: 1.25rem;">
+                                </td>
+                                <td style="vertical-align:middle;">${garantie.nom}</td>
+                                <td style="vertical-align:middle;padding:5px;">
+                                    <input type="text" class="form-control form-control-sm" name="franchise_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)">
+                                </td>
+                                <td style="vertical-align:middle;padding:5px;">
+                                    <input type="text" class="form-control form-control-sm" name="capital_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)">
+                                </td>
+                            </tr>
+                        `;
+                        $("#table_garantie_police tbody").append(row);
+                    });
+                } else {
+                    $('#garantie-message-warning').text('Aucune garantie trouvée pour ce produit.').show();
+                    setTimeout(() => $('#garantie-message-error').fadeOut(), 5000);
+                }
+            },
+            error: function (xhr, status, error) {
+                $('#message-error').text(response.error || 'Erreur lors de la récupération des garanties.').show();
+                setTimeout(() => $('#garantie-message-error').fadeOut(), 5000);
+            },
+        });
+    }
+
+    // Événement sur le changement du produit sélectionné
+    $("#produit").change(function () {
+        let produitId = $(this).find(":selected").data("produit_id");
+        if (produitId) {
+            chargementGarantiesProduitTable(produitId);
+        }
+    });
+
+    function chargementGarantiesFormuleTable(formuleId) {
+        // Efface le contenu existant du tableau sauf l'entête
+        $("#table_garantie_police tbody").empty();
+
+        // Effacer tout message précédent
+        $('#garantie-message-error').text('').hide();
+        $('#garantie-message-warning').text('').hide();
+
+        // Vérifie qu'un ID produit a été sélectionné
+        if (!formuleId) {
+            return;
+        }
+
+        // Appel AJAX pour récupérer les garanties liées au produit
+        $.ajax({
+            url: "/production/get_garanties_by_formule/",
+            type: "GET",
+            data: { formule_id: formuleId },
+            success: function (data) {
+                if (data && data.garanties) {
+                    // Parcourt les garanties et les ajoute dans le tableau
+                    data.garanties.forEach((garantie, index) => {
+                        let row = `
+                            <tr>
+                                <td style="vertical-align:middle;">
+                                    <input type="checkbox" class="form-control" name="garantie_${garantie.id}" value="${garantie.id}" style="width: 1rem; height: 1.25rem;">
+                                </td>
+                                <td style="vertical-align:middle;">${garantie.nom}</td>
+                                <td style="vertical-align:middle;padding:5px;">
+                                    <input type="text" class="form-control form-control-sm" name="franchise_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)">
+                                </td>
+                                <td style="vertical-align:middle;padding:5px;">
+                                    <input type="text" class="form-control form-control-sm" name="capital_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)">
+                                </td>
+                            </tr>
+                        `;
+                        $("#table_garantie_police tbody").append(row);
+                    });
+                } else {
+                    $('#garantie-message-warning').text('Aucune garantie trouvée pour ce produit.').show();
+                    setTimeout(() => $('#garantie-message-error').fadeOut(), 5000);
+                }
+            },
+            error: function (xhr, status, error) {
+                $('#message-error').text(response.error || 'Erreur lors de la récupération des garanties.').show();
+                setTimeout(() => $('#garantie-message-error').fadeOut(), 5000);
+            },
+        });
+
+    }
+
+    // Événement sur le changement de la formule sélectionnée
+    $("#formule").change(function () {
+        let formuleId = $(this).find(":selected").data("formule_id");
+        if (formuleId) {
+            chargementGarantiesFormuleTable(formuleId);
+        }
+    });
+
+    // Chargement initial basé sur le produit sélectionné
+    let produitId = $("#produit").find(":selected").data("produit_id");
+    if (produitId) {
+        chargementGarantiesProduitTable(produitId);
+    }
+
+    // Fonction pour récupérer le CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
 });
+

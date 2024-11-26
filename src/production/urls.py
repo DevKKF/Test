@@ -30,6 +30,11 @@ urlpatterns = [
     path("client/<int:client_id>/liste-police", PoliceClientView.as_view(), name='client_polices'),
     path("client/<int:client_id>/polices", views.list_polices, name='client_list_polices'),
     path("client/<int:client_id>/add_police", views.add_police, name='add_police'),
+    path('import-aliments/', views.import_aliments, name='import_aliments'),
+    path('get_garanties_by_produit/', views.get_garanties_by_produit, name='get_garanties_by_produit'),
+    path('get_garanties_by_formule/', views.get_garanties_by_formule, name='get_garanties_by_formule'),
+    path('supprimer_aliment/<int:index>/', views.supprimer_aliment, name='supprimer_aliment'),
+    path('clear_session/', views.clear_session, name='clear_session'),
 
     path("client/<int:client_id>/liste-contact", ContactClientView.as_view(), name='client_contacts'),
     path("client/<int:client_id>/contact/add", views.add_contact, name='client_add_contact'),

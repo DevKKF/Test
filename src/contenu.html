@@ -1,64 +1,324 @@
-Le menu que nous voulons traiter.
-<ul class="nav nav-tabs" id="myTab" role="tablist">
-    <li class="nav-item"><a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true">{{_('GENERAL')}}</a></li>
-    <li class="nav-item"><a class="nav-link" id="intermediaire-tab" data-toggle="tab" href="#intermediaire" role="tab" aria-controls="intermediaire" aria-selected="false">{{_('INTERMEDIAIRES')}}</a></li>
-    <li class="nav-item"><a class="nav-link" id="garantie-tab" data-toggle="tab" href="#garantie" role="tab" aria-controls="garantie" aria-selected="false">{{_('GARANTIE')}}</a></li>
-    <li class="nav-item"><a class="nav-link" id="risque-tab" data-toggle="tab" href="#risque" role="tab" aria-controls="risque" aria-selected="false">{{_('RISQUE')}}</a></li>
-    <li class="nav-item"><a class="nav-link" id="aliment-tab" data-toggle="tab" href="#aliment" role="tab" aria-controls="aliment" aria-selected="false">{{_('ALIMENTS')}}</a></li>
-    <li class="nav-item"><a class="nav-link" id="vehicule-tab" data-toggle="tab" href="#vehicule" role="tab" aria-controls="vehicule" aria-selected="false">{{_('VEHICULE')}}</a></li>
-    <li class="nav-item"><a class="nav-link" id="facturation-tab" data-toggle="tab" href="#facturation" role="tab" aria-controls="facturation" aria-selected="false">{{_('FACTURATION')}}</a></li>
-    <li class="nav-item"><a class="nav-link" id="prime-tab" data-toggle="tab" href="#prime" role="tab" aria-controls="prime" aria-selected="false">{{_('PRIME')}}</a></li>
-</ul>
+//A la fermeture de la fenetre des autres taxes, sauvegarder les données dans les cookies pour pouvoir les récupérer coté serveur
+    $('#modal-autres_taxes').on('hidden.bs.modal', function () {
+        $('body').addClass('modal-open');
 
-L'élément qui sera utilisé pour traiter le menu.
-<div class="form-group row">
-    <label class="col-sm-5 col-form-label">{{_('Produit')}} <span class="required">*</span></label>
-    <div class="col-sm-7">
-        <select class="form-control " name="produit" id="produit" autocomplete="off" required>
-            <option value="">{{_('Choisir')}}</option>
-            {% for produit in produits %}
-            <option value="{{ produit.id }}" data-branche_code="{{ produit.code }}">{{ produit.nom }}</option>
-            {% endfor %}
-        </select>
-    </div>
-</div>
+        //Enregistrer les autres taxes saisies
 
-Nous avons une table nommée "TypeProduit" qui est en relation avec la table "Produit" donc en fonction du type de produit choisie tu vérifies
-> Si type_produit_id est égal à 1 alors on affiche les menus suivants :
-- GARANTIE
-. Si le code du produit choisi est 100991 alors affiche le menu
-- VEHICULE
-. Si le code du produit choisi est 100992 alors affiche le menu
-- ALIMENTS
-> Si type_produit_id est égal à 2 alors on affiche le menu suivant :
-- RISQUE
+        if (typeof (Storage) !== "undefined") {
 
-Fait un code allant dans le style suivant :
+            localStorage.setItem('taxes', "");
 
-function on_change_apporteur(response) {
-    if (response === 'OUI') {
-        $('#test').show(); // Afficher la section apporteur
-        $('#test input, #test select, #test textarea').attr('required', true); // Rendre les champs apporteur obligatoires
-    } else {
-        $('#test').hide(); // Cacher la section apporteur
-        $('#test input, #test select, #test textarea').val('').removeAttr('required'); // Réinitialiser les champs
-        $('#total_commission_intermediaire').val('0'); // Réinitialiser le champ de commission
-    }
-}
+            // Code for localStorage
+            $("#modal-autres_taxes .montant_taxe").each(function (index, element) {
 
-$(document).ready(function () {
-    // Initialiser la section apporteur
-    const response_apporteur = $('input[name="apporteur"]:checked').val();
-    on_change_apporteur(response_apporteur);
+                //element = this
+                let taxe_id = $(element).attr('data-taxe_id');
+                let montant = parseInt($(element).val().replaceAll(' ', ''));
+                montant = (montant != '') ? montant : parseInt(0);
 
-    // Initialiser la section garantie
-    const response_garantie = $('input[name="garantie"]:checked').val();
-    on_change_garantie(response_garantie);
-});
+                if (isNaN(montant)) {
+                    montant = parseInt(0);
+                }
 
-NB : Sachant que les menus :
-- GENERAL
-- INTERMEDIAIRES
-- FACTURATION
-- PRIME
-eux sont standard c'est-à-dire eux ne changent pas quelqu'en soit le produit choisi.
+                let taxe = {
+                    id: taxe_id,
+                    montant: montant,
+                }
+
+                appendToStorage('taxes', taxe);
+
+            });
+
+            let taxes_result = localStorage.getItem('taxes');
+
+            console.log(taxes_result);
+
+            //enregistrer dans le cookies pour l'utiliser coté serveur avec python
+            document.cookie = "taxes=" + taxes_result;
+
+
+        } else {
+            notifyWarning('No web storage Support.');
+        }
+
+
+    });
+
+
+def add_police(request, client_id):
+    taxes = request.COOKIES.get('taxes')
+    client = Client.objects.get(id=client_id)
+
+    if request.method == 'POST':
+
+        # print(request.POST)
+
+        form = PoliceForm(request.POST)
+
+        if form.is_valid():
+
+            produit = Produit.objects.get(id=request.POST.get('produit'))
+            branche = produit.branche
+            compagnie = Compagnie.objects.get(id=request.POST.get('compagnie'))
+            numero = request.POST.get('numero')
+            apporteur = request.POST.get('apporteur')
+            date_debut_effet = request.POST.get('date_debut_effet')
+            date_fin_effet = request.POST.get('date_fin_effet')
+            preavis_de_resiliation = request.POST.get('preavis_de_resiliation')
+            mode_renouvellement = request.POST.get('mode_renouvellement')
+            fractionnement_id = request.POST.get('fractionnement')
+            mode_reglement_id = request.POST.get('mode_reglement')
+            regularisation_id = request.POST.get('regularisation')
+            date_prochaine_facture = request.POST.get('date_prochaine_facture')
+            participation = request.POST.get('participation')
+            taux_participation = request.POST.get('taux_participation').replace(' ', '')
+            if taux_participation == "": taux_participation = 0
+            prime_ht = request.POST.get('prime_ht').replace(' ', '')
+            if prime_ht == "": prime_ht = 0
+            prime_ttc = request.POST.get('prime_ttc').replace(' ', '')
+            if prime_ttc == "": prime_ttc = 0
+            taxe = request.POST.get('taxe').replace(' ', '')
+            if taxe == "": taxe = 0
+            autres_taxes = request.POST.get('autres_taxes').replace(' ', '')
+            if autres_taxes == "": autres_taxes = 0
+            taux_com_courtage = request.POST.get('taux_com_courtage').replace(' ', '')
+            if taux_com_courtage == "": taux_com_courtage = 0
+            taux_com_courtage_terme = request.POST.get('taux_com_courtage_terme').replace(' ', '')
+            if taux_com_courtage_terme == "": taux_com_courtage_terme = 0
+            taux_com_gestion = request.POST.get('taux_com_gestion').replace(' ', '')
+            if taux_com_gestion == "": taux_com_gestion = 0
+            commission_gestion = request.POST.get('commission_gestion').replace(' ', '')
+            if commission_gestion == "": commission_gestion = 0
+            commission_courtage = request.POST.get('commission_courtage').replace(' ', '')
+            if commission_courtage == "": commission_courtage = 0
+            commission_intermediaires = request.POST.get('commission_intermediaire').replace(' ', '')
+            if commission_intermediaires == "": commission_intermediaires = 0
+            cout_police_compagnie = request.POST.get('cout_police_compagnie').replace(' ', '')
+            if cout_police_compagnie == "": cout_police_compagnie = 0
+            cout_police_courtier = request.POST.get('cout_police_courtier').replace(' ', '')
+            if cout_police_courtier == "": cout_police_courtier = 0
+            ticket_moderateur_id = request.POST.get('ticket_moderateur')
+            calcul_tm = request.POST.get('calcul_tm')
+            type_prefinancement_id = request.POST.get('type_prefinancement')
+
+            mode_calcul_id = request.POST.get('mode_calcul')
+            prime_famille = request.POST.get('prime_famille').replace(' ', '')
+            if prime_famille == "": prime_famille = 0
+            nombre_max_enfants_famille = request.POST.get('nombre_max_enfants_famille').replace(' ', '')
+            if nombre_max_enfants_famille == "": nombre_max_enfants_famille = 0
+            nombre_max_personne_famille = request.POST.get('nombre_max_personne_famille').replace(' ', '')
+            if nombre_max_personne_famille == "": nombre_max_personne_famille = 0
+            age_max_enfants = request.POST.get('age_max_enfants').replace(' ', '')
+            if age_max_enfants == "": age_max_enfants = 0
+            age_max_adultes = request.POST.get('age_max_adultes').replace(' ', '')
+            if age_max_adultes == "": age_max_adultes = 0
+            surprime_personne_sup = request.POST.get('surprime_personne_sup').replace(' ', '')
+            if surprime_personne_sup == "": surprime_personne_sup = 0
+            surprime_enfant_sup = request.POST.get('surprime_enfant_sup').replace(' ', '')
+            if surprime_enfant_sup == "": surprime_enfant_sup = 0
+            surprime_age_adulte = request.POST.get('surprime_age_adulte').replace(' ', '')
+            if surprime_age_adulte == "": surprime_age_adulte = 0
+            surprime_ascendant = request.POST.get('surprime_ascendant').replace(' ', '')
+            if surprime_ascendant == "": surprime_ascendant = 0
+            prime_personne = request.POST.get('prime_personne').replace(' ', '')
+            if prime_personne == "": prime_personne = 0
+            prime_adulte = request.POST.get('prime_adulte').replace(' ', '')
+            if prime_adulte == "": prime_adulte = 0
+            prime_enfant = request.POST.get('prime_enfant').replace(' ', '')
+            if prime_enfant == "": prime_enfant = 0
+            taux_cotisation = request.POST.get('taux_cotisation').replace(' ', '')
+            if taux_cotisation == "": taux_cotisation = 0
+            part_employeur = request.POST.get('part_employeur').replace(' ', '')
+            if part_employeur == "": part_employeur = 0
+            cotisation_minimale = request.POST.get('cotisation_minimale').replace(' ', '')
+            if cotisation_minimale == "": cotisation_minimale = 0
+            cotisation_maximale = request.POST.get('cotisation_maximale').replace(' ', '')
+            if cotisation_maximale == "": cotisation_maximale = 0
+
+            autofinancement = request.POST.get('autofinancement')
+            devise_id = request.POST.get('devise')
+            taux_charge = request.POST.get('taux_charge').replace(' ', '')
+            if taux_charge == "": taux_charge = 0
+            coefficient_n = request.POST.get('coefficient_n').replace(' ', '')
+            if coefficient_n == "": coefficient_n = 0
+            coefficient_n1 = request.POST.get('coefficient_n1').replace(' ', '')
+            if coefficient_n1 == "": coefficient_n1 = 0
+            coefficient_n2 = request.POST.get('coefficient_n2').replace(' ', '')
+            if coefficient_n2 == "": coefficient_n2 = 0
+            coefficient_n3 = request.POST.get('coefficient_n3').replace(' ', '')
+            if coefficient_n3 == "": coefficient_n3 = 0
+
+            statut_contrat = request.POST.get('statut_contrat')
+            statut_contrat = "CONTRAT"
+
+            police_created = Police.objects.create(bureau_id=client.bureau_id,
+                                           client_id=client_id,
+                                           compagnie_id=compagnie.id,
+                                           produit_id=produit.id,
+                                           numero=numero,
+                                           apporteur=apporteur,
+                                           date_souscription=date_debut_effet,
+                                           date_debut_effet=date_debut_effet,
+                                           date_fin_effet=date_fin_effet,
+                                           preavis_de_resiliation=preavis_de_resiliation,
+                                           mode_renouvellement=mode_renouvellement,
+                                           fractionnement_id=fractionnement_id,
+                                           mode_reglement_id=mode_reglement_id,
+                                           regularisation_id=regularisation_id,
+                                           date_prochaine_facture=date_prochaine_facture,
+                                           participation=participation,
+                                           taux_participation=taux_participation,
+                                           prime_ht=prime_ht,
+                                           prime_ttc=prime_ttc,
+                                           taxe=taxe,
+                                           autres_taxes=autres_taxes,
+                                           taux_com_courtage=taux_com_courtage,
+                                           taux_com_courtage_terme=taux_com_courtage_terme,
+                                           commission_gestion=commission_gestion,
+                                           commission_courtage=commission_courtage,
+                                           commission_intermediaires=commission_intermediaires,
+                                           cout_police_compagnie=cout_police_compagnie,
+                                           cout_police_courtier=cout_police_courtier,
+                                           ticket_moderateur_id=ticket_moderateur_id,
+                                           type_prefinancement_id=type_prefinancement_id,
+                                           calcul_tm=calcul_tm,
+
+                                           #mode_calcul_id=mode_calcul_id,
+                                           #prime_famille=prime_famille,
+                                           #nombre_max_enfants_famille=nombre_max_enfants_famille,
+                                           #nombre_max_personne_famille=nombre_max_personne_famille,
+                                           #age_max_enfants=age_max_enfants,
+                                           #age_max_adultes=age_max_adultes,
+                                           #surprime_personne_sup=surprime_personne_sup,
+                                           #surprime_enfant_sup=surprime_enfant_sup,
+                                           #surprime_age_adulte=surprime_age_adulte,
+                                           #surprime_ascendant=surprime_ascendant,
+                                           #prime_personne=prime_personne,
+                                           #prime_adulte=prime_adulte,
+                                           #prime_enfant=prime_enfant,
+                                           #taux_cotisation=taux_cotisation,
+                                           #part_employeur=part_employeur,
+                                           #cotisation_minimale=cotisation_minimale,
+                                           #cotisation_maximale=cotisation_maximale,
+                                           #type_majoration=type_majoration,
+                                           #taux_com_gestion=taux_com_gestion,
+                                           #programme_international=programme_international,
+                                           #placement_gestion=placement_gestion,
+
+                                           #autofinancement=autofinancement,
+                                           #devise_id=devise_id,
+                                           #taux_charge=taux_charge,
+                                           #coefficient_n=coefficient_n,
+                                           #coefficient_n1=coefficient_n1,
+                                           #coefficient_n2=coefficient_n2,
+                                           #coefficient_n3=coefficient_n3,
+
+                                           statut_contrat=statut_contrat,
+                                           statut=Statut.ACTIF,
+                                           created_by=request.user
+                                           )
+
+            police_created.save()
+
+            code_bureau = request.user.bureau.code
+            police_created.numero_provisoire = str(code_bureau)+'P' + str(Date.today().year)[-2:] + str(police_created.pk).zfill(6)
+            if police_created.numero == "": police_created.numero = police_created.numero_provisoire
+
+            police_created.save()
+
+            # Handle logo_partenaire upload
+            logo_partenaire_file = request.FILES.get('logo_partenaire')
+            #dd(logo_partenaire_file)
+            if logo_partenaire_file:
+                police_created.logo_partenaire.save(logo_partenaire_file.name, logo_partenaire_file)
+                police_created.save()
+                pprint("Logo partenaire joint")
+            else:
+                pprint("Pas de logo partenaire joint")
+
+            police = Police.objects.get(id=police_created.pk)
+
+            # enregistrer les intermédiaires si existants
+            intermediaires = request.POST.getlist('intermediaires')
+            base_calcul_taux_retrocession = request.POST.getlist('base_calcul_taux_retrocession')
+            taux_com_affaire_nouvelle = request.POST.getlist('taux_com_affaire_nouvelle')
+            taux_com_renouvelement = request.POST.getlist('taux_com_renouvelement')
+
+            pprint('len(intermediaires) : ' + str(len(intermediaires)))
+            if len(intermediaires) > 0:  # pourquoi j'ai mis 3: à vérifier, en attendant je met à 0
+                i = 0
+                for apporteur_id in intermediaires:
+                    apporteur_id = int('0' + apporteur_id)
+                    base_calcul = int('0' + base_calcul_taux_retrocession[i])
+                    taux_com_an = float('0' + taux_com_affaire_nouvelle[i])
+                    taux_com_renew = float('0' + taux_com_renouvelement[i])
+
+                    pprint({'apporteur_id': apporteur_id, 'base_calcul': base_calcul, 'taux_com_an': taux_com_an,
+                            'taux_com_renew': taux_com_renew})
+
+                    # Insérer la ligne si renseignée
+                    if apporteur_id > 0 and base_calcul > 0 and (taux_com_an > 0 or taux_com_renew > 0):
+                        ApporteurPolice.objects.create(police_id=police.id, apporteur_id=apporteur_id,
+                                                       base_calcul_id=base_calcul,
+                                                       taux_com_affaire_nouvelle=taux_com_an,
+                                                       taux_com_renouvellement=taux_com_renew, ).save()
+                    i += 1
+
+            # enregistrer les autres taxes
+            taxes = request.COOKIES.get('taxes')
+            if taxes:
+                taxes = json.loads(taxes)
+
+                for taxe in taxes:
+                    taxe = list(taxe.values())
+                    taxe_id = taxe[0]
+                    taxe_montant = taxe[1]
+
+                    # Insérer la ligne
+                    #TaxePolice.objects.create(police_id=police.id, taxe_id=taxe_id, montant=taxe_montant).save()
+
+            # créer une ligne de mouvement_police avec le mouvement affaire nouvelle et le motif affaire nouvelle
+            mp = MouvementPolice()
+            mp.police = police
+            mp.mouvement = Mouvement.objects.get(code='AN')
+            mp.motif = Motif.objects.get(code='AN')
+            mp.date_effet = police.date_debut_effet
+            mp.date_fin_periode_garantie = police.date_fin_effet
+            mp.save()
+
+            # créer une ligne dans période de couverture
+            periode_couverture = PeriodeCouverture.objects.create(
+                police_id=police.id,
+                date_debut_effet=date_debut_effet,
+                date_fin_effet=date_fin_effet,
+            ).save()
+
+            response = {
+                'statut': 1,
+                'message': "Police enregistrée avec succès !",
+                'data': {
+                    'id': police.pk,
+                    'numero': police.numero,
+                    'produit': police.produit.nom,
+                    'compagnie': police.compagnie.nom,
+                    'prime_ht': police.prime_ht,
+                    'prime_ttc': police.prime_ttc,
+                    'commission_gestion': police.commission_gestion,
+                    'commission_courtage': police.commission_courtage,
+                    'date_debut_effet': police.date_debut_effet,
+                    'date_fin_effet': police.date_fin_effet,
+                    'statut': police.statut,
+                }
+            }
+
+            return JsonResponse(response)
+
+        else:
+
+            response = {
+                'statut': 0,
+                'message': "Veuillez renseigner correctement le formulaire",
+                'errors': form.errors,
+            }
+
+            return JsonResponse(response)

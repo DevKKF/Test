@@ -9,7 +9,7 @@ from import_export.admin import ImportExportModelAdmin
 from django import forms
 from admin_custom.admin import custom_admin_site
 from configurations.forms import ActionLogForm, PermissionForm, RegroupementActeForm, SousRubriqueForm, StatExcelWsBobyForm, TarifForm, \
-    CompagnieAdminForm, BanqueAdminForm, SousRegroupementActeForm, ApporteurInternationalForm, GroupeInterForm
+    CompagnieAdminForm, BanqueAdminForm, SousRegroupementActeForm, ApporteurInternationalForm, GroupeInterForm, GarantieBrancheForm, GarantieFormuleForm
 from configurations.models import *
 from production.models import Quittance, SecteurActivite, TypeDocument, TarifPrestataireClient, Mouvement, Motif
 
@@ -1064,6 +1064,86 @@ class BusinessUnitAdmin(ImportExportModelAdmin):
     search_field = ('libelle', 'status', 'created_at')
     list_per_page = 10
 
+class GarantieBrancheAdmin(admin.ModelAdmin):
+    form = GarantieBrancheForm
+
+    list_display = ['branche', 'get_garanties', 'status', 'created_at', 'updated_at']
+    list_filter = ['branche', 'status']
+    search_fields = ['branche__nom', 'garantie__nom']
+
+    def save_model(self, request, obj, form, change):
+        """
+        Gérer la sauvegarde en associant branche et garanties via IDs
+        """
+        branche = form.cleaned_data['branche']
+        garanties_selected = form.cleaned_data['garanties']
+        status = form.cleaned_data['status']
+
+        # Supprimer les anciennes associations pour la branche
+        GarantieBranche.objects.filter(branche=branche).delete()
+
+        try:
+            # Créer les nouvelles associations
+            GarantieBranche.objects.bulk_create([
+                GarantieBranche(
+                    branche=branche,
+                    garantie=garantie,
+                    status=status
+                ) for garantie in garanties_selected
+            ])
+        except Exception as e:
+            self.message_user(request, f"Erreur : {e}", level='error')
+
+    def get_garanties(self, obj):
+        """
+        Afficher les garanties associées à une branche
+        """
+        garanties = GarantieBranche.objects.filter(branche=obj.branche).values_list('garantie__nom', flat=True)
+        return ', '.join(garanties)
+
+    get_garanties.short_description = "Garanties"
+
+
+
+class GarantieFormuleAdmin(admin.ModelAdmin):
+    form = GarantieFormuleForm
+
+    list_display = ['formule', 'get_garanties', 'status', 'created_at', 'updated_at']
+    list_filter = ['formule', 'status']
+    search_fields = ['formule__libelle', 'garantie__nom']
+
+    def save_model(self, request, obj, form, change):
+        """
+        Gérer la sauvegarde en associant branche et garanties via IDs
+        """
+        formule = form.cleaned_data['formule']
+        garanties_selected = form.cleaned_data['garanties']
+        status = form.cleaned_data['status']
+
+        # Supprimer les anciennes associations pour la branche
+        GarantieFormule.objects.filter(formule=formule).delete()
+
+        try:
+            # Créer les nouvelles associations
+            GarantieFormule.objects.bulk_create([
+                GarantieFormule(
+                    formule=formule,
+                    garantie=garantie,
+                    status=status
+                ) for garantie in garanties_selected
+            ])
+        except Exception as e:
+            self.message_user(request, f"Erreur : {e}", level='error')
+
+    def get_garanties(self, obj):
+        """
+        Afficher les garanties associées à une branche
+        """
+        garanties = GarantieFormule.objects.filter(formule=obj.formule).values_list('garantie__nom', flat=True)
+        return ', '.join(garanties)
+
+    get_garanties.short_description = "Garanties"
+
 
 
 admin.site.register(Bureau, BureausAdmin)
@@ -1077,7 +1157,6 @@ admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(Civilite)
 admin.site.register(TypeClient)
 admin.site.register(TypePersonne)
-admin.site.register(Langue, LangueAdmin)
 admin.site.register(Pays, PaysAdmin)
 admin.site.register(Branche, BrancheAdmin)
 admin.site.register(Produit, ProduitAdmin)
@@ -1102,6 +1181,10 @@ admin.site.register(CategorieVehicule)
 admin.site.register(Carburant)
 admin.site.register(Usage)
 admin.site.register(Carosserie)
+admin.site.register(Garantie)
+admin.site.register(GarantieBranche, GarantieBrancheAdmin)
+admin.site.register(Formule)
+admin.site.register(GarantieFormule, GarantieFormuleAdmin)
 
 admin.site.register(User, CustomUserAdmin)
 
@@ -1154,6 +1237,7 @@ admin.site.register(User, CustomUserAdmin)
 #admin.site.register(TypeAssure)
 #admin.site.register(ReseauSoin, ReseauSoinAdmin)
 #admin.site.register(SecteurActivite, SecteurActiviteAdmin)
+#admin.site.register(Langue, LangueAdmin)
 
 #admin.site.register(MarqueVehicule) #à réactiver plus tard
 #admin.site.register(TypeCarosserie) #à réactiver plus tard

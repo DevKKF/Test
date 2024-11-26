@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import Permission
 from .models import ActionLog, RegroupementActe, SousRubrique, StatExcelWsBoby, Tarif, Compagnie, Banque, SousRegroupementActe, \
-    ApporteurInternational, GroupeInter
+    ApporteurInternational, GroupeInter, Branche, Garantie, GarantieBranche, Formule, GarantieFormule
 
 
 class ActionLogForm(forms.ModelForm):
@@ -74,4 +74,38 @@ class GroupeInterForm(forms.ModelForm):
 class StatExcelWsBobyForm(forms.ModelForm):
     class Meta:
         model = StatExcelWsBoby
-        exclude = ['updated_at']  # Exclude the 'code' field from the form        
+        exclude = ['updated_at']  # Exclude the 'code' field from the form
+
+
+class GarantieBrancheForm(forms.ModelForm):
+    branche = forms.ModelChoiceField(
+        queryset=Branche.objects.filter(status=True),
+        label="Branche",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    garanties = forms.ModelMultipleChoiceField(
+        queryset=Garantie.objects.all(),
+        label="Garanties",
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'})
+    )
+
+    class Meta:
+        model = GarantieBranche
+        fields = ['branche', 'status']
+
+
+class GarantieFormuleForm(forms.ModelForm):
+    formule = forms.ModelChoiceField(
+        queryset=Formule.objects.filter(status=True),
+        label="formule",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    garanties = forms.ModelMultipleChoiceField(
+        queryset=Garantie.objects.all(),
+        label="Garanties",
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'})
+    )
+
+    class Meta:
+        model = GarantieFormule
+        fields = ['formule', 'status']

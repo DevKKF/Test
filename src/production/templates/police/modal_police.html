@@ -36,7 +36,7 @@
 											<select class="form-control " name="produit" id="produit" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for produit in produits %}
-												<option value="{{ produit.id }}" data-branche_code="{{ produit.code }}" data-typeproduit_id="{{ produit.type_produit.id }}">{{ produit.nom }}</option>
+												<option value="{{ produit.id }}" data-produit_id="{{ produit.branche.id }}" data-branche_code="{{ produit.code }}" data-typeproduit_id="{{ produit.type_produit.id }}">{{ produit.nom }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -137,7 +137,7 @@
 
 						<div class="tab-pane fade mt-3" id="garantie" role="tabpanel" aria-labelledby="garantie-tab">
 							<div class="row">
-								<div class="col-md-12">
+								<div class="col-md-6">
 									<div class="form-group row">
 										<label class="col-sm-6 col-form-label">{{_('Garantie')}} <span class="required"></span></label>
 										<div class="col-sm-6">
@@ -152,30 +152,35 @@
 										</div>
 									</div>
 								</div>
+								<div class="vl"></div>
+								<div class="col-md-5">
+									<div class="form-group row" id="formule_block">
+										<label class="col-sm-6 col-form-label">{{_('Formule')}}</label>
+										<div class="col-sm-6">
+											<select class="form-control " name="formule" id="formule" autocomplete="off">
+												<option value="">{{_('Choisir')}}</option>
+												{% for formule in formules %}
+												<option value="{{ formule.id }}" data-formule_id="{{ formule.id }}">{{ formule.libelle }}</option>
+												{% endfor %}
+											</select>
+										</div>
+									</div>
+								</div>
 								<div class="col-md-12" id="test_garantie">
 									<hr>
+									<div class="text-danger mb-2" id="garantie-message-error"></div>
+									<div class="text-warning mb-2" id="garantie-message-warning"></div>
 									<table id="table_garantie_police" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
 											<thead>
 												<tr>
-													<th style="width:10%">##</th>
-													<th style="width:;">{{_("Garantie")}}</th>
+													<th style="width:5%">##</th>
+													<th>{{_("Garantie")}}</th>
 													<th class="text-center" style="width:20%">{{_("Franchise")}} (F CFA)</th>
 													<th class="text-center" style="width:20%;">{{_("Capital")}} (F CFA)</th>
 												</tr>
 											</thead>
 											<tbody>
-												<tr id="tr_initial_garantie">
-													<td style="vertical-align:middle;">
 
-													</td>
-													<td style="vertical-align:middle;"></td>
-													<td style="vertical-align:middle;padding:5px;">
-														<input maxlength="5" type="text" class="form-control" name="" value="">
-													</td>
-													<td style="vertical-align:middle;padding:5px;">
-														<input maxlength="5" type="text" class="form-control" name="" value="">
-													</td>
-												</tr>
 											</tbody>
 										</table>
 								</div>
@@ -268,46 +273,43 @@
 						<div class="tab-pane fade mt-3" id="aliment" role="tabpanel" aria-labelledby="aliment-tab">
 							<div class="row">
 								<div class="col-md-3">
-								  	<button type="button" class="btn btn-primary"><i class="fa fa-plus-circle"></i> {{_("Ajouter un aliment")}}</button>
+								  	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-police_aliment"><i class="fa fa-plus-circle"></i> {{_("Ajouter un aliment")}}</button>
 								</div>
 								<div class="vl"></div>
 								<div class="col-md-5 d-flex">
-									<input type="file" class="form-control mr-3" style="width:300px">
-								  	<button type="submit" id="importation_aliment" class="btn btn-warning"><i class="fa fa-download"></i> {{_("Importation")}}</button>
+									<input type="file" class="form-control mr-3" name="aliments" id="fichier_aliment" style="width:300px">
+									<button type="button" id="importation_aliment" class="btn btn-warning"><i class="fa fa-download"></i> {{_("Importation")}}</button>
 								</div>
 								<div class="vl"></div>
 								<div class="col-md-3">
-								  	<button type="button" id="telecharger_modele" class="btn btn-success pull-right"><i class="fa fa-file-excel-o"></i> {{_("Télécharger le modèle")}}</button>
+									{% load static %}
+								  	<button type="button" download-fichier="{% static 'production/modeles/import-vehicule-model.xlsx' %}" id="telecharger_modele" class="btn btn-success pull-right"><i class="fa fa-file-excel-o"></i> {{_("Télécharger le modèle")}}</button>
 								</div>
 							</div>
 							<hr>
+							<div class="text-danger text-italic" id="message-error"></div>
+							<div class="text-warning text-italic" id="message-warning"></div>
+							<div class="text-success text-italic" id="message-success"></div>
 							<div class="row">
-								<table id="table_liste_aliment" class="table table-bordered table-striped dataTable__ customDataTable0 dtr-inline">
-								  <thead>
-								  <tr>
-									<th>{{_("Immat")}}</th>
-									<th>{{_("Marque")}}</th>
-									<th>{{_("Modèle")}}</th>
-									<th>{{_("Catégorie")}}</th>
-									<th>{{_("Entrée")}}</th>
-									<th>{{_("Sortie")}}</th>
-									<th>{{_("Propriétaire")}}</th>
-									<th>{{_("Conducteur")}}</th>
-								  </tr>
-								  </thead>
-								  <tbody>
-									  <tr>
-										  <td></td>
-										  <td></td>
-										  <td></td>
-										  <td></td>
-										  <td></td>
-										  <td></td>
-										  <td></td>
-										  <td></td>
-									  </tr>
-								  </tbody>>
-								</table>
+								<div class="col-md-12">
+									<table id="table_liste_aliment" class="table table-bordered table-striped dataTable_ dtr-inline">
+											  <thead>
+												  <tr>
+														<th class="text-center" style="width:5%">##</th>
+														<th>{{_("Immat")}}</th>
+														<th>{{_("Marque")}}</th>
+														<th>{{_("Modèle")}}</th>
+														<th>{{_("Catégorie")}}</th>
+														<th>{{_("Entrée")}}</th>
+														<th>{{_("Sortie")}}</th>
+														<th>{{_("Propriétaire")}}</th>
+														<th>{{_("Conducteur")}}</th>
+												  </tr>
+											  </thead>
+											  <tbody>
+											  </tbody>
+										</table>
+								</div>
 							</div>
 						</div>
 
@@ -669,11 +671,4 @@
 	</div>
 </div>
 
-<script>
-    document.getElementById('telecharger_modele').addEventListener('click', function () {
-        const link = document.createElement('a');
-        link.href = 'static/production/modeles/import-vehicule-model.xlsx';
-        link.download = 'import-vehicule-model.xlsx';
-        link.click(); // Déclenche le téléchargement
-    });
-</script>
+{% include 'police/modal_police_aliment.html' %}

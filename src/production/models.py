@@ -1533,8 +1533,9 @@ def upload_location_operation(instance, filename):
 
 class Operation(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-    nature_operation = models.ForeignKey(NatureOperation, null=True, on_delete=models.CASCADE)
-    devise = models.ForeignKey(Devise, null=True, on_delete=models.CASCADE)
+    nature_operation = models.ForeignKey(NatureOperation, null=True, on_delete=models.RESTRICT)
+    #nature_operation = models.ForeignKey(NatureOperation, null=True, on_delete=models.RESTRICT)
+    devise = models.ForeignKey(Devise, null=True, on_delete=models.RESTRICT)
     mode_reglement = models.ForeignKey(ModeReglement, null=True, on_delete=models.RESTRICT)
     banque = models.ForeignKey(Banque, null=True, on_delete=models.RESTRICT)
     banque_emettrice = models.CharField(max_length=255, blank=True, null=True)
@@ -1572,7 +1573,7 @@ class Reglement(models.Model):
     compte_tresorerie = models.ForeignKey(CompteTresorerie, null=True, on_delete=models.RESTRICT)
     quittance = models.ForeignKey(Quittance, on_delete=models.RESTRICT, related_name="ses_quittances", related_query_name="quittance")
     compagnie = models.ForeignKey(Compagnie, null=True, on_delete=models.RESTRICT, related_name="reglements", related_query_name="reglement")
-    devise = models.ForeignKey(Devise, null=True, on_delete=models.CASCADE)
+    devise = models.ForeignKey(Devise, null=True, on_delete=models.RESTRICT)
     montant = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
     montant_compagnie = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
     montant_com_courtage = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
@@ -1906,7 +1907,7 @@ class TarifPrestataireClient(models.Model):
 
 ## OLEA API MOBILE
 class CarteDigitalDematerialisee(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.RESTRICT)
     has_digital_card = models.BooleanField(default=False)
     digital_card_url = models.URLField(max_length=500, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
