@@ -1,9 +1,8 @@
-{% extends 'police/base.html' %}
+{% extends 'police/menu_police.html' %}
 {% load my_filters %}
 {% block extrastyle %} {% endblock %}
 {% block content %}
 <div class="col-12 col-md-12 order-2 order-md-1">
-  {% include 'police/header.html' %}
   <div class="card">
     <div class="card-header">
         <h3 class="card-title text-white">{{_('LISTE_DES_SINISTRES')}}</h3>

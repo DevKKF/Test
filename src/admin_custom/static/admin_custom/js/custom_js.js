@@ -1746,6 +1746,289 @@ $(document).ready(function () {
     //----------------- FIN AJOUT DE ACOMPTE ------------------//
 
 
+//---------------------------- AJOUT D'UN COURRIER----------------------------------//
+
+ $("#btn_save_courrier").on('click', function () {
+    let btn_save_courrier = $(this);
+    let formulaire = $('#form_add_courrier');
+
+
+    $.validator.setDefaults({ ignore: [] });
+
+    if (formulaire.valid()) {
+        // Envoi des données via AJAX
+        $.ajax({
+            type: 'post',
+            url: formulaire.attr('action'), // URL du formulaire (générée par Django)
+            data: formulaire.serialize(), // Sérialise les données du formulaire
+            beforeSend: function () {
+                $('#loading_gif').show(); // Affiche un loader avant l'envoi
+                btn_save_courrier.hide(); // Désactive temporairement le bouton
+            },
+            success: function (response) {
+                $('#loading_gif').hide(); // Cache le loader
+                btn_save_courrier.show(); // Réactive le bouton
+
+                if (response.statut === 1) {
+                    // Notification de succès et rechargement de la page
+                    notifySuccess(response.message, function () {
+                        location.reload();
+                    });
+                } else {
+                    notifyWarning(response.message);
+                }
+            },
+            error: function (response) {
+                $('#loading_gif').hide(); //
+                btn_save_courrier.show(); //
+
+                console.error("Erreur lors de l'envoi AJAX :", response); //
+                notifyError("Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.");
+            }
+        });
+    } else {
+        //
+        notifyWarning("Veuillez renseigner tous les champs obligatoires.");
+    }
+});
+
+ $(document).on("click", "#btn_update_formule", function () {
+
+        let formulaire = $(this).closest('form');
+        let href = formulaire.attr('action');
+
+        if (formulaire.valid() ) {
+
+            $.ajax({
+                type: 'post',
+                url: href,
+                data: formulaire.serialize(),
+                success: function (response) {
+
+                    if (response.statut == 1) {
+
+                        formule = response.data;
+
+                        //Vider le formulaire
+                        resetFields('#' + formulaire.attr('id'));
+
+                        notifySuccess(response.message, function () {
+                            location.reload();
+                        });
+
+                    } else {
+
+                        let errors = JSON.parse(JSON.stringify(response.errors));
+                        let errors_list_to_display = '';
+                        for (field in errors) {
+                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                        }
+
+                        $('#modal-forumule .alert .message').html(errors_list_to_display);
+
+                        $('#modal-forumule .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                            $(this).slideUp(500);
+                        }).removeClass('alert-success').addClass('alert-warning');
+
+                    }
+
+                },
+                error: function (request, status, error) {
+
+                    notifyWarning("Erreur lors de l'enregistrement");
+                }
+
+            });
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le formulaire');
+        }
+
+    });
+
+
+    //Standard: ouvrir les popups de modification
+    $(document).on("click", ".btn_modifier_on_modal_courrier", function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#modal-dynamique').find('.modal-title').text(modal_title);
+        $('#modal-dynamique').find('#btn_valider_modification').attr({ 'data-model_name': model_name, 'data-href': href });
+
+        $('#modal-dynamique').modal({ backdrop: "static ", keyboard: false }).find('.modal-body').text("Chargement en cours...").load(href);
+
+    });
+
+    //Valider les modifications
+
+    $(document).on("click", "#btn_valider_modification", function (e) {
+        e.stopPropagation();
+
+        let model_name = $(this).attr('data-model_name');
+        let href = $(this).attr('data-href');
+        let formulaire = $('#modal-dynamique').find('form');
+
+        switch (model_name) {
+
+            case 'document':
+
+                let formData = new FormData();
+                let files = $('#modal-dynamique #fichier')[0].files;
+                let type_document = $('#modal-dynamique #type_document').val();
+                let nom = $('#modal-dynamique #nom').val();
+                let confidentialite = $('#modal-dynamique #confidentialite').val();
+                let commentaire = $('#modal-dynamique #commentaire').val();
+
+                $.validator.setDefaults({ ignore: [] });
+                if (formulaire.valid()) {
+
+
+
+                    $.ajax({
+                        type: 'post',
+                        url: href,
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+
+                            if (response.statut == 1) {
+
+                                notifySuccess(response.message);
+                                //location.reload();
+
+                            } else {
+
+                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                let errors_list_to_display = '';
+                                for (field in errors) {
+                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                }
+
+                                $('#modal-dynamique .alert .message').html(errors_list_to_display);
+
+                                $('#modal-dynamique .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                    $(this).slideUp(500);
+                                }).removeClass('alert-success').addClass('alert-warning');
+
+                            }
+
+                        },
+                        error: function () {
+
+                        }
+                    });
+
+                } else {
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+
+
+                break;
+
+            default:
+
+               $.ajax({
+    url: href, // URL fournie par 'data-href'
+    type: 'post',
+    data: formulaire.serialize(), // Sérialisation des données du formulaire
+    success: function (response) {
+        if (response.statut == 1) {
+            // Si succès, affichage du message et rechargement
+            $('#modal-dynamique .alert .message').text(response.message);
+            $('#modal-dynamique .alert ')
+                .fadeTo(2000, 500)
+                .slideUp(500, function () {
+                    $(this).slideUp(500);
+                    $("#modal-dynamique").modal('toggle'); // Fermeture de la modale
+                    notifySuccess(response.message); // Notification de succès
+                    location.reload(); // Rechargement de la page
+                })
+                .removeClass('alert-warning')
+                .addClass('alert-success');
+        } else {
+            // Si échec, affichage du message d'erreur
+            $('#modal-dynamique .alert .message').text(response.message);
+            $('#modal-dynamique .alert ')
+                .fadeTo(2000, 500)
+                .slideUp(500, function () {
+                    $(this).slideUp(500);
+                })
+                .removeClass('alert-success')
+                .addClass('alert-warning');
+        }
+    },
+    error: function () {
+        notifyWarning('Erreur lors de la modification'); // Message d'erreur
+    },
+});
+
+                break;
+
+        }
+
+    });
+
+
+ $(document).on('click', '.btn_supprimer_courrier', function () {
+        let courrier_id = $(this).data('courrier_id');
+
+        let n = noty({
+            text: 'Voulez-vous vraiment supprimer ce courrier ?',
+            type: 'warning',
+            dismissQueue: true,
+            layout: 'center',
+            theme: 'defaultTheme',
+            buttons: [
+                {
+                    addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                        $noty.close();
+
+                        //effectuer la suppression
+                        $.ajax({
+                            url: '/production/courrier/delete',
+                            type: 'post',
+                            data: { courrier_id: courrier_id },
+                            success: function (e) {
+
+                                location.reload();
+
+                            },
+                            error: function () {
+                                notifyWarning('Erreur lors de la suppression');
+                            }
+                        });
+
+                    }
+                },
+                {
+                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                        //annuler la suppression
+                        $noty.close();
+                    }
+                }
+            ]
+        });
+
+
+    });
+
+
+
+
     //TRAITEMENT PAGE POLICE
 
 
@@ -3594,13 +3877,13 @@ $(document).ready(function () {
 
                         /*
                         $('#modal-avenant .alert .message').text(response.message);
-    
+
                         $('#modal-avenant .alert ').fadeTo(2000, 500).slideUp(500, function(){
                             $(this).slideUp(500);
-    
+
                             avenant = response.data;
                             let t = $('#table_avenants').DataTable();
-    
+
                             t.row.add([
                                         avenant.mouvement,
                                         avenant.motif ,
@@ -3608,14 +3891,14 @@ $(document).ready(function () {
                                         avenant.date_fin_periode_garantie
                                         ])
                                         .draw(false);
-    
+
                             //Vider le formulaire
                             resetFields('#'+formulaire.attr('id'));
-    
+
                             notifySuccess(response.message, function(){
                                 location.reload();
                             });
-    
+
                         }).removeClass('alert-warning').addClass('alert-success');
                         */
 

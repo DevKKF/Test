@@ -1,19 +1,24 @@
-{% extends 'police/base.html' %} {% block extrastyle %} {% endblock %} 
+{% extends 'police/menu_police.html' %}
+{% load i18n %}
+{% block extrastyle %} {% endblock %}
 {% block content %}
 <div class="col-12 col-md-12 order-2 order-md-1">
-  {% include 'police/header.html' %}
+
 <div class="row ">
     <div class="col-12 col-sm-6 col-md-12">
       <h4></h4>
       <div class="card shadow_OLD">
         <div class="card-header">
-            <h3 class="card-title text-white">{{_('GESTION_ELECTRONIQUE_DE_DOCUMENTS')}}</h3>
-            <div class="card-tools">
-                {% if police.etat_police == "En cours" or police.etat_police == "En attente" %}
-                <a class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-document"><i class="fas fa-plus"></i> {{_('Ajouter_un_document')}}</a>
-                {% endif %}
-            </div>
+            <h3 class="card-title text-white">{{_('GESTION ELECTRONIQUE DE DOCUMENTS')}}</h3>
         </div>
+
+            <div class="card-tools">
+                 <div class="button-link pull-right mb-2">
+                    {% if police.etat_police == "En cours" or police.etat_police == "En attente" %}
+                    <a class="btn btn-sm btn-primary mb-1 " data-toggle="modal" data-target="#modal-document"><i class="fas fa-plus"></i> {{_('Ajouter un document')}}</a>
+                    {% endif %}
+                </div>
+
 
         <div class="card-body">
             <div class="row table-responsive">
@@ -54,6 +59,7 @@
         </div>
     </div>
   </div>
+</div>
 </div>
 </div>
 {% endblock %}

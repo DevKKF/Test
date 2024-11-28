@@ -5,7 +5,7 @@ from . import views
 from .views import ClientsView, ExcelFileView, FormulesUniversellesView, FormulesView, DetailsFormuleView, \
     DetailsClientView, PoliceClientView, ContactClientView, FilialeClientView, AcompteClientView, GEDClientView, \
     PoliceBeneficiairesView, PoliceGedView, PoliceAvenantsView, PoliceTarifsSpecifiquesView, PoliceQuittancesView, \
-    PoliceSinistresView, PhotosBeneficiairesView, AnnulerQuittanceView
+    PoliceSinistresView, PhotosBeneficiairesView, AnnulerQuittanceView, CourrierView
 
 urlpatterns = [
     path("todo_manuel/", views.todo_manuel, name='todo_manuel'),
@@ -72,6 +72,7 @@ urlpatterns = [
     path('police/<int:police_id>/ged', PoliceGedView.as_view(), name='police_ged'),
     path('police/<int:police_id>/add_document', views.police_add_document, name='police_add_document'),
 
+
     path('police/<int:police_id>/beneficiaires', PoliceBeneficiairesView.as_view(), name='police_beneficiaires'),
     path('police/<int:police_id>/beneficiaires_datatable', views.police_beneficiaires_datatable, name='police_beneficiaires_datatable'),
     path('police/<int:police_id>/beneficiaires/<int:aliment_id>/', PoliceBeneficiairesView.as_view(), name='auto_open_beneficiaire'),
@@ -104,6 +105,11 @@ urlpatterns = [
     path('police/<int:police_id>/sinistres', PoliceSinistresView.as_view(), name='police_sinistres'),
     path('police/<int:police_id>/sinistres_datatable', views.police_sinistres_datatable, name='police_sinistres_datatable'),
 
+    path('police/<int:police_id>/courriers', CourrierView.as_view(), name='police_courrier'),
+    path('police/<int:police_id>/add_courrier', views.add_courrier, name='add_courrier'),
+    path('courrier/<int:courrier_id>/modifier_courrier', views.add_courrier, name='modifier_courrier'),
+    path("courrier/delete", views.supprimer_courrier, name='supprimer_courrier'),
+
 
     path('formules_universelles', FormulesUniversellesView.as_view(), name='formules_universelles'),
     path('police/<int:police_id>/formules', FormulesView.as_view(), name='police_formules'),
@@ -116,6 +122,8 @@ urlpatterns = [
     path('formule/<int:formule_id>/add_bareme', views.add_bareme, name='add_bareme'),
     path('formule/del_bareme', views.del_bareme, name='del_bareme'),
     path('formule/detail_bareme/<int:bareme_id>', views.detail_bareme, name='detail_bareme'),
+
+
 
     path('aliment/<int:police_id>/change_formule/<int:aliment_id>', views.change_formule, name='change_formule'),
     path('aliment/<int:police_id>/suspension_beneficiaire/<int:aliment_id>', views.suspension_beneficiaire, name='suspension_beneficiaire'),

@@ -1,7 +1,7 @@
 from django import forms
 
 from configurations.models import Apporteur
-from production.models import Contact, Filiale, Acompte, Document, Aliment, Police
+from production.models import Contact, Filiale, Acompte, Document, Aliment, Police , Courrier
 
 
 class ClientForm(forms.ModelForm):
@@ -50,6 +50,12 @@ class FilialeForm(forms.ModelForm):
     class Meta:
         model = Filiale
         fields = ['nom', 'adresse', 'pays', 'ville', ]
+
+#
+class CourrierForm(forms.ModelForm):
+    class Meta:
+        model = Courrier
+        fields = ['code', 'designation', 'service', 'status']
 
 #
 class AcompteForm(forms.ModelForm):

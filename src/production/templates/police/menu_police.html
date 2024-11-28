@@ -366,14 +366,17 @@
                   </p>
                 </a>
             </li>
-            <li class="nav-item" style="font-size:15px">
-                <a href="{% url 'police_formules' police.id %}" class="nav-link">
+
+
+             <li class="nav-item">
+                <a href="{% url 'police_courrier' police.id %}" class="nav-link">
                   <i class="nav-icon fas fa-umbrella"></i>
                   <p>
-                    Formumle de garantie
+                    Courrier
                   </p>
                 </a>
             </li>
+
             <li class="nav-item">
                 <a href="{% url 'police_ged' police.id %}" class="nav-link">
                   <i class="nav-icon fas fa-folder-open"></i>
@@ -509,6 +512,7 @@
 {% include 'police/modal_document.html' %}
 {% include 'police/modal_edition_cartes.html' %}
 {% include 'police/modal_add_tarif_prestataire_client.html' %}
+{% include 'police/modal_courrier.html' %}
 
 <div id="olea_std_dialog_box"></div>
 

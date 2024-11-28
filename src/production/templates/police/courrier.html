@@ -25,7 +25,7 @@
     </div>
     <div class="card-body">
         <div class="button-link pull-right mb-2">
-          <a class="btn btn-sm btn-primary mb-1" data-toggle="modal"  data-target="#modal-formule"><i class="fas fa-plus"></i> {{_('Ajouter un courrier')}}</a>
+          <a class="btn btn-sm btn-primary mb-1" data-toggle="modal"  data-target="#modal-courrier"><i class="fas fa-plus"></i> {{_('Ajouter un courrier')}}</a>
         </div>
 
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
@@ -44,19 +44,19 @@
                     </tr>
                   </thead>
                   <tbody>
-                  {% for formule in formules %}
+                  {% for courrier in courriers %}
                     <tr>
                         <td>{{ courrier.code|default_if_none:"" }}</td>
                         <td style="text-align:right;">{{ courrier.designation|default_if_none:"" }} </td>
                         <td>{{ courrier.service|default_if_none:"" }}</td>
-                        <td><span class="badge badge-{{formule.statut|default_if_none:''|slugify}}">{{ formule.statut|default_if_none:""}}</span></td>
-                         <td>{{ formule.date_fin|date:"d/m/Y" }}</td>
-                        <td>
-                            <a href="{% url 'details_formule' formule.id %}" class="btn badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {{_('Details')}}</a></a>
-                            {% if bareme.statut != 'INACTIF' %}
-                            <span class="btn badge btn-sm btn-complement-rouge rounded-pill btn-modal-modifier_formule" title="Modifier" data-href="{% url 'modifier_formule' formule.id %}" style="color:white;font-weight:normal;"><i class="fa fa-pencil"></i> {{_('Modifier')}}</span>&nbsp;&nbsp;
-                            <a class="btn badge btn-sm btn-danger rounded-pill btn-modal-formule-desactivate" title="Désactiver" data-href="{% url 'desactivate_formule' %}" data-type="delete" data-id="{{ formule.id }}" data-libelle="{{ formule.libelle }}" data-tauxcouverture="{{ formule.taux_couverture }}" data-territorialite="{{ formule.territorialite.id }}" data-datedebut="{{ formule.date_debut|date:'Y-m-d' }}" data-datefin="{{ formule.date_fin|date:'Y-m-d' }}" data-statut="{{ formule.statut }}" data-toggle="modal"  data-target="#modal-formule-desactivate"><i class="fa fa-trash"></i></a>
-                            {% endif %}
+                        <td><span class="badge badge-green">{{ courrier.status|default_if_none:""}}</span></td>
+                         <td>{{ courrier.created_at|date:"d/m/Y" }}</td>
+
+                         <td>
+                            <a href="#" class="btn badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {{_('Details')}}</a></a>
+                              <span class="badge badge-warning btn_modifier_on_modal_courrier text-white" data-model_name="courrier" data-href="{% url 'modifier_courrier' courrier.id %}" data-modal_title="Modification d'un courrier" title="Modifier" style="cursor:pointer;"><i class="fas fa-edit"></i></span>&nbsp;
+                             <span class="badge badge-danger btn_supprimer_courrier" data-courrier_id="{{ courrier.id }}" style="cursor:pointer;"><i class="fa fa-trash"></i> </span>&nbsp;
+
                         </td>
                     </tr>
                   {% endfor %}
@@ -74,8 +74,8 @@
 {% block extrajs %}
 <script>
     $(document).ready(function() {
-        $('#formule').removeClass('o-bg-primary');
-        $('#formule').addClass('o-active');
+        $('#courrier').removeClass('o-bg-primary');
+        $('#courrier').addClass('o-active');
     } );
 </script>
 {% endblock %}
