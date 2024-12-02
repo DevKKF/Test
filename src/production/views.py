@@ -6819,26 +6819,22 @@ def add_courrier(request, police_id):
 
 
 def modifier_courrier(request, courrier_id):
-    # Récupérer le courrier ou renvoyer une 404 s'il n'existe pas
     courrier = get_object_or_404(Courrier, id=courrier_id)
 
     if request.method == 'POST':
-        # Avant modification (si nécessaire pour des logs
 
         courrier_before = courrier
-
-
-
         pprint(courrier_before)
 
         # Récupérer les champs envoyés par le formulaire
+        produit_id = request.POST.get('produit')
         code = request.POST.get('code')
         designation = request.POST.get('designation')
-        lien_fichier = escape(request.POST.get('lien_fichier')),
-        service = escape(request.POST.get('service')),
+        lien_fichier = escape(request.POST.get('lien_fichier'))
+        service = escape(request.POST.get('service'))
         status = request.POST.get('statut')
 
-        produit_id = request.POST.get('produit')
+
         if produit_id:
             produit_id = int(produit_id)
             produit = get_object_or_404(Produit, id=produit_id)
@@ -6846,11 +6842,11 @@ def modifier_courrier(request, courrier_id):
             produit = None
 
         # Mettre à jour les champs
+        courrier.produit = produit
         courrier.code = code
         courrier.designation = designation
         courrier.lien_fichier = lien_fichier
         courrier.service = service
-        courrier.produit = produit
         courrier.status = status
 
         # Sauvegarder les modifications
