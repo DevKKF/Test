@@ -1939,9 +1939,10 @@ STATUS_CHOICES = [
 class Courrier(models.Model):
     code = models.CharField(max_length=50, unique=True)
     designation = models.CharField(max_length=255)
+    lien_fichier = models.CharField(max_length=50, blank=True, null=True)
     service = models.CharField(max_length=50, choices=SERVICE_CHOICES)
-    # produit = models.ForeignKey(Produit, on_delete=models.CASCADE, null=True, blank=True)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='sinistre')
+    produit = models.ForeignKey(Produit, blank=True, null=True, on_delete=models.RESTRICT)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Inactif')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

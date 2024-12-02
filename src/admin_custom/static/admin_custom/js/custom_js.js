@@ -1792,12 +1792,38 @@ $(document).ready(function () {
     }
 });
 
- $(document).on("click", "#btn_update_formule", function () {
+
+
+
+    //MODIFIER COURRIER
+
+    //ouverture du dialog
+    $(document).on("click", ".btn-modal-modifier_courrier", function () {
+
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            AppliquerMaskSaisie();
+
+            $('#modal-courrier-update').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-courrier-update').find('.modal-dialog').addClass('modal-m');
+
+            $('#modal_courrier_update').modal();
+        });
+
+    });
+
+    //Valider les modifications
+
+//modification proprement dite
+    $(document).on("click", "#btn_update_courrier", function () {
 
         let formulaire = $(this).closest('form');
         let href = formulaire.attr('action');
 
-        if (formulaire.valid() ) {
+        if (formulaire.valid()) {
 
             $.ajax({
                 type: 'post',
@@ -1807,7 +1833,7 @@ $(document).ready(function () {
 
                     if (response.statut == 1) {
 
-                        formule = response.data;
+                        courrier = response.data;
 
                         //Vider le formulaire
                         resetFields('#' + formulaire.attr('id'));
@@ -1824,9 +1850,9 @@ $(document).ready(function () {
                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                         }
 
-                        $('#modal-forumule .alert .message').html(errors_list_to_display);
+                        $('#modal-courrier .alert .message').html(errors_list_to_display);
 
-                        $('#modal-forumule .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                        $('#modal-courrier .alert ').fadeTo(2000, 500).slideUp(500, function () {
                             $(this).slideUp(500);
                         }).removeClass('alert-success').addClass('alert-warning');
 
@@ -1857,130 +1883,6 @@ $(document).ready(function () {
 
     });
 
-
-    //Standard: ouvrir les popups de modification
-    $(document).on("click", ".btn_modifier_on_modal_courrier", function () {
-
-        let model_name = $(this).attr('data-model_name');
-        let modal_title = $(this).attr('data-modal_title');
-        let href = $(this).attr('data-href');
-
-        $('#modal-dynamique').find('.modal-title').text(modal_title);
-        $('#modal-dynamique').find('#btn_valider_modification').attr({ 'data-model_name': model_name, 'data-href': href });
-
-        $('#modal-dynamique').modal({ backdrop: "static ", keyboard: false }).find('.modal-body').text("Chargement en cours...").load(href);
-
-    });
-
-    //Valider les modifications
-
-    $(document).on("click", "#btn_valider_modification", function (e) {
-        e.stopPropagation();
-
-        let model_name = $(this).attr('data-model_name');
-        let href = $(this).attr('data-href');
-        let formulaire = $('#modal-dynamique').find('form');
-
-        switch (model_name) {
-
-            case 'document':
-
-                let formData = new FormData();
-                let files = $('#modal-dynamique #fichier')[0].files;
-                let type_document = $('#modal-dynamique #type_document').val();
-                let nom = $('#modal-dynamique #nom').val();
-                let confidentialite = $('#modal-dynamique #confidentialite').val();
-                let commentaire = $('#modal-dynamique #commentaire').val();
-
-                $.validator.setDefaults({ ignore: [] });
-                if (formulaire.valid()) {
-
-
-
-                    $.ajax({
-                        type: 'post',
-                        url: href,
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function (response) {
-
-                            if (response.statut == 1) {
-
-                                notifySuccess(response.message);
-                                //location.reload();
-
-                            } else {
-
-                                let errors = JSON.parse(JSON.stringify(response.errors));
-                                let errors_list_to_display = '';
-                                for (field in errors) {
-                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
-                                }
-
-                                $('#modal-dynamique .alert .message').html(errors_list_to_display);
-
-                                $('#modal-dynamique .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                                    $(this).slideUp(500);
-                                }).removeClass('alert-success').addClass('alert-warning');
-
-                            }
-
-                        },
-                        error: function () {
-
-                        }
-                    });
-
-                } else {
-                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
-                }
-
-
-                break;
-
-            default:
-
-               $.ajax({
-    url: href, // URL fournie par 'data-href'
-    type: 'post',
-    data: formulaire.serialize(), // Sérialisation des données du formulaire
-    success: function (response) {
-        if (response.statut == 1) {
-            // Si succès, affichage du message et rechargement
-            $('#modal-dynamique .alert .message').text(response.message);
-            $('#modal-dynamique .alert ')
-                .fadeTo(2000, 500)
-                .slideUp(500, function () {
-                    $(this).slideUp(500);
-                    $("#modal-dynamique").modal('toggle'); // Fermeture de la modale
-                    notifySuccess(response.message); // Notification de succès
-                    location.reload(); // Rechargement de la page
-                })
-                .removeClass('alert-warning')
-                .addClass('alert-success');
-        } else {
-            // Si échec, affichage du message d'erreur
-            $('#modal-dynamique .alert .message').text(response.message);
-            $('#modal-dynamique .alert ')
-                .fadeTo(2000, 500)
-                .slideUp(500, function () {
-                    $(this).slideUp(500);
-                })
-                .removeClass('alert-success')
-                .addClass('alert-warning');
-        }
-    },
-    error: function () {
-        notifyWarning('Erreur lors de la modification'); // Message d'erreur
-    },
-});
-
-                break;
-
-        }
-
-    });
 
 
  $(document).on('click', '.btn_supprimer_courrier', function () {
@@ -4067,23 +3969,7 @@ $(document).ready(function () {
 
                         formule = response.data;
 
-                        /*
-                        let t = $('#table_formules').DataTable();
-    
-    
-                        t.row.add([
-                                    formule.libelle,
-                                    '<span style="text-align:right"display:block;>'+formule.taux_couverture + ' %</span>',
-                                    formule.territorialite,
-                                    formule.type_tarif,
-                                    formule.date_debut.split('-').reverse().join('/'),
-                                    "",
-                                    '<span class="badge badge-success>'+formule.statut+'</span>',
-                                    '<span data-href="/production/formule/'+formule.id+'" class="btn badge btn-sm btn-details rounded-pill popup-detail_formule_bareme"><i class="fa fa-eye"></i> Détails</span></a>&nbsp;&nbsp;&nbsp;'
-                                     +'<span title="Désactiver" data-href="/production/formule/del_bareme" data-bareme_id="{{ bareme.id }}" data-libelle="{{ bareme.acte.libelle }}" class="text-danger btn_supprimer_bareme" style="cursor:pointer;font-weight:normal;"><i class="fa fa-times"></i></span>',
-                                    ])
-                                    .draw(false);
-                                    */
+
 
                         //Vider le formulaire
                         resetFields('#' + formulaire.attr('id'));

@@ -106,8 +106,8 @@ urlpatterns = [
     path('police/<int:police_id>/sinistres_datatable', views.police_sinistres_datatable, name='police_sinistres_datatable'),
 
     path('police/<int:police_id>/courriers', CourrierView.as_view(), name='police_courrier'),
-    path('police/<int:police_id>/add_courrier', views.add_courrier, name='add_courrier'),
-    path('courrier/<int:courrier_id>/modifier_courrier', views.add_courrier, name='modifier_courrier'),
+    path('police/<int:police_id>/courrier/add_courrier', views.add_courrier, name='add_courrier'),
+    path('courrier/<int:courrier_id>/modifier_courrier', views.modifier_courrier, name='modifier_courrier'),
     path("courrier/delete", views.supprimer_courrier, name='supprimer_courrier'),
 
 

@@ -22,6 +22,7 @@ import pandas as pd
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.utils.html import escape
 from django.contrib.auth.models import Group
 from django.core import serializers
 from django.core.files.storage import FileSystemStorage
@@ -6753,12 +6754,14 @@ class CourrierView(TemplateView):
         police = Police.objects.filter(id=police_id,bureau=request.user.bureau,statut_validite=StatutValidite.VALIDE).first()
 
         if police:
-            courriers = Courrier.objects.all()  # Récupère tous les courriers
+            courriers = Courrier.objects.all() # Récupère tous les courriers
+            produits = Produit.objects.all()
             today = timezone.now().date()
 
             context = {
                 'police': police,  # Passe l'objet Police au template
                 'courriers': courriers,  # Passe les courriers au template
+                'produits': produits,
                 'today': today,
             }
 
@@ -6776,25 +6779,22 @@ class CourrierView(TemplateView):
 
 
 @login_required()
-def add_courrier(request, police_id = None):
+
+def add_courrier(request, police_id):
     police = Police.objects.get(id=police_id)
     if police and request.method == 'POST':
+
+        produit_id = request.POST.get('produit')
+        produit = get_object_or_404(Produit, id=produit_id)
 
         courrier_created = Courrier.objects.create(
             code = request.POST.get('code'),
             designation = request.POST.get('designation'),
-            # lien_fichier = request.POST.get('lien_fichier'),
+            lien_fichier = request.POST.get('lien_fichier'),
             service = request.POST.get('service'),
-            # produit = request.POST.get('produit'),
-            status = request.POST.get('statut')
+            produit = produit,
+            status = request.POST.get('status')
         )
-
-    # TODO : nomenclature du code client a trouver
-    # code_bureau = request.user.bureau.code
-    # client_created.code_provisoire = str(code_bureau) + str(Date.today().year)[-2:] + '-' + str(
-    # client_created.pk).zfill(7) + '-CL'
-    # client_created.code = generate_client_code()
-    # courrier_created.save()
 
     response = {
         'statut': 1,
@@ -6803,60 +6803,83 @@ def add_courrier(request, police_id = None):
             'code': courrier_created.code,
             'designation': courrier_created.designation,
             'service':courrier_created.service,
-            # 'lien_fhichier': courrier_created.lien_fichier
-            # 'produit': courrier_created.produit,
-            'statut': courrier_created.status,
+            'lien_fhichier': courrier_created.lien_fichier,
+            'status': courrier_created.status,
             'created_at': courrier_created.created_at,
         }
     }
 
     return JsonResponse(response)
 
-@login_required()
-@never_cache
+    return render(request, 'police/add_courrier.html', {
+        'police': police,
+
+    })
+
+
+
 def modifier_courrier(request, courrier_id):
-    courrier = Courrier.objects.get(id=courrier_id)
+    # Récupérer le courrier ou renvoyer une 404 s'il n'existe pas
+    courrier = get_object_or_404(Courrier, id=courrier_id)
 
     if request.method == 'POST':
-        form = CourrierForm(request.POST, instance=courrier)
-        if form.is_valid():
-            form.save()
+        # Avant modification (si nécessaire pour des logs
 
-            response = {
-                'statut': 1,
-                'message': "Modification effectuée avec succès !",
-                'data': {
-                    'id': courrier.pk,
-                    'code': courrier.code,
-                    'designation': courrier.designation,
-                    'service': courrier.service
-                }
-            }
+        courrier_before = courrier
 
-            return JsonResponse(response)
 
+
+        pprint(courrier_before)
+
+        # Récupérer les champs envoyés par le formulaire
+        code = request.POST.get('code')
+        designation = request.POST.get('designation')
+        lien_fichier = escape(request.POST.get('lien_fichier')),
+        service = escape(request.POST.get('service')),
+        status = request.POST.get('statut')
+
+        produit_id = request.POST.get('produit')
+        if produit_id:
+            produit_id = int(produit_id)
+            produit = get_object_or_404(Produit, id=produit_id)
         else:
+            produit = None
 
-            response = {
-                'statut': 0,
-                'message': "Veuillez renseigner correctement le formulaire",
-                'errors': form.errors,
-            }
+        # Mettre à jour les champs
+        courrier.code = code
+        courrier.designation = designation
+        courrier.lien_fichier = lien_fichier
+        courrier.service = service
+        courrier.produit = produit
+        courrier.status = status
 
-            return JsonResponse(response)
+        # Sauvegarder les modifications
+        courrier.save()
+
+        # Log d'action (si nécessaire)
+        ActionLog.objects.create(
+            done_by=request.user,
+            action="update",
+            description="Modification d'un courrier",
+            table="courrier",
+            row=courrier.pk,
+        )
+
+        # Retourner une réponse JSON pour AJAX
+        return JsonResponse({
+            'statut': 1,
+            'message': "Courrier modifié avec succès !"
+        })
 
     else:
-
-        courrier = Courrier.objects.get(id=courrier_id)
-        code = Courrier.objects.all().order_by('code')
-
-        form = CourrierForm()
-
-        return render(request, 'police/modal_courrier_update.html',
-                      {'courrier': courrier, 'code': code, 'form': form})
-
-
-
+        courriers = Courrier.objects.all()  # Options pour les services et statuts
+        produits = Produit.objects.all()
+        today = datetime.datetime.now(tz=timezone.utc)
+        return render(request, 'police/modal_courrier_update.html', {
+            'courrier': courrier,
+            'produits': produits,
+            'today': today,
+        })
 
 
 @login_required()

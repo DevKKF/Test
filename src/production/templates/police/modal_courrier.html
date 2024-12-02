@@ -4,7 +4,7 @@
 			<form enctype="multipart/form-data" id="form_add_courrier" action="{% url 'add_courrier' police.id%}" method="post">
 			{% csrf_token %}
 			 <div class="modal-header">
-                    <h4 class="modal-title">{{_('CREATION D UN CORRIER ')}}</h4>
+                    <h4 class="modal-title">{{_("CREATION D'UN COURRIER ")}}</h4>
                     <button type="button"class="close"data-dismiss="modal"aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -38,12 +38,12 @@
 										</div>
 									</div>
 
-<!--                                    <div class="form-group row">-->
-<!--										<label class="col-sm-5 col-form-label">{{_('Lien du fichier')}} <span class="required">*</span></label>-->
-<!--										<div class="col-sm-7">-->
-<!--											<input type="text" class="form-control" name="lien_fichier" value="" autocomplete="off" required/>-->
-<!--										</div>-->
-<!--									</div>-->
+                                    <div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_('Lien du fichier')}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="lien_fichier" value="" autocomplete="off" required/>
+										</div>
+									</div>
 
 								</div>
 								<div class="vl"></div>
@@ -54,32 +54,31 @@
 										<div class="col-sm-7">
 											<select class="form-control" name="service"  autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
-												{% for courrier in courriers %}
-												<option>{{ courrier.service }}</option>
+												<option value="Production" >Production</option>
+												<option value="Sinistre">Sinistre</option>
+												<option value="Comptabilité">Comptabilité</option>
+											</select>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Produit")}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<select class="form-control" name="produit"  autocomplete="off" required>
+												<option value="">{{_('Choisir')}}</option>
+												{% for produit in produits %}
+												<option value="{{ produit.id }}">{{ produit.nom }}</option>
 												{% endfor %}
 											</select>
 										</div>
 									</div>
-<!--									<div class="form-group row">-->
-<!--										<label class="col-sm-5 col-form-label">{{_("Produit")}} <span class="required">*</span></label>-->
-<!--										<div class="col-sm-7">-->
-<!--											<select class="form-control" name="produit"  autocomplete="off" required>-->
-<!--												<option value="">{{_('Choisir')}}</option>-->
-<!--												{% for courrier in courriers %}-->
-<!--												<option value="{{ courrier.id }}">{{ courrier.Produit }}</option>-->
-<!--												{% endfor %}-->
-<!--											</select>-->
-<!--										</div>-->
-<!--									</div>-->
 
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Statut")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control" name="statut"  autocomplete="off" required>
+											<select class="form-control" name="status"  autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
-												{% for courrier in courriers %}
-												<option value="{{ courrier.status}}">{{ courrier.status }}</option>
-												{% endfor %}
+												<option value="ACTIF" >ACTIF</option>
+            									<option value="INACTIF">INACTIF</option>
 											</select>
 										</div>
 									</div>
@@ -91,64 +90,6 @@
 						<div class="tab-pane fade mt-3" id="coordonnee" role="tabpanel" aria-labelledby="coordonnee-tab">
 							<div class="row">
 								<div class="col-md-6">
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Adresse')}} </label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control" name="adresse" autocomplete="off" value="" />
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Code postal")}}</label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control" name="adresse_postale" autocomplete="off" value="" />
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("E-mail")}} </label>
-										<div class="col-sm-7">
-											<input type="email" class="form-control" name="email" autocomplete="off" value="" />
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Site web")}}</label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control" name="site_web" autocomplete="off" value="" />
-										</div>
-									</div>
-								</div>
-								<div class="vl"></div>
-								<div class="col-md-5" style="border-left:0px;">
-
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Facebook')}} </label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control" name="facebook" autocomplete="off" value="" />
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Twitter')}} </label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control" name="twitter" autocomplete="off" value="" />
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Instagram')}} </label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control" name="instagram" autocomplete="off" value="" />
-										</div>
-									</div>
-
-									<div class="form-group row">
-                                        <label class="col-sm-5 col-form-label">Secteur d'activité </label>
-                                        <div class="col-sm-7">
-                                            <select name="secteur_activite_id" id="" class="form-control tags-multiple">
-                                                <option value="">{{_('Choisir')}}</option>
-                                                {% for secteur_activite in secteurs_activite %}
-                                                <option value="{{secteur_activite.id}}">{{secteur_activite.libelle}}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                    </div>
 
 								</div>
 							</div>
