@@ -256,6 +256,7 @@ table.table_v_middle th, table.table_v_middle td{
 :root {
   --couleur_olea: #F16623;
   --colorPrimary: #F16623;
+  --colorInov: orange;
   --colorJauneOlea: #EFBF77;
   --colorAccent: gray;
 }
@@ -453,7 +454,7 @@ article .shimmer{
 
 .card-header, .card-header0, .bg_rouge_olea
 {
-    background-color: var(--colorPrimary)!important;
+    background-color: var(--colorInov)!important;
     color: #fff;
 }
 
@@ -607,12 +608,20 @@ article .shimmer{
 }
 
 .card-header-gray{
-    background : #6B726A !important;
+    background : orange !important;
     font-weight: bold;
 }
 
 .bordered_block {
   box-shadow: none !important;
   margin-bottom: 1rem;
-  border: 1px solid #ccc;
+  border: 1px solid #000;
+}
+
+.f_none_bold label:not(.form-check-label):not(.custom-file-label) {
+  font-weight: none !important;
+}
+
+#modal-police_aliment label:not(.form-check-label):not(.custom-file-label) {
+  font-weight: 200 !important;
 }

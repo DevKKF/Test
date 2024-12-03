@@ -57,7 +57,7 @@
 {% block content_title %}
     <div class="row mb-2">
           <div class="col-sm-6">
-                <h1 class="m-0">Liste des polices du client</h1>
+                <h4 class="m-0 f-bold">CLIENT : {{ client.nom }} {{ client.prenoms }} / N° {{ client.code }}</h4>
           </div>
           <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -74,7 +74,7 @@
 <div class="col-md-12 accordion" id="accordionClient_removed">
   <div class="card offset" style="padding:0px;margin:0px;border:none;">
     <div class="card-header">
-      <h3 class="card-title text-white">POLICES DU CLIENT</h3>
+      <h3 class="card-title text-white">LISTE DES POLICES</h3>
       <div class="card-tools">
           <!--button-- type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse"><i class="fas fa-minus"></i></button-->
       </div>

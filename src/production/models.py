@@ -16,9 +16,10 @@ from configurations.models import Banque, Bureau, Civilite, Compagnie, Fractionn
     QualiteBeneficiaire, TypeAssurance, Devise, Profession, ModeCalcul, Taxe, Apporteur, BaseCalcul, TypeQuittance, \
     NatureQuittance, TypeCarosserie, CategorieVehicule, MarqueVehicule, NatureOperation, Prestataire, TypeTarif, Acte, \
     Rubrique, Periodicite, RegroupementActe, SousRubrique, TypePrefinancement, ReseauSoin, CompteTresorerie, \
-    SousRegroupementActe, Secteur, GroupeInter, BusinessUnit
+    SousRegroupementActe, Secteur, GroupeInter, Carosserie, Formule, Usage, Carburant, BusinessUnit, Garantie
 from shared.enum import Genre, Statut, StatutRelation, StatutFamilial, OptionYesNo, PlacementEtGestion, \
-    ModeRenouvellement, TypeEncaissementCommission, TypeMajorationContrat, CalculTM, StatutContrat, StatutPolice, StatutQuittance, \
+    ModeRenouvellement, TypeEncaissementCommission, TypeMajorationContrat, CalculTM, StatutContrat, StatutPolice, \
+    StatutQuittance, \
     StatutReversementCompagnie, StatutReglementApporteurs, StatutEncaissementCommission, Energie, StatutSinistre, \
     StatutValidite, StatutIncorporation, StatutTraitement
 
@@ -40,37 +41,35 @@ class Monnaie(models.Model):
         verbose_name_plural = 'Monnaies'
 
 
-
 def upload_location_client(instance, filename):
     filebase, extension = filename.rsplit('.', 1)
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     return 'clients/logos/%s.%s' % (file_name, extension)
 
 
-
 class SecteurActivite(models.Model):
     libelle = models.CharField(max_length=100, unique=True)
     status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self):
-        return self.libelle
 
+    def __str__(self):
+        return f"{self.libelle} - {self.created_at}"
 
     class Meta:
         db_table = 'secteur_activite'
-        verbose_name = 'Secteur d\'activité '
-        verbose_name_plural = 'Secteur d\'activité'
+        verbose_name = "Secteurs d'activité"
+        verbose_name_plural = "Secteurs d'activité"
+
 
 class Client(models.Model):
     veos_assure_sante_idper = models.CharField(max_length=100, blank=False, null=True)
     veos_client_idper = models.CharField(max_length=100, blank=False, null=True)
     bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
     type_personne = models.ForeignKey(TypePersonne, blank=False, null=True, on_delete=models.RESTRICT)
+    business_unit = models.ForeignKey(BusinessUnit, blank=False, null=True, on_delete=models.RESTRICT)
     type_client = models.ForeignKey(TypeClient, blank=False, null=True, on_delete=models.RESTRICT)
     pays = models.ForeignKey(Pays, blank=True, null=True, on_delete=models.RESTRICT)
     groupe_international = models.ForeignKey(GroupeInter, blank=True, null=True, on_delete=models.RESTRICT)
-    business_unit = models.ForeignKey(BusinessUnit, blank=True, null=True, on_delete=models.RESTRICT)
     code = models.CharField(max_length=25, blank=False, null=True)
     code_provisoire = models.CharField(max_length=25, blank=False, null=True)
     nom = models.CharField(max_length=100, blank=False, null=True)
@@ -87,20 +86,22 @@ class Client(models.Model):
     ville = models.CharField(max_length=50, blank=True, null=True)
     adresse_postale = models.CharField(max_length=50, blank=True, null=True)
     adresse = models.CharField(max_length=100, blank=True, null=True)
-    gestionnaire = models.ForeignKey(User, related_name='gestionnaire_client', blank=True, null=True, on_delete=models.RESTRICT)
+    gestionnaire = models.ForeignKey(User, related_name='gestionnaire_client', blank=True, null=True,
+                                     on_delete=models.RESTRICT)
     site_web = models.URLField(max_length=100, blank=True, null=True)
     twitter = models.CharField(max_length=100, blank=True, null=True)
     instagram = models.CharField(max_length=100, blank=True, null=True)
     facebook = models.CharField(max_length=100, blank=True, null=True)
-    secteur_activite = models.ForeignKey(SecteurActivite, blank=True, null=True, default=None, on_delete=models.SET_NULL)
+    secteur_activite = models.ForeignKey(SecteurActivite, blank=True, null=True, default=None,
+                                         on_delete=models.SET_NULL)
     ancienne_ref = models.CharField(max_length=100, blank=True, null=True)
     logo = models.ImageField(upload_to=upload_location_client, null=True, blank=True, )
     statut = models.fields.CharField(choices=Statut.choices, default=Statut.ACTIF, max_length=15, null=True)
-    statut_relation = models.fields.CharField(choices=StatutRelation.choices, default=StatutRelation.PROSPECT, max_length=15, null=True)
+    statut_relation = models.fields.CharField(choices=StatutRelation.choices, default=StatutRelation.PROSPECT,
+                                              max_length=15, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, blank=True, null=True, default=None, on_delete=models.RESTRICT)
-
 
     def __str__(self):
         if self.prenoms is None:
@@ -113,7 +114,6 @@ class Client(models.Model):
         verbose_name_plural = 'Clients'
 
 
-
 class Police(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     updated_by = models.ForeignKey(User, related_name="police_updated_by", null=True, on_delete=models.RESTRICT)
@@ -123,35 +123,28 @@ class Police(models.Model):
     bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
     compagnie = models.ForeignKey(Compagnie, on_delete=models.RESTRICT)
     client = models.ForeignKey(Client, related_name='polices', on_delete=models.RESTRICT)
-    veos_code_client = models.CharField(max_length=50, null=True, blank=True)
-    veos_code_cie = models.CharField(max_length=50, null=True, blank=True)
-    veos_id_npol = models.CharField(max_length=50, null=True, blank=True)
-    veos_id_pol = models.CharField(max_length=50, null=True, blank=True)
     devise = models.ForeignKey(Devise, null=True, on_delete=models.RESTRICT)
     taxes = models.ManyToManyField(Taxe, through='TaxePolice')
     intermediaires = models.ManyToManyField(Apporteur, through='ApporteurPolice')
 
-    apporteur = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)#False
-    programme_international = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)#False
-    placement_gestion = models.CharField(choices=PlacementEtGestion.choices, max_length=50, null=True)#False
-
+    apporteur = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)  # False
 
     date_souscription = models.DateField(null=True)
     date_debut_effet = models.DateField()
     date_fin_effet = models.DateField()
     date_fin_police = models.DateField(null=True)
-    preavis_de_resiliation = models.CharField(max_length=50, null=True)#False
-    mode_renouvellement = models.CharField(choices=ModeRenouvellement.choices, max_length=50, null=True)#False
+    preavis_de_resiliation = models.CharField(max_length=50, null=True)  # False
+    mode_renouvellement = models.CharField(choices=ModeRenouvellement.choices, max_length=50, null=True)  # False
 
-    fractionnement = models.ForeignKey(Fractionnement, on_delete=models.RESTRICT, null=True)#False
-    mode_reglement = models.ForeignKey(ModeReglement, on_delete=models.RESTRICT, null=True)#False
-    regularisation = models.ForeignKey(Regularisation, on_delete=models.RESTRICT, null=True)#False
+    fractionnement = models.ForeignKey(Fractionnement, on_delete=models.RESTRICT, null=True)  # False
+    mode_reglement = models.ForeignKey(ModeReglement, on_delete=models.RESTRICT, null=True)  # False
+    regularisation = models.ForeignKey(Regularisation, on_delete=models.RESTRICT, null=True)  # False
     date_prochaine_facture = models.DateField(null=True)
 
     taux_com_courtage = models.FloatField(null=True, )
     taux_com_courtage_terme = models.FloatField(null=True, )
     taux_com_gestion = models.FloatField(null=True, )
-    participation = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)#False
+    participation = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)  # False
     taux_participation = models.IntegerField(null=True, blank=True)
 
     prime_ht = models.BigIntegerField(null=True)
@@ -166,54 +159,20 @@ class Police(models.Model):
     taxe = models.BigIntegerField(null=True)
     autres_taxes = models.BigIntegerField(null=True)
 
-    type_prefinancement = models.ForeignKey(TypePrefinancement, null=True, on_delete=models.RESTRICT)
-    ticket_moderateur = models.ForeignKey(TicketModerateur, null=True, on_delete=models.RESTRICT)
-    mode_calcul = models.ForeignKey(ModeCalcul, null=True, on_delete=models.RESTRICT)
-    #champs pour prime par famille
-    prime_famille = models.IntegerField(null=True)
-    nombre_max_personne_famille = models.IntegerField(null=True)
-    nombre_max_enfants_famille = models.IntegerField(null=True)
-    age_max_adultes = models.IntegerField(null=True)
-    age_max_enfants = models.IntegerField(null=True)
-    surprime_personne_sup = models.IntegerField(null=True)
-    surprime_enfant_sup = models.IntegerField(null=True)
-    surprime_age_adulte = models.IntegerField(null=True)
-    surprime_ascendant = models.IntegerField(null=True)
-
-    #champs pour prime par personne
-    prime_personne = models.IntegerField(null=True)
-
-    # champs pour prime adulte/enfant
-    prime_adulte = models.IntegerField(null=True)
-    prime_enfant = models.IntegerField(null=True)
-
-    # champs pour prime proportionnelle
-    taux_cotisation = models.IntegerField(null=True)
-    part_employeur = models.IntegerField(null=True)
-    cotisation_minimale = models.IntegerField(null=True)
-    cotisation_maximale = models.IntegerField(null=True)
-
-    type_majoration = models.CharField(choices=TypeMajorationContrat.choices, default='', max_length=50, null=True)
-
-    autofinancement = models.CharField(choices=OptionYesNo.choices, default='', max_length=3, null=True)
     calcul_tm = models.CharField(choices=CalculTM.choices, default='', max_length=50, null=True)
 
     numero = models.CharField(max_length=50, null=True, blank=True)
     numero_provisoire = models.CharField(max_length=50, null=True, blank=True)
 
-    taux_charge = models.FloatField(null=True)
-    coefficient_n = models.FloatField(null=True)
-    coefficient_n1 = models.FloatField(null=True)
-    coefficient_n2 = models.FloatField(null=True)
-    coefficient_n3 = models.FloatField(null=True)
-
     observation = models.CharField(max_length=255, null=True)
 
     logo_partenaire = models.ImageField(upload_to='clients/polices/logos_partenaires/', blank=True, null=True)
 
-    statut_contrat = models.fields.CharField(choices=StatutContrat.choices, default=StatutContrat.PROJET, max_length=15, null=True)
+    statut_contrat = models.fields.CharField(choices=StatutContrat.choices, default=StatutContrat.PROJET, max_length=15,
+                                             null=True)
     statut = models.fields.CharField(choices=StatutPolice.choices, default=StatutPolice.ACTIF, max_length=15, null=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -250,10 +209,11 @@ class Police(models.Model):
 
         return nombre_total_mois
 
-
     @property
     def is_echue(self):
-        last_mouvement_avenant = MouvementPolice.objects.filter(police_id=self.id, statut_validite=StatutValidite.VALIDE).filter(Q(motif__code='AN') | Q(motif__code='RENOUV')).latest('id')
+        last_mouvement_avenant = MouvementPolice.objects.filter(police_id=self.id,
+                                                                statut_validite=StatutValidite.VALIDE).filter(
+            Q(motif__code='AN') | Q(motif__code='RENOUV')).latest('id')
 
         today = datetime.datetime.now(tz=timezone.utc).date()
         if last_mouvement_avenant:
@@ -265,7 +225,6 @@ class Police(models.Model):
     def has_beneficiaires(self):
         return AlimentFormule.objects.filter(formule__police=self, statut=Statut.ACTIF).exists()
 
-
     @property
     def formules(self):
         try:
@@ -273,34 +232,35 @@ class Police(models.Model):
 
             return formules
 
-        except :
+        except:
             return None
-
 
     @property
     def periode_couverture_encours(self, date_survenance=None):
-        #Ajouter date_survenance - quand les sinistres seront saisi par les gestionnaires
+        # Ajouter date_survenance - quand les sinistres seront saisi par les gestionnaires
         try:
-            periode_couverture = PeriodeCouverture.objects.filter(police_id=self.id, statut_validite=StatutValidite.VALIDE).latest('id') #remplacer statut=ACTIF par statut_validite=VALIDE
+            periode_couverture = PeriodeCouverture.objects.filter(police_id=self.id,
+                                                                  statut_validite=StatutValidite.VALIDE).latest(
+                'id')  # remplacer statut=ACTIF par statut_validite=VALIDE
 
             return periode_couverture
 
         except PeriodeCouverture.DoesNotExist:
             return None
 
-
-
     def periode_couverture_encours_atdate(self, date_prise_en_charge=None):
-        #Ajouter date_survenance - quand les sinistres seront saisi par les gestionnaires
+        # Ajouter date_survenance - quand les sinistres seront saisi par les gestionnaires
         pprint("TEST____________")
         pprint("date_prise_en_charge")
         pprint(date_prise_en_charge)
         print(date_prise_en_charge)
         try:
 
-            query = Q(police_id=self.id, date_debut_effet__date__lte=date_prise_en_charge) & (Q(date_fin_effet__isnull=True) | Q(date_fin_effet__date__gte=date_prise_en_charge))
+            query = Q(police_id=self.id, date_debut_effet__date__lte=date_prise_en_charge) & (
+                        Q(date_fin_effet__isnull=True) | Q(date_fin_effet__date__gte=date_prise_en_charge))
 
-            periode_couverture = PeriodeCouverture.objects.filter(statut_validite=StatutValidite.VALIDE).filter(query).latest('id') #remplacer statut=ACTIF par statut_validite=VALIDE
+            periode_couverture = PeriodeCouverture.objects.filter(statut_validite=StatutValidite.VALIDE).filter(
+                query).latest('id')  # remplacer statut=ACTIF par statut_validite=VALIDE
 
             pprint("periode_couverture")
             pprint(periode_couverture)
@@ -311,20 +271,22 @@ class Police(models.Model):
         except PeriodeCouverture.DoesNotExist:
             return None
 
-
     @property
     def avenant_encours(self, date_du_jour=None):
         date_du_jour = timezone.now().date()
 
-        #date_du_jour = datetime.datetime.now(tz=timezone.utc).date()
+        # date_du_jour = datetime.datetime.now(tz=timezone.utc).date()
         pprint("date_du_jour")
         pprint(date_du_jour)
-        #try:
+        # try:
 
-        query_cdt_dates = Q(date_effet__lte=date_du_jour) & (Q(date_fin_periode_garantie__isnull=True) | Q(date_fin_periode_garantie__gte=date_du_jour))
+        query_cdt_dates = Q(date_effet__lte=date_du_jour) & (
+                    Q(date_fin_periode_garantie__isnull=True) | Q(date_fin_periode_garantie__gte=date_du_jour))
 
-        mouvement_avenants = MouvementPolice.objects.filter(police_id=self.id, statut_validite=StatutValidite.VALIDE).filter(Q(motif__code='AN') | Q(motif__code='RENOUV'))#
-        if len(mouvement_avenants) >1:
+        mouvement_avenants = MouvementPolice.objects.filter(police_id=self.id,
+                                                            statut_validite=StatutValidite.VALIDE).filter(
+            Q(motif__code='AN') | Q(motif__code='RENOUV'))  #
+        if len(mouvement_avenants) > 1:
             mouvement_avenants.filter(query_cdt_dates)
 
         mouvement_avenant = mouvement_avenants.latest('id')
@@ -334,42 +296,44 @@ class Police(models.Model):
 
         return mouvement_avenant
 
-        #except MouvementPolice.DoesNotExist:
+        # except MouvementPolice.DoesNotExist:
         #    return None
-
 
     @property
     def etat_police(self):
-        #tenir compte de la date du jour pour déterminer l'état de la police
-        #today = datetime.datetime.now(tz=timezone.utc).date()
+        # tenir compte de la date du jour pour déterminer l'état de la police
+        # today = datetime.datetime.now(tz=timezone.utc).date()
         today = timezone.now().date()
 
-        mouvement = MouvementPolice.objects.filter(police_id=self.id, date_effet__lte=today, statut_validite=StatutValidite.VALIDE).order_by('-id').first()
+        mouvement = MouvementPolice.objects.filter(police_id=self.id, date_effet__lte=today,
+                                                   statut_validite=StatutValidite.VALIDE).order_by('-id').first()
 
         if mouvement:
             return mouvement.motif.etat_police
         else:
             return "En attente"
 
-    #Déterminer l'état de la police au moment ou la pec a eu lieu
+    # Déterminer l'état de la police au moment ou la pec a eu lieu
     def etat_police_atdate(self, date_prise_en_charge=None):
-        #tenir compte de la date du jour pour déterminer l'état de la police
+        # tenir compte de la date du jour pour déterminer l'état de la police
         today = datetime.datetime.now(tz=timezone.utc).date()
-        mouvement = MouvementPolice.objects.filter(police_id=self.id, date_effet__lte=date_prise_en_charge, statut_validite=StatutValidite.VALIDE).order_by('-id').first()
+        mouvement = MouvementPolice.objects.filter(police_id=self.id, date_effet__lte=date_prise_en_charge,
+                                                   statut_validite=StatutValidite.VALIDE).order_by('-id').first()
 
         if mouvement:
             return mouvement.motif.etat_police
         else:
             return "En attente"
-
 
     @property
     def nombre_total_beneficiaires(self):
         today = timezone.now().date()
         police_id = self.pk
 
-        db_query ="SELECT count(*) as nombre_beneficiaire from aliments inner join aliment_formule on aliment_formule.aliment_id = aliments.id inner join formulegarantie ON formulegarantie.id = aliment_formule.formule_id inner join polices on polices.id = formulegarantie.police_id where aliments.statut_incorporation='INCORPORE' and aliment_formule.statut_validite='VALIDE' and aliment_formule.id = ( select MAX(id) from aliment_formule WHERE aliment_id = aliments.id and statut_validite='VALIDE') and polices.id = " + str(police_id)
-        db_query ="SELECT count(*) as nombre_beneficiaire from aliments inner join aliment_formule on aliment_formule.aliment_id = aliments.id inner join formulegarantie ON formulegarantie.id = aliment_formule.formule_id inner join polices on polices.id = formulegarantie.police_id where aliment_formule.statut_validite='VALIDE' and aliment_formule.id = ( select MAX(id) from aliment_formule WHERE aliment_id = aliments.id and statut_validite='VALIDE') and polices.id = " + str(police_id)
+        db_query = "SELECT count(*) as nombre_beneficiaire from aliments inner join aliment_formule on aliment_formule.aliment_id = aliments.id inner join formulegarantie ON formulegarantie.id = aliment_formule.formule_id inner join polices on polices.id = formulegarantie.police_id where aliments.statut_incorporation='INCORPORE' and aliment_formule.statut_validite='VALIDE' and aliment_formule.id = ( select MAX(id) from aliment_formule WHERE aliment_id = aliments.id and statut_validite='VALIDE') and polices.id = " + str(
+            police_id)
+        db_query = "SELECT count(*) as nombre_beneficiaire from aliments inner join aliment_formule on aliment_formule.aliment_id = aliments.id inner join formulegarantie ON formulegarantie.id = aliment_formule.formule_id inner join polices on polices.id = formulegarantie.police_id where aliment_formule.statut_validite='VALIDE' and aliment_formule.id = ( select MAX(id) from aliment_formule WHERE aliment_id = aliments.id and statut_validite='VALIDE') and polices.id = " + str(
+            police_id)
         pprint("db_query")
         print(db_query)
 
@@ -381,36 +345,34 @@ class Police(models.Model):
 
         nombre_total = final_data[0]["nombre_beneficiaire"]
 
-        # aliment_formule_ids = AlimentFormule.objects.filter(formule_id__in=[p.id for p in self.formules], 
-        #                                                     statut=Statut.ACTIF).values_list('aliment_id', 
+        # aliment_formule_ids = AlimentFormule.objects.filter(formule_id__in=[p.id for p in self.formules],
+        #                                                     statut=Statut.ACTIF).values_list('aliment_id',
         #                                                                                      flat=True).order_by('-id')
 
         # nombre_total = Aliment.objects.filter(id__in=aliment_formule_ids).count()
 
         return nombre_total
 
-
     @property
     def nombre_beneficiaires_entree_encours(self):
         today = timezone.now().date()
         nombre_entree_encours = MouvementAliment.objects.filter(police_id=self.id, mouvement__code="DMD-INCORPO-GRH",
-                                                        date_effet__lte=today, statut_validite=StatutValidite.VALIDE,
-                                                        statut_traitement=StatutTraitement.NON_TRAITE).count()
+                                                                date_effet__lte=today,
+                                                                statut_validite=StatutValidite.VALIDE,
+                                                                statut_traitement=StatutTraitement.NON_TRAITE).count()
 
         #   print(f'@@ nombre_beneficiaires_entree_encours : {nombre_entree_encours} ')
 
         return nombre_entree_encours
 
-
     @property
     def nombre_beneficiaires_entres(self):
-        
-        nombre_entres = self.nombre_total_beneficiaires - self.nombre_beneficiaires_entree_encours - self.nombre_beneficiaires_sortis - self.nombre_beneficiaires_suspendus
- 
-        #   print(f'@@ nombre_entres : {nombre_entres} ')
- 
-        return nombre_entres
 
+        nombre_entres = self.nombre_total_beneficiaires - self.nombre_beneficiaires_entree_encours - self.nombre_beneficiaires_sortis - self.nombre_beneficiaires_suspendus
+
+        #   print(f'@@ nombre_entres : {nombre_entres} ')
+
+        return nombre_entres
 
     @property
     def nombre_beneficiaires_suspendus(self):
@@ -418,9 +380,11 @@ class Police(models.Model):
         #   nombre_suspendus = MouvementAliment.objects.filter(police_id=self.id, mouvement__code="SUSPENSION-BENEF", date_effet__lte=today, statut_validite=StatutValidite.VALIDE).count()
 
         nombre_suspendus = MouvementAliment.objects.filter(
-            Q(police_id=self.id, mouvement__code="SUSPENSION-BENEF", date_effet__lte=today, statut_validite=StatutValidite.VALIDE) &
+            Q(police_id=self.id, mouvement__code="SUSPENSION-BENEF", date_effet__lte=today,
+              statut_validite=StatutValidite.VALIDE) &
             ~Q(aliment_id__in=MouvementAliment.objects.filter(
-                police_id=self.id, mouvement__code="REMISEVIGUEUR-BENEF", date_effet__lte=today, statut_validite=StatutValidite.VALIDE
+                police_id=self.id, mouvement__code="REMISEVIGUEUR-BENEF", date_effet__lte=today,
+                statut_validite=StatutValidite.VALIDE
             ).values_list('aliment_id', flat=True))
         ).count()
 
@@ -428,27 +392,29 @@ class Police(models.Model):
 
         return nombre_suspendus
 
-
     @property
     def nombre_beneficiaires_sortis_encours(self):
 
         today = datetime.datetime.now(tz=timezone.utc).date()
-        nombre_sortis_en_cours = MouvementAliment.objects.filter(police_id=self.id, mouvement__code="DMDSORTIE", date_effet__lte=today, statut_validite=StatutValidite.VALIDE, statut_traitement=StatutTraitement.NON_TRAITE).count()
+        nombre_sortis_en_cours = MouvementAliment.objects.filter(police_id=self.id, mouvement__code="DMDSORTIE",
+                                                                 date_effet__lte=today,
+                                                                 statut_validite=StatutValidite.VALIDE,
+                                                                 statut_traitement=StatutTraitement.NON_TRAITE).count()
 
         #   print(f'@@ nombre_sortis_en_cours : {nombre_sortis_en_cours} ')
 
         return nombre_sortis_en_cours
 
-
     @property
     def nombre_beneficiaires_sortis(self):
-        #today = datetime.datetime.now(tz=timezone.utc).date()
-        #nombre_sortis = MouvementAliment.objects.filter(police_id=self.id, mouvement__code="SORTIE-BENEF", date_effet__lte=today, statut_validite=StatutValidite.VALIDE).count()
+        # today = datetime.datetime.now(tz=timezone.utc).date()
+        # nombre_sortis = MouvementAliment.objects.filter(police_id=self.id, mouvement__code="SORTIE-BENEF", date_effet__lte=today, statut_validite=StatutValidite.VALIDE).count()
 
         today = timezone.now().date()
         police_id = self.pk
 
-        db_query = "SELECT count(*) as nombre_beneficiaire from aliments inner join aliment_formule on aliment_formule.aliment_id = aliments.id inner join formulegarantie ON formulegarantie.id = aliment_formule.formule_id inner join polices on polices.id = formulegarantie.police_id where aliment_formule.statut_validite='VALIDE' and aliment_formule.id = ( select MAX(id) from aliment_formule WHERE aliment_id = aliments.id and statut_validite='VALIDE') and polices.id = " + str(police_id) + " and aliments.date_sortie IS NOT NULL and aliments.date_sortie <= '" + str(today) + "'"
+        db_query = "SELECT count(*) as nombre_beneficiaire from aliments inner join aliment_formule on aliment_formule.aliment_id = aliments.id inner join formulegarantie ON formulegarantie.id = aliment_formule.formule_id inner join polices on polices.id = formulegarantie.police_id where aliment_formule.statut_validite='VALIDE' and aliment_formule.id = ( select MAX(id) from aliment_formule WHERE aliment_id = aliments.id and statut_validite='VALIDE') and polices.id = " + str(
+            police_id) + " and aliments.date_sortie IS NOT NULL and aliments.date_sortie <= '" + str(today) + "'"
         pprint("db_query")
         print(db_query)
 
@@ -469,42 +435,35 @@ class HistoriquePolice(models.Model):
     police = models.ForeignKey(Police, on_delete=models.RESTRICT)
 
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-    updated_by = models.ForeignKey(User, related_name="historique_police_updated_by", null=True, on_delete=models.RESTRICT)
+    updated_by = models.ForeignKey(User, related_name="historique_police_updated_by", null=True,
+                                   on_delete=models.RESTRICT)
     produit = models.ForeignKey(Produit, null=True, on_delete=models.RESTRICT)
     type_assurance = models.ForeignKey(TypeAssurance, on_delete=models.RESTRICT)
     #
     bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
     compagnie = models.ForeignKey(Compagnie, on_delete=models.RESTRICT)
     client = models.ForeignKey(Client, on_delete=models.RESTRICT)
-    veos_code_client = models.CharField(max_length=50, null=True, blank=True)
-    veos_code_cie = models.CharField(max_length=50, null=True, blank=True)
-    veos_id_npol = models.CharField(max_length=50, null=True, blank=True)
-    veos_id_pol = models.CharField(max_length=50, null=True, blank=True)
     devise = models.ForeignKey(Devise, null=True, on_delete=models.RESTRICT)
     taxes = models.ManyToManyField(Taxe, through='HistoriqueTaxePolice')
     intermediaires = models.ManyToManyField(Apporteur, through='HistoriqueApporteurPolice')
 
-    apporteur = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)#False
-    programme_international = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)#False
-    placement_gestion = models.CharField(choices=PlacementEtGestion.choices, max_length=50, null=True)#False
-
+    apporteur = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)  # False
 
     date_souscription = models.DateField(null=True)
     date_debut_effet = models.DateField()
     date_fin_effet = models.DateField()
     date_fin_police = models.DateField(null=True)
-    preavis_de_resiliation = models.CharField(max_length=50, null=True)#False
-    mode_renouvellement = models.CharField(choices=ModeRenouvellement.choices, max_length=50, null=True)#False
+    preavis_de_resiliation = models.CharField(max_length=50, null=True)  # False
+    mode_renouvellement = models.CharField(choices=ModeRenouvellement.choices, max_length=50, null=True)  # False
 
-    fractionnement = models.ForeignKey(Fractionnement, on_delete=models.RESTRICT, null=True)#False
-    mode_reglement = models.ForeignKey(ModeReglement, on_delete=models.RESTRICT, null=True)#False
-    regularisation = models.ForeignKey(Regularisation, on_delete=models.RESTRICT, null=True)#False
+    fractionnement = models.ForeignKey(Fractionnement, on_delete=models.RESTRICT, null=True)  # False
+    mode_reglement = models.ForeignKey(ModeReglement, on_delete=models.RESTRICT, null=True)  # False
+    regularisation = models.ForeignKey(Regularisation, on_delete=models.RESTRICT, null=True)  # False
     date_prochaine_facture = models.DateField(null=True)
 
     taux_com_courtage = models.FloatField(null=True, )
     taux_com_courtage_terme = models.FloatField(null=True, )
-    taux_com_gestion = models.FloatField(null=True, )
-    participation = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)#False
+    participation = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)  # False
     taux_participation = models.IntegerField(null=True, blank=True)
 
     prime_ht = models.BigIntegerField(null=True)
@@ -519,54 +478,18 @@ class HistoriquePolice(models.Model):
     taxe = models.BigIntegerField(null=True)
     autres_taxes = models.BigIntegerField(null=True)
 
-    type_prefinancement = models.ForeignKey(TypePrefinancement, null=True, on_delete=models.RESTRICT)
-    ticket_moderateur = models.ForeignKey(TicketModerateur, null=True, on_delete=models.RESTRICT)
-    mode_calcul = models.ForeignKey(ModeCalcul, null=True, on_delete=models.RESTRICT)
-    #champs pour prime par famille
-    prime_famille = models.IntegerField(null=True)
-    nombre_max_personne_famille = models.IntegerField(null=True)
-    nombre_max_enfants_famille = models.IntegerField(null=True)
-    age_max_adultes = models.IntegerField(null=True)
-    age_max_enfants = models.IntegerField(null=True)
-    surprime_personne_sup = models.IntegerField(null=True)
-    surprime_enfant_sup = models.IntegerField(null=True)
-    surprime_age_adulte = models.IntegerField(null=True)
-    surprime_ascendant = models.IntegerField(null=True)
-
-    #champs pour prime par personne
-    prime_personne = models.IntegerField(null=True)
-
-    # champs pour prime adulte/enfant
-    prime_adulte = models.IntegerField(null=True)
-    prime_enfant = models.IntegerField(null=True)
-
-    # champs pour prime proportionnelle
-    taux_cotisation = models.IntegerField(null=True)
-    part_employeur = models.IntegerField(null=True)
-    cotisation_minimale = models.IntegerField(null=True)
-    cotisation_maximale = models.IntegerField(null=True)
-
-    type_majoration = models.CharField(choices=TypeMajorationContrat.choices, default='', max_length=50, null=True)
-
-    autofinancement = models.CharField(choices=OptionYesNo.choices, default='', max_length=3, null=True)
     calcul_tm = models.CharField(choices=CalculTM.choices, default='', max_length=50, null=True)
 
     numero = models.CharField(max_length=50, null=True, blank=True)
     numero_provisoire = models.CharField(max_length=50, null=True, blank=True)
 
-    taux_charge = models.FloatField(null=True)
-    coefficient_n = models.FloatField(null=True)
-    coefficient_n1 = models.FloatField(null=True)
-    coefficient_n2 = models.FloatField(null=True)
-    coefficient_n3 = models.FloatField(null=True)
-
-    observation = models.CharField(max_length=255, null=True)
-
     logo_partenaire = models.ImageField(upload_to='clients/polices/logos_partenaires/', blank=True, null=True)
 
-    statut_contrat = models.fields.CharField(choices=StatutContrat.choices, default=StatutContrat.PROJET, max_length=15, null=True)
+    statut_contrat = models.fields.CharField(choices=StatutContrat.choices, default=StatutContrat.PROJET, max_length=15,
+                                             null=True)
     statut = models.fields.CharField(choices=StatutPolice.choices, default=StatutPolice.ACTIF, max_length=15, null=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -595,13 +518,50 @@ class PoliceClient(models.Model):
         verbose_name_plural = 'Clients-polices'
 
 
+class PoliceGarantie(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.RESTRICT, null=True)
+    police = models.ForeignKey(Police, on_delete=models.RESTRICT, null=True)
+    garantie = models.ForeignKey(Garantie, on_delete=models.RESTRICT, null=True)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
+    updated_by = models.ForeignKey(User, related_name="pg_updated_by", null=True, on_delete=models.RESTRICT)
+    franchise = models.FloatField(blank=True, null=True)
+    capital = models.FloatField(blank=True, null=True)
+    statut = models.fields.CharField(choices=Statut.choices, default=Statut.ACTIF, max_length=15, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'police_garantie'
+        verbose_name = 'Police Garanties'
+        verbose_name_plural = 'Police Garanties'
+
+
+class AutreRisque(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.RESTRICT, null=True)
+    police = models.ForeignKey(Police, on_delete=models.RESTRICT, null=True)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
+    updated_by = models.ForeignKey(User, related_name="ar_updated_by", null=True, on_delete=models.RESTRICT)
+    deleted_by = models.ForeignKey(User, related_name="ar_deleted_by", null=True, on_delete=models.RESTRICT)
+    libelle = models.TextField(null=True)
+    description = models.TextField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'autre_risque'
+        verbose_name = 'Autres Risques'
+        verbose_name_plural = 'Autres Risques'
+
+
+
 class PeriodeCouverture(models.Model):
     police = models.ForeignKey(Police, on_delete=models.RESTRICT)
     date_debut_effet = models.DateTimeField(blank=True, null=True)
     date_fin_effet = models.DateTimeField(blank=True, null=True)
     observation = models.CharField(max_length=255, null=True, blank=True)
     statut = models.fields.CharField(choices=Statut.choices, default=Statut.ACTIF, max_length=15, null=True, blank=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True, blank=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -614,7 +574,7 @@ class PeriodeCouverture(models.Model):
         verbose_name_plural = 'Périodes de couverture'
 
 
-#Indique si TPG ou TPP
+# Indique si TPG ou TPP
 class ModePrefinancement(models.Model):
     code = models.CharField(max_length=5, null=True, blank=True)
     libelle = models.CharField(max_length=255, null=True, blank=True)
@@ -652,7 +612,6 @@ class FormuleGarantie(models.Model):
     infos_carte_numero_police = models.CharField(max_length=100, blank=True, null=True)
     infos_carte_show_numero_police = models.BooleanField(default=True)
 
-
     garantis_pharmacie = models.CharField(max_length=255, blank=True, null=True)
     code = models.CharField(max_length=50, blank=True, null=True, unique=True)
     taux_couverture = models.IntegerField(blank=True, null=True)
@@ -674,9 +633,9 @@ class FormuleGarantie(models.Model):
         verbose_name_plural = 'Formule de garantie'
 
 
-#les jointures sont faibles,
+# les jointures sont faibles,
 # si le bareme concerne toute la police, alors uniquement la police sera renseigné, collège et qualite_beneficiaire resteront vides,
-#s'il concerne un college en particulier alors college sera renseigné
+# s'il concerne un college en particulier alors college sera renseigné
 class Bareme(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     deleted_by = models.ForeignKey(User, related_name="deleted_by", null=True, on_delete=models.RESTRICT)
@@ -720,11 +679,13 @@ class Bareme(models.Model):
 class TauxCouvertureVariable(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     formulegarantie = models.ForeignKey(FormuleGarantie, on_delete=models.RESTRICT)
-    secteur = models.ForeignKey(Secteur, on_delete=models.RESTRICT) #Pour une même formule, le taux de couverture varie selon le secteur (public/privé) du prestataire
+    secteur = models.ForeignKey(Secteur,
+                                on_delete=models.RESTRICT)  # Pour une même formule, le taux de couverture varie selon le secteur (public/privé) du prestataire
     taux_couverture = models.IntegerField(null=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True)
 
     def __str__(self):
         return f'{self.formulegarantie.libelle} - {self.taux_couverture} %'
@@ -741,7 +702,8 @@ class FormuleRubriquePrefinance(models.Model):
     rubrique = models.ForeignKey(Rubrique, null=True, on_delete=models.RESTRICT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True)
 
     def __str__(self):
         return f'{self.formulegarantie.libelle} - {self.rubrique.name}'
@@ -752,7 +714,6 @@ class FormuleRubriquePrefinance(models.Model):
         verbose_name_plural = "Rubriques préfinancés sur la formule"
 
 
-
 def upload_location_aliment(instance, filename):
     filebase, extension = filename.rsplit('.', 1)
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
@@ -761,13 +722,8 @@ def upload_location_aliment(instance, filename):
     return 'photos/%s.%s' % (file_name, extension)
 
 
-
-
-
-
-
 class Aliment(models.Model):
-    #champs pour la migration veos
+    # champs pour la migration veos
     sms_active = models.BooleanField(default=False)
     veos_id_npol = models.CharField(max_length=50, null=True, blank=True)
     veos_code_aliment = models.CharField(max_length=50, blank=True, null=True)
@@ -830,17 +786,19 @@ class Aliment(models.Model):
 
     commentaire = models.CharField(max_length=20, blank=True, null=True)
     statut = models.fields.CharField(choices=Statut.choices, default=Statut.ACTIF, max_length=15, null=True)
-    statut_incorporation = models.fields.CharField(choices=StatutIncorporation.choices, default=StatutIncorporation.INCORPORE, max_length=15, null=True)
+    statut_incorporation = models.fields.CharField(choices=StatutIncorporation.choices,
+                                                   default=StatutIncorporation.INCORPORE, max_length=15, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    user_extranet = models.ForeignKey(User, related_name="aliments" ,null=True, on_delete=models.RESTRICT)
+    user_extranet = models.ForeignKey(User, related_name="aliments", null=True, on_delete=models.RESTRICT)
     numero_famille_du_mois = models.IntegerField(blank=True, null=True)
     has_photo_veos = models.BooleanField(default=True)
     statut_import_photo_veos = models.BooleanField(default=False)
     etat = models.CharField(max_length=50, blank=True, null=True)
-    #formulegarantie = models.ForeignKey(FormuleGarantie, null=True, on_delete=models.RESTRICT)
-    #police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
+
+    # formulegarantie = models.ForeignKey(FormuleGarantie, null=True, on_delete=models.RESTRICT)
+    # police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
 
     def __str__(self):
         return f'{self.nom} {self.prenoms}'
@@ -850,7 +808,6 @@ class Aliment(models.Model):
         verbose_name = 'Aliment'
         verbose_name_plural = 'aliments'
 
-
     @property
     def age(self):
         a = 0
@@ -859,37 +816,37 @@ class Aliment(models.Model):
             a = today.year - self.date_naissance.year
             pprint(self.date_naissance.year)
 
-            if today.month < self.date_naissance.month or (today.month == self.date_naissance.month and today.day < self.date_naissance.day):
+            if today.month < self.date_naissance.month or (
+                    today.month == self.date_naissance.month and today.day < self.date_naissance.day):
                 a -= 1
 
         return a
-
 
     @property
     def nom_prenoms(self):
         return f'{self.nom} {self.prenoms}'
 
-
     @property
     def telephone_mobile_sans_indicatif(self):
         indicatif = self.bureau.pays.indicatif
 
-        return self.telephone_mobile[len(indicatif):] if indicatif and self.telephone_mobile and self.telephone_mobile.startswith(indicatif) else self.telephone_mobile
-
+        return self.telephone_mobile[
+               len(indicatif):] if indicatif and self.telephone_mobile and self.telephone_mobile.startswith(
+            indicatif) else self.telephone_mobile
 
     @property
     def telephone_fixe_sans_indicatif(self):
         indicatif = self.bureau.pays.indicatif
 
-        return self.telephone_fixe[len(indicatif):] if indicatif and self.telephone_fixe and self.telephone_fixe.startswith(indicatif) else self.telephone_fixe
-
+        return self.telephone_fixe[
+               len(indicatif):] if indicatif and self.telephone_fixe and self.telephone_fixe.startswith(
+            indicatif) else self.telephone_fixe
 
     def carte_active(self):
         try:
             return self.cartes.filter(statut=Statut.ACTIF).latest('id')
         except Carte.DoesNotExist:
             return ""
-
 
     def client(self):
         try:
@@ -900,7 +857,6 @@ class Aliment(models.Model):
 
         except Client.DoesNotExist:
             return None
-
 
     @property
     def formules(self):
@@ -922,17 +878,17 @@ class Aliment(models.Model):
         except AlimentFormule.DoesNotExist:
             return None
 
-
     @property
     def formule(self, date_prise_en_charge=None):
         if date_prise_en_charge is None:
             date_prise_en_charge = datetime.datetime.now(tz=datetime.timezone.utc).date()
             # date_debut=date_prise_en_charge
-            #pprint("date_prise_en_charge")
-            #pprint(date_prise_en_charge)
+            # pprint("date_prise_en_charge")
+            # pprint(date_prise_en_charge)
 
         try:
-            query = Q(aliment_id=self.id, date_debut__date__lte=date_prise_en_charge) & (Q(date_fin__isnull=True) | Q(date_fin__date__gte=date_prise_en_charge))
+            query = Q(aliment_id=self.id, date_debut__date__lte=date_prise_en_charge) & (
+                        Q(date_fin__isnull=True) | Q(date_fin__date__gte=date_prise_en_charge))
             aliment_formules = AlimentFormule.objects.filter(query)
 
             if aliment_formules:
@@ -947,9 +903,8 @@ class Aliment(models.Model):
             pprint("FormuleGarantie.DoesNotExist")
             return None
 
-
-    #Identique à formule sauf que formule est une propriété et formuleencours une fonction
-    #sera plus utilisé quand les gestionnaires vont saisir les sinistre en retards
+    # Identique à formule sauf que formule est une propriété et formuleencours une fonction
+    # sera plus utilisé quand les gestionnaires vont saisir les sinistre en retards
     def formuleencours(self, date_prise_en_charge=None):
         if date_prise_en_charge is None:
             date_prise_en_charge = datetime.datetime.now(tz=datetime.timezone.utc).date()
@@ -961,7 +916,8 @@ class Aliment(models.Model):
         pprint(date_prise_en_charge)
 
         try:
-            query = Q(aliment_id=self.id, date_debut__date__lte=date_prise_en_charge) & (Q(date_fin__isnull=True) | Q(date_fin__date__gte=date_prise_en_charge))
+            query = Q(aliment_id=self.id, date_debut__date__lte=date_prise_en_charge) & (
+                        Q(date_fin__isnull=True) | Q(date_fin__date__gte=date_prise_en_charge))
             aliment_formules = AlimentFormule.objects.filter(query)
 
             if aliment_formules:
@@ -976,9 +932,8 @@ class Aliment(models.Model):
             pprint("FormuleGarantie.DoesNotExist")
             return None
 
-
-    #Identique à formule sauf que formule est une propriété et formuleencours une fonction
-    #sera plus utilisé quand les gestionnaires vont saisir les sinistre en retards
+    # Identique à formule sauf que formule est une propriété et formuleencours une fonction
+    # sera plus utilisé quand les gestionnaires vont saisir les sinistre en retards
     def formule_atdate(self, date_prise_en_charge=None):
         if date_prise_en_charge is None:
             date_prise_en_charge = datetime.datetime.now(tz=datetime.timezone.utc).date()
@@ -992,7 +947,8 @@ class Aliment(models.Model):
         pprint(date_prise_en_charge)
 
         try:
-            query = Q(aliment_id=self.id, date_debut__date__lte=date_prise_en_charge) & (Q(date_fin__isnull=True) | Q(date_fin__date__gte=date_prise_en_charge))
+            query = Q(aliment_id=self.id, date_debut__date__lte=date_prise_en_charge) & (
+                        Q(date_fin__isnull=True) | Q(date_fin__date__gte=date_prise_en_charge))
             aliment_formules = AlimentFormule.objects.filter(query)
 
             if aliment_formules:
@@ -1010,7 +966,6 @@ class Aliment(models.Model):
         except FormuleGarantie.DoesNotExist:
             pprint("FormuleGarantie.DoesNotExist")
             return None
-
 
     @property
     def last_formule(self):
@@ -1035,7 +990,6 @@ class Aliment(models.Model):
             return None
         '''
 
-
     @property
     def last_sinistre(self):
         # Comparaison de dates
@@ -1045,7 +999,6 @@ class Aliment(models.Model):
         ).order_by('-date_survenance').first()
 
         return last_sinistre
-
 
     @property
     def last_mouvement(self, date_reference=None):
@@ -1070,7 +1023,7 @@ class Aliment(models.Model):
 
     @property
     def etat_beneficiaire(self, date_reference=None, police_id=None):
-        #last_mouvement = self.last_mouvement(date_reference)
+        # last_mouvement = self.last_mouvement(date_reference)
         if date_reference is None:
             date_reference = datetime.datetime.now(tz=datetime.timezone.utc).date()
 
@@ -1116,12 +1069,10 @@ class Aliment(models.Model):
             else:
                 etat_beneficiaire = "ACTIF" if self.statut_incorporation == "INCORPORE" else "ENTREE EN COURS"
 
-
         return etat_beneficiaire
 
-
     def etat_beneficiaire_atdate(self, date_reference=None, police_id=None):
-        #last_mouvement = self.last_mouvement(date_reference)
+        # last_mouvement = self.last_mouvement(date_reference)
         if date_reference is None:
             date_reference = datetime.datetime.now(tz=datetime.timezone.utc).date()
 
@@ -1181,7 +1132,6 @@ class Aliment(models.Model):
 
         return etat_beneficiaire
 
-
     @property
     def police_encours(self):
         #
@@ -1214,7 +1164,8 @@ class AlimentFormule(models.Model):
     date_debut = models.DateTimeField(blank=True, null=True)
     date_fin = models.DateTimeField(blank=True, null=True)
     statut = models.fields.CharField(choices=Statut.choices, default=Statut.ACTIF, max_length=15, null=True, blank=True)
-    statut_validite = models.fields.CharField(choices=Statut.choices, default=StatutValidite.VALIDE, max_length=15, null=True, blank=True)
+    statut_validite = models.fields.CharField(choices=Statut.choices, default=StatutValidite.VALIDE, max_length=15,
+                                              null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1222,7 +1173,6 @@ class AlimentFormule(models.Model):
         db_table = 'aliment_formule'
         verbose_name = "Bénéficiaire d'une formule"
         verbose_name_plural = "Bénéficiaires d'un formule"
-
 
 
 class AlimentTemporaire(models.Model):
@@ -1263,7 +1213,8 @@ class ApporteurPolice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(auto_now=True)
-    statut_validite = models.fields.CharField(choices=Statut.choices, default=StatutValidite.VALIDE, max_length=15, null=True, blank=True)
+    statut_validite = models.fields.CharField(choices=Statut.choices, default=StatutValidite.VALIDE, max_length=15,
+                                              null=True, blank=True)
 
     class Meta:
         db_table = 'apporteurs_police'
@@ -1271,8 +1222,8 @@ class ApporteurPolice(models.Model):
         verbose_name_plural = 'Apporteurs de la police'
 
     def com_affaire_nouvelle(self):
-        commission_courtage = self.police.commission_courtage/100 if self.police.commission_courtage else 0
-        commission_gestion = self.police.commission_gestion/100 if self.police.commission_gestion else 0
+        commission_courtage = self.police.commission_courtage / 100 if self.police.commission_courtage else 0
+        commission_gestion = self.police.commission_gestion / 100 if self.police.commission_gestion else 0
         base_calcul_code = self.base_calcul.code
 
         if base_calcul_code == "COM_GEST":
@@ -1288,7 +1239,6 @@ class ApporteurPolice(models.Model):
             com_affaire_nouvelle = self.taux_com_affaire_nouvelle
 
         return com_affaire_nouvelle
-
 
 
 class HistoriqueTaxePolice(models.Model):
@@ -1315,13 +1265,13 @@ class HistoriqueApporteurPolice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(auto_now=True)
-    statut_validite = models.fields.CharField(choices=Statut.choices, default=StatutValidite.VALIDE, max_length=15, null=True, blank=True)
+    statut_validite = models.fields.CharField(choices=Statut.choices, default=StatutValidite.VALIDE, max_length=15,
+                                              null=True, blank=True)
 
     class Meta:
         db_table = 'historique_apporteurs_police'
         verbose_name = 'historique des apporteurs de la police'
         verbose_name_plural = 'historiques des apporteurs de la police'
-
 
 
 def upload_location_carte(instance, filename):
@@ -1330,6 +1280,7 @@ def upload_location_carte(instance, filename):
     if filename.startswith('qrcode_image_'):
         return f'beneficiaires/cartes_qrcodes/{filename}'
     return f'beneficiaire/cartes/{filename}'
+
 
 class Carte(models.Model):
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
@@ -1400,7 +1351,8 @@ class MouvementPolice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(auto_now=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True)
     historique_police = models.ForeignKey(HistoriquePolice, null=True, on_delete=models.RESTRICT)
 
     def __str__(self):
@@ -1417,13 +1369,15 @@ class MouvementAliment(models.Model):
     aliment = models.ForeignKey(Aliment, related_name="ses_mouvements", on_delete=models.RESTRICT)
     mouvement = models.ForeignKey(Mouvement, on_delete=models.RESTRICT)
     police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
-    #motif = models.ForeignKey(Motif, on_delete=models.RESTRICT)
+    # motif = models.ForeignKey(Motif, on_delete=models.RESTRICT)
     motif = models.CharField(max_length=255, blank=True, null=True)
     date_effet = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
-    statut_traitement = models.fields.CharField(choices=StatutTraitement.choices, default=StatutTraitement.TRAITE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True)
+    statut_traitement = models.fields.CharField(choices=StatutTraitement.choices, default=StatutTraitement.TRAITE,
+                                                max_length=15, null=True)
 
     def __str__(self):
         return f'{self.mouvement.libelle} du bénéficiaire {self.aliment.nom} {self.aliment.prenoms}'
@@ -1432,7 +1386,6 @@ class MouvementAliment(models.Model):
         db_table = 'mouvements_aliments'
         verbose_name = "Mouvement sur l'aliment"
         verbose_name_plural = "Mouvements sur l'aliment"
-
 
 
 class Quittance(models.Model):
@@ -1465,8 +1418,10 @@ class Quittance(models.Model):
     date_emission = models.DateField(blank=True, null=True)
     date_debut = models.DateField(blank=True, null=True)
     date_fin = models.DateField(blank=True, null=True)
-    statut = models.fields.CharField(choices=StatutQuittance.choices, default=StatutQuittance.IMPAYE, max_length=15, null=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
+    statut = models.fields.CharField(choices=StatutQuittance.choices, default=StatutQuittance.IMPAYE, max_length=15,
+                                     null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True)
     observation = models.CharField(max_length=255, blank=True, null=True)
     import_stats = models.BooleanField(default=False, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1483,7 +1438,6 @@ class Quittance(models.Model):
         permissions = [
             ("can_do_annulation_quittance", "Peut annuler des quittances"),
         ]
-
 
     @property
     def date_reglement_client(self):
@@ -1518,7 +1472,8 @@ class MouvementQuittance(models.Model):
     date_effet = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True)
 
     class Meta:
         db_table = 'mouvement_quittance'
@@ -1531,11 +1486,11 @@ def upload_location_operation(instance, filename):
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     return 'bordereaux/%s.%s' % (file_name, extension)
 
+
 class Operation(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-    nature_operation = models.ForeignKey(NatureOperation, null=True, on_delete=models.RESTRICT)
-    #nature_operation = models.ForeignKey(NatureOperation, null=True, on_delete=models.RESTRICT)
-    devise = models.ForeignKey(Devise, null=True, on_delete=models.RESTRICT)
+    nature_operation = models.ForeignKey(NatureOperation, null=True, on_delete=models.CASCADE)
+    devise = models.ForeignKey(Devise, null=True, on_delete=models.CASCADE)
     mode_reglement = models.ForeignKey(ModeReglement, null=True, on_delete=models.RESTRICT)
     banque = models.ForeignKey(Banque, null=True, on_delete=models.RESTRICT)
     banque_emettrice = models.CharField(max_length=255, blank=True, null=True)
@@ -1549,7 +1504,8 @@ class Operation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     observation = models.CharField(max_length=255, null=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True)
     uuid = models.CharField(max_length=255, null=True)
 
     def __str__(self):
@@ -1571,9 +1527,11 @@ class Reglement(models.Model):
     banque = models.ForeignKey(Banque, null=True, on_delete=models.RESTRICT)
     banque_emettrice = models.CharField(max_length=255, blank=True, null=True)
     compte_tresorerie = models.ForeignKey(CompteTresorerie, null=True, on_delete=models.RESTRICT)
-    quittance = models.ForeignKey(Quittance, on_delete=models.RESTRICT, related_name="ses_quittances", related_query_name="quittance")
-    compagnie = models.ForeignKey(Compagnie, null=True, on_delete=models.RESTRICT, related_name="reglements", related_query_name="reglement")
-    devise = models.ForeignKey(Devise, null=True, on_delete=models.RESTRICT)
+    quittance = models.ForeignKey(Quittance, on_delete=models.RESTRICT, related_name="ses_quittances",
+                                  related_query_name="quittance")
+    compagnie = models.ForeignKey(Compagnie, null=True, on_delete=models.RESTRICT, related_name="reglements",
+                                  related_query_name="reglement")
+    devise = models.ForeignKey(Devise, null=True, on_delete=models.CASCADE)
     montant = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
     montant_compagnie = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
     montant_com_courtage = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
@@ -1582,10 +1540,17 @@ class Reglement(models.Model):
     date_paiement = models.DateField(blank=True, null=True)
     observation = models.CharField(max_length=255, null=True)
     motif_annulation = models.CharField(max_length=255, null=True)
-    statut_reversement_compagnie = models.fields.CharField(choices=StatutReversementCompagnie.choices, default=StatutReversementCompagnie.NON_REVERSE, max_length=15, null=True)
-    statut_commission = models.fields.CharField(choices=StatutEncaissementCommission.choices, default=StatutEncaissementCommission.NON_ENCAISSEE, max_length=15, null=True)
-    statut_reglement_apporteurs = models.fields.CharField(choices=StatutReglementApporteurs.choices, default=StatutReglementApporteurs.NON_REGLE, max_length=15, null=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
+    statut_reversement_compagnie = models.fields.CharField(choices=StatutReversementCompagnie.choices,
+                                                           default=StatutReversementCompagnie.NON_REVERSE,
+                                                           max_length=15, null=True)
+    statut_commission = models.fields.CharField(choices=StatutEncaissementCommission.choices,
+                                                default=StatutEncaissementCommission.NON_ENCAISSEE, max_length=15,
+                                                null=True)
+    statut_reglement_apporteurs = models.fields.CharField(choices=StatutReglementApporteurs.choices,
+                                                          default=StatutReglementApporteurs.NON_REGLE, max_length=15,
+                                                          null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True)
     date_reversement_compagnie = models.DateTimeField(null=True)
     date_encaissement_commission = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now=True)
@@ -1598,17 +1563,17 @@ class Reglement(models.Model):
 
     def montant_com_global(self):
         return self.montant_com_courtage + self.montant_com_gestion
-    
+
     def montant_com_courtage_encaisse(self):
         montant = 0
         for encaissement in self.encaissement_commissions.exclude(type_commission=TypeEncaissementCommission.GESTION):
             montant += encaissement.montant()
         # print(f"{self.numero} {montant}")
         return montant
-    
+
     def montant_com_courtage_solde(self):
         return (self.montant_com_courtage - self.montant_com_courtage_encaisse())
-        
+
     def montant_com_gestion_encaisse(self):
         montant = 0
         for encaissement in self.encaissement_commissions.exclude(type_commission=TypeEncaissementCommission.COURTAGE):
@@ -1633,14 +1598,14 @@ class Reglement(models.Model):
 
     def montant_com_solde(self):
         return (self.montant_com_global() - self.montant_com_encaisse())
-    
+
     def montant_journal_debit(self):
         montant = 0
         for encaissement in self.encaissement_commissions.all():
             for journal in encaissement.journals.all():
                 if journal.sens == "D":
                     montant = montant + journal.montant
-        return montant 
+        return montant
 
     def montant_journal_credit(self):
         montant = 0
@@ -1656,7 +1621,7 @@ class Reglement(models.Model):
             for journal in encaissement.journals.all():
                 if journal.sens == "D":
                     montant = montant + journal.montant
-        return montant 
+        return montant
 
     def montant_journal_credit_courtage(self):
         montant = 0
@@ -1665,14 +1630,14 @@ class Reglement(models.Model):
                 if journal.sens == "C":
                     montant = montant + journal.montant
         return montant
-    
+
     def montant_journal_debit_gestion(self):
         montant = 0
         for encaissement in self.encaissement_commissions.exclude(type_commission=TypeEncaissementCommission.COURTAGE):
             for journal in encaissement.journals.all():
                 if journal.sens == "D":
                     montant = montant + journal.montant
-        return montant 
+        return montant
 
     def montant_journal_credit_gestion(self):
         montant = 0
@@ -1681,12 +1646,12 @@ class Reglement(models.Model):
                 if journal.sens == "C":
                     montant = montant + journal.montant
         return montant
-        
+
     def etat_encaisse_courtage(self):
         montant = 0
         for encaissement in self.encaissement_commissions.exclude(type_commission=TypeEncaissementCommission.GESTION):
             montant += encaissement.montant()
-        #print(montant)
+        # print(montant)
         if montant == self.montant_com_courtage:
             return True
         else:
@@ -1696,7 +1661,7 @@ class Reglement(models.Model):
         montant = 0
         for encaissement in self.encaissement_commissions.exclude(type_commission=TypeEncaissementCommission.COURTAGE):
             montant += encaissement.montant()
-        #print(montant)
+        # print(montant)
         if montant == self.montant_com_gestion:
             return True
         else:
@@ -1710,13 +1675,12 @@ class Reglement(models.Model):
         montant = 0
         for encaissement in self.encaissement_commissions.all():
             montant += encaissement.montant()
-        #print(montant)
+        # print(montant)
         if montant == self.montant_com_global():
             return True
         else:
             return False
-            
-    
+
 
 class OperationReglement(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
@@ -1724,13 +1688,13 @@ class OperationReglement(models.Model):
     reglement = models.ForeignKey(Reglement, on_delete=models.RESTRICT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
+    statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE,
+                                              max_length=15, null=True)
 
     class Meta:
         db_table = 'operation_reglement'
         verbose_name = 'Opération sur un règlement'
         verbose_name_plural = 'Opérations sur les règlements'
-
 
 
 class Acompte(models.Model):
@@ -1774,6 +1738,7 @@ def upload_location_document(instance, filename):
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     return 'clients/documents/%s.%s' % (file_name, extension)
 
+
 class Document(models.Model):
     client = models.ForeignKey(Client, null=True, on_delete=models.RESTRICT)
     police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
@@ -1782,7 +1747,8 @@ class Document(models.Model):
     quittance = models.ForeignKey(Quittance, null=True, on_delete=models.RESTRICT)
     nom = models.CharField(max_length=255, blank=True, null=True)
     fichier = models.FileField(upload_to=upload_location_document, blank=True, default=None, null=True)
-    confidentialite = models.fields.CharField(choices=OptionYesNo.choices, default=OptionYesNo.OUI, max_length=15,null=True)
+    confidentialite = models.fields.CharField(choices=OptionYesNo.choices, default=OptionYesNo.OUI, max_length=15,
+                                              null=True)
     commentaire = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1833,31 +1799,40 @@ class Contact(models.Model):
         verbose_name_plural = 'Contacts'
 
 
-
 class Vehicule(models.Model):
-    categorie_vehicule = models.ForeignKey(CategorieVehicule, on_delete=models.RESTRICT)
-    type_carosserie = models.ForeignKey(TypeCarosserie, on_delete=models.RESTRICT)
-    marque = models.ForeignKey(MarqueVehicule, on_delete=models.RESTRICT)
+    categorie_vehicule = models.ForeignKey(CategorieVehicule, on_delete=models.RESTRICT, null=True)
+    carosserie = models.ForeignKey(Carosserie, on_delete=models.RESTRICT, null=True)
+    formule = models.ForeignKey(Formule, on_delete=models.RESTRICT, null=True)
+    usage = models.ForeignKey(Usage, on_delete=models.RESTRICT, null=True)
+    carburant = models.ForeignKey(Carburant, on_delete=models.RESTRICT, null=True)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
+    updated_by = models.ForeignKey(User, related_name="vh_updated_by", null=True, on_delete=models.RESTRICT)
+    deleted_by = models.ForeignKey(User, related_name="vh_deleted_by", null=True, on_delete=models.RESTRICT)
     numero_immatriculation = models.CharField(max_length=15, blank=True, null=True)
     numero_immat_provisoire = models.CharField(max_length=15, blank=True, null=True)
     numero_serie = models.CharField(max_length=25, blank=True, null=True)
+    numero_parc = models.CharField(max_length=25, blank=True, null=True)
+    marque = models.CharField(max_length=50, blank=True, null=True)
     modele = models.CharField(max_length=50, blank=True, null=True)
+    proprietaire = models.CharField(max_length=50, blank=True, null=True)
     conducteur = models.CharField(max_length=50, blank=True, null=True)
     place = models.CharField(max_length=50, blank=True, null=True)
-    energie = models.fields.CharField(choices=Energie.choices, max_length=100, null=True)
     valeur_neuve = models.CharField(max_length=50, blank=True, null=True)
     valeur_actuelle = models.CharField(max_length=50, blank=True, null=True)
     puissance = models.CharField(max_length=50, blank=True, null=True)
     poids_a_vide = models.CharField(max_length=50, blank=True, null=True)
     poids_a_charge = models.CharField(max_length=50, blank=True, null=True)
-    date_mis_en_circulation = models.CharField(max_length=50, blank=True, null=True)
+    date_mis_en_circulation = models.DateField(blank=True, null=True)
+    date_entree = models.DateField(blank=True, null=True)
+    date_sortie = models.DateField(blank=True, null=True)
+    commentaire = models.TextField(null=True)
     statut = models.fields.CharField(choices=Statut.choices, default=Statut.ACTIF, max_length=15, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'vehicules'
-        verbose_name = 'Véhicule'
+        verbose_name = 'Véhicules'
         verbose_name_plural = 'Véhicules'
 
 
@@ -1880,15 +1855,37 @@ class VehiculePolice(models.Model):
 
 
 
+class AlimentPolice(models.Model):
+    vehicule = models.ForeignKey(Vehicule, on_delete=models.RESTRICT, null=True)
+    police = models.ForeignKey(Police, on_delete=models.RESTRICT, null=True)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
+    updated_by = models.ForeignKey(User, related_name="alpo_updated_by", null=True, on_delete=models.RESTRICT)
+    deleted_by = models.ForeignKey(User, related_name="alpo_deleted_by", null=True, on_delete=models.RESTRICT)
+    date_debut = models.DateField(blank=True, null=True)
+    date_fin = models.DateField(blank=True, null=True)
+    date_liaison = models.DateTimeField(blank=True, null=True)
+    statut = models.fields.CharField(choices=Statut.choices, default=Statut.ACTIF, max_length=15, null=True)
+
+    class Meta:
+        db_table = 'aliment_police'
+        verbose_name = 'Aliments de la police'
+        verbose_name_plural = 'Aliments de la police'
+
+
+
+
 def upload_location_tarifprestataireclient(instance, filename):
     filebase, extension = filename.rsplit('.', 1)
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     return 'clients/tarifs/%s.%s' % (file_name, extension)
+
+
 class TarifPrestataireClient(models.Model):
     prestataire = models.ForeignKey(Prestataire, on_delete=models.RESTRICT, null=True)
     client = models.ForeignKey(Client, on_delete=models.RESTRICT, null=True)
     formule = models.ForeignKey(FormuleGarantie, on_delete=models.RESTRICT, null=True)
-    fichier_tarification = models.FileField(upload_to=upload_location_tarifprestataireclient, blank=True, default=None, null=True)
+    fichier_tarification = models.FileField(upload_to=upload_location_tarifprestataireclient, blank=True, default=None,
+                                            null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     statut = models.BooleanField(default=True)
@@ -1904,18 +1901,17 @@ class TarifPrestataireClient(models.Model):
                                                                  'Télécharger')) if self.fichier_tarification else ""
 
 
-
-## OLEA API MOBILE
+## INOV API MOBILE
 class CarteDigitalDematerialisee(models.Model):
-    user = models.ForeignKey(User, on_delete=models.RESTRICT)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     has_digital_card = models.BooleanField(default=False)
     digital_card_url = models.URLField(max_length=500, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f'Carte Digitale pour l\'Utilisateur : {self.user.username}'
-    
+
     class Meta:
         db_table = 'cartes_digital_dematerialisees'
         verbose_name = 'Carte Digital Dématérialisée'

@@ -154,8 +154,8 @@ def add_view(self, request, form_url='', extra_context=None):
 
 
 class ApporteurAdmin(admin.ModelAdmin):
-    list_display = ('nom', 'prenoms', 'telephone', 'email', 'adresse', 'type_apporteur', 'pays')
-    search_field = ('nom', 'prenoms', 'telephone', 'email', 'adresse', 'type_apporteur', 'pays')
+    list_display = ('nom', 'prenoms', 'code', 'telephone', 'email', 'adresse', 'type_apporteur', 'pays')
+    search_field = ('nom', 'prenoms', 'code',  'telephone', 'email', 'adresse', 'type_apporteur', 'pays')
     list_per_page = 20
     form = ApporteurAdminForm
 
@@ -169,7 +169,7 @@ class ApporteurAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         # Renseignez le champ bureau uniquement lors de la création d'une nouvelle compagnie
         if not change:
-            code_bureau = request.user.bureau.code
+            #code_bureau = request.user.bureau.code
             obj.bureau = request.user.bureau
             #obj.code = f"{slugify(code_bureau)}{str(obj.pk).zfill(4)}".upper()
 

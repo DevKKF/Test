@@ -252,7 +252,7 @@
             {% if user.is_superuser or user.is_admin_group %}
             <li class="nav-item dropdown">
                 <a class="nav-link btn" data-toggle="dropdown" href="javascript:void(0)" title="Changer de bureau">
-                     <span class="current_bureau">CLIENT : {{ client.nom }} {{ client.prenoms }} / N° {{ client.code }}</span>
+                     <span class="current_bureau"></span>
                 </a>
             </li>
             {% endif %}

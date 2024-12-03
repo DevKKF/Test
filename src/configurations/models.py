@@ -544,8 +544,8 @@ class Bureau(models.Model):
 
 
 class BureauTaxe(models.Model):
-    bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
-    taxe = models.ForeignKey(Taxe, on_delete=models.RESTRICT)
+    bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
+    taxe = models.ForeignKey(Taxe, null=True, on_delete=models.RESTRICT)
     taux = models.FloatField(blank=True, null=True)
     montant = models.BigIntegerField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -615,7 +615,7 @@ class Compagnie(models.Model):
     adresse = models.CharField(max_length=255, blank=True, default=None, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
+    bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     status = models.BooleanField(default=True)
 
     @classmethod
@@ -778,7 +778,7 @@ class Prestataire(models.Model):
     type_prestataire = models.ForeignKey(TypePrestataire, null=True, on_delete=models.RESTRICT)
     secteur = models.ForeignKey(Secteur, on_delete=models.RESTRICT, null=True)
     type_etablissement = models.ForeignKey(TypeEtablissement, null=True, on_delete=models.RESTRICT)
-    bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
+    bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     rb_ordre = models.CharField(max_length=255, blank=True, default=None, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -932,7 +932,7 @@ class Stock(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=True)
-    prestataire = models.ForeignKey(Prestataire, on_delete=models.RESTRICT)
+    prestataire = models.ForeignKey(Prestataire, null=True, on_delete=models.RESTRICT)
 
     def __str__(self):
         return self.begin_number + '__' + self.end_number
@@ -944,8 +944,8 @@ class Stock(models.Model):
 
 
 class SpecialiteTypePresta(models.Model):
-    specialite = models.ForeignKey(Specialite, on_delete=models.RESTRICT)
-    type_prestataire = models.ForeignKey(TypePrestataire, on_delete=models.RESTRICT)
+    specialite = models.ForeignKey(Specialite, null=True, on_delete=models.RESTRICT)
+    type_prestataire = models.ForeignKey(TypePrestataire, null=True, on_delete=models.RESTRICT)
 
     def __str__(self):
         return self.specialite.name
@@ -1091,7 +1091,7 @@ class SousRegroupementActe(models.Model):
 
 
 class SousRubriqueRegroupementActe(models.Model):
-    sous_rubrique = models.ForeignKey(SousRubrique, on_delete=models.RESTRICT)
+    sous_rubrique = models.ForeignKey(SousRubrique, null=True, on_delete=models.RESTRICT)
     regroupement_acte = models.ForeignKey(RegroupementActe, null=True, on_delete=models.RESTRICT)
     statut = models.BooleanField(default=True)
 
@@ -1102,7 +1102,7 @@ class SousRubriqueRegroupementActe(models.Model):
 
 
 class Acte(models.Model):
-    rubrique = models.ForeignKey(Rubrique, on_delete=models.RESTRICT)
+    rubrique = models.ForeignKey(Rubrique, null=True, on_delete=models.RESTRICT)
     regroupement_acte = models.ForeignKey(RegroupementActe, null=True, on_delete=models.RESTRICT)
     type_acte = models.ForeignKey(TypeActe, null=True, on_delete=models.RESTRICT)
     libelle = models.CharField(max_length=255)
@@ -1139,7 +1139,7 @@ class Acte(models.Model):
 
 
 class SousRegroupementActeActe(models.Model):
-    sous_regroupement_acte = models.ForeignKey(SousRegroupementActe, on_delete=models.RESTRICT)
+    sous_regroupement_acte = models.ForeignKey(SousRegroupementActe, null=True, on_delete=models.RESTRICT)
     acte = models.ForeignKey(Acte, null=True, on_delete=models.RESTRICT)
     statut = models.BooleanField(default=True)
 
@@ -1150,7 +1150,7 @@ class SousRegroupementActeActe(models.Model):
 
 
 class Medicament(models.Model):
-    rubrique = models.ForeignKey(Rubrique, on_delete=models.RESTRICT)
+    rubrique = models.ForeignKey(Rubrique, null=True, on_delete=models.RESTRICT)
     libelle = models.CharField(max_length=255)
     code = models.CharField(max_length=255, blank=True, default=None, null=True)
     accord_automatique = models.BooleanField(default=False)
@@ -1168,7 +1168,7 @@ class Medicament(models.Model):
 
 
 class ActeWaspito(models.Model):
-    acte = models.ForeignKey(Acte, on_delete=models.RESTRICT)
+    acte = models.ForeignKey(Acte, null=True, on_delete=models.RESTRICT)
     libelle_en = models.CharField(max_length=255, blank=True, null=True)
     libelle_fr = models.CharField(max_length=255, blank=True, null=True)
     code_olea = models.CharField(max_length=20, blank=True, default=None, null=True)
@@ -1347,23 +1347,6 @@ class Territorialite(models.Model):
         verbose_name = 'Territorialites'
         verbose_name_plural = 'Territorialites'
 
-
-class Garantie(models.Model):
-    code = models.CharField(max_length=10, blank=True, null=True)
-    nom = models.CharField(max_length=100, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    status = models.BooleanField(default=True)
-
-    def __str__(self):
-        return self.nom
-
-    class Meta:
-        db_table = 'garanties'
-        verbose_name = 'Garantie'
-        verbose_name_plural = 'Garanties'
-
-
 class TypeProduit(models.Model):
     nom = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1425,8 +1408,7 @@ class FloatRangeField(models.FloatField):
 
 class ParamProduitCompagnie(models.Model):
     compagnie = models.ForeignKey(Compagnie, related_name="taux_com", on_delete=models.RESTRICT)
-    produit = models.ForeignKey(Produit, on_delete=models.RESTRICT)
-    taux_com_gestion = FloatRangeField(blank=True, default=None, null=True, min_value=0)
+    produit = models.ForeignKey(Produit, null=True, on_delete=models.RESTRICT)
     taux_com_courtage = FloatRangeField(blank=True, default=None, null=True, min_value=0)
     taux_com_courtage_terme = FloatRangeField(blank=True, default=None, null=True, min_value=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1598,6 +1580,8 @@ class TypeUtilisateur(models.Model):
         verbose_name = 'Type utilisateur'
         verbose_name_plural = 'Types utilisateurs'
 
+
+
 class User(AbstractUser):
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     type_utilisateur = models.ForeignKey(TypeUtilisateur, null=True, on_delete=models.RESTRICT)
@@ -1722,8 +1706,8 @@ class User(AbstractUser):
 class ParamActe(models.Model):
     created_by = models.ForeignKey(User, related_name="pa_created_by", null=True, on_delete=models.RESTRICT)
     updated_by = models.ForeignKey(User, related_name="pa_updated_by", null=True, on_delete=models.RESTRICT)
-    bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
-    acte = models.ForeignKey(Acte, on_delete=models.RESTRICT)
+    bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
+    acte = models.ForeignKey(Acte, null=True, on_delete=models.RESTRICT)
     delais_controle = models.IntegerField(blank=True, null=True)
     delais_carence = models.IntegerField(blank=True, null=True)
     accord_automatique = models.BooleanField(default=False)
@@ -1743,8 +1727,8 @@ class ParamActe(models.Model):
 class PrescripteurPrestataire(models.Model):
     created_by = models.ForeignKey(User, related_name="pp_created_by", null=True, on_delete=models.RESTRICT)
     deleted_by = models.ForeignKey(User, related_name="pp_deleted_by", null=True, on_delete=models.RESTRICT)
-    prestataire = models.ForeignKey(Prestataire, on_delete=models.RESTRICT)
-    prescripteur = models.ForeignKey(Prescripteur, on_delete=models.RESTRICT)
+    prestataire = models.ForeignKey(Prestataire, null=True, on_delete=models.RESTRICT)
+    prescripteur = models.ForeignKey(Prescripteur, null=True, on_delete=models.RESTRICT)
     statut_validite = models.fields.CharField(choices=StatutValidite.choices, default=StatutValidite.VALIDE, max_length=15, null=True)
     observation = models.CharField(max_length=255, blank=True, null=True)
     deleted_at = models.DateTimeField(blank=True, null=True)
@@ -1785,7 +1769,7 @@ class Apporteur(models.Model):
     pays = models.ForeignKey(Pays, null=True, on_delete=models.RESTRICT)
     type_apporteur = models.ForeignKey(TypeApporteur, null=True, on_delete=models.RESTRICT)
     type_personne = models.ForeignKey(TypePersonne, null=True, on_delete=models.RESTRICT)
-    apporteur_international = models.ForeignKey(ApporteurInternational, null=True, on_delete=models.RESTRICT)
+    #apporteur_international = models.ForeignKey(ApporteurInternational, null=True, on_delete=models.RESTRICT)
     nom = models.CharField(max_length=100, blank=True, default=None, null=True)
     prenoms = models.CharField(max_length=100, blank=True, default=None, null=True)
     code = models.CharField(max_length=25, blank=True, default=None, null=True, unique=True)
@@ -1967,6 +1951,7 @@ class Banque(models.Model):
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     libelle = models.CharField(max_length=100, blank=True, null=True)
     code = models.CharField(max_length=50, blank=True, null=True)
+    nom_complet = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=True)
@@ -2212,8 +2197,8 @@ class TarifExcel(models.Model):
 
 #créer les actes autorises par spécialité
 class SpecialiteActeAutorise(models.Model):
-    specialite = models.ForeignKey(Specialite, on_delete=models.RESTRICT)
-    acte = models.ForeignKey(Acte, on_delete=models.RESTRICT)
+    specialite = models.ForeignKey(Specialite, null=True, on_delete=models.RESTRICT)
+    acte = models.ForeignKey(Acte, null=True, on_delete=models.RESTRICT)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -2298,7 +2283,7 @@ class WsBoby(models.Model):
 
 
 class ParamWsBoby(models.Model):
-    ws_boby = models.ForeignKey(WsBoby, on_delete=models.RESTRICT)
+    ws_boby = models.ForeignKey(WsBoby, null=True, on_delete=models.RESTRICT)
     name = models.CharField(max_length=100, blank=True, null=True)
     value = models.TextField(blank=True, null=True)
     status = models.BooleanField(default=True)
@@ -2352,8 +2337,8 @@ class BackgroundQueryTask(models.Model):
         verbose_name_plural = 'Requête en arrière-plan'
 
 class AdminGroupeBureau(models.Model):
-    bureau = models.ForeignKey(Bureau, on_delete=models.RESTRICT)
-    user = models.ForeignKey(User, on_delete=models.RESTRICT)
+    bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
+    user = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     status = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -2449,7 +2434,7 @@ class AlimentBaobab(models.Model):
 
 class ModelLettreCheque(models.Model):
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
-    banque = models.ForeignKey(Banque, on_delete=models.RESTRICT)
+    banque = models.ForeignKey(Banque, null=True, on_delete=models.RESTRICT)
     libelle = models.CharField(max_length=100, blank=False, null=True)
     model = models.CharField('Modèle', max_length=100, blank=False, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -2557,22 +2542,6 @@ class BusinessUnit(models.Model):
         verbose_name = 'Business Unit'
         verbose_name_plural = 'Business Unit'
 
-class GarantieBranche(models.Model):
-    branche = models.ForeignKey(Branche, on_delete=models.RESTRICT)
-    garantie = models.ForeignKey(Garantie, on_delete=models.RESTRICT)
-    status = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f'{self.created_at}'
-
-    class Meta:
-        db_table = 'garantie_branche'
-        verbose_name = 'Garanties / Branche'
-        verbose_name_plural = 'Garanties / Branche'
-
-
 
 class Formule(models.Model):
     code = models.CharField(max_length=10, blank=True, null=True)
@@ -2590,10 +2559,44 @@ class Formule(models.Model):
         verbose_name_plural = 'Formules'
 
 
+class Garantie(models.Model):
+    code = models.CharField(max_length=10, blank=True, null=True)
+    nom = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.code} - {self.nom}"
+
+    class Meta:
+        db_table = 'garanties'
+        verbose_name = 'Garantie'
+        verbose_name_plural = 'Garanties'
+
+
+
+class GarantieBranche(models.Model):
+    branche = models.ForeignKey(Branche, null=True, on_delete=models.RESTRICT)
+    garantie = models.ForeignKey(Garantie, null=True, on_delete=models.RESTRICT)
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.created_at}'
+
+    class Meta:
+        db_table = 'garantie_branche'
+        verbose_name = 'Garanties / Branche'
+        verbose_name_plural = 'Garanties / Branche'
+
+
 
 class GarantieFormule(models.Model):
-    formule = models.ForeignKey(Formule, on_delete=models.RESTRICT)
-    garantie = models.ForeignKey(Garantie, on_delete=models.RESTRICT)
+    formule = models.ForeignKey(Formule, null=True, on_delete=models.RESTRICT)
+    garantie = models.ForeignKey(Garantie, null=True, on_delete=models.RESTRICT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=True)

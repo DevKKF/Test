@@ -1,324 +1,216 @@
-//A la fermeture de la fenetre des autres taxes, sauvegarder les données dans les cookies pour pouvoir les récupérer coté serveur
-    $('#modal-autres_taxes').on('hidden.bs.modal', function () {
-        $('body').addClass('modal-open');
-
-        //Enregistrer les autres taxes saisies
-
-        if (typeof (Storage) !== "undefined") {
-
-            localStorage.setItem('taxes', "");
-
-            // Code for localStorage
-            $("#modal-autres_taxes .montant_taxe").each(function (index, element) {
-
-                //element = this
-                let taxe_id = $(element).attr('data-taxe_id');
-                let montant = parseInt($(element).val().replaceAll(' ', ''));
-                montant = (montant != '') ? montant : parseInt(0);
-
-                if (isNaN(montant)) {
-                    montant = parseInt(0);
-                }
-
-                let taxe = {
-                    id: taxe_id,
-                    montant: montant,
-                }
-
-                appendToStorage('taxes', taxe);
-
-            });
-
-            let taxes_result = localStorage.getItem('taxes');
-
-            console.log(taxes_result);
-
-            //enregistrer dans le cookies pour l'utiliser coté serveur avec python
-            document.cookie = "taxes=" + taxes_result;
-
-
-        } else {
-            notifyWarning('No web storage Support.');
-        }
-
-
-    });
-
-
-def add_police(request, client_id):
-    taxes = request.COOKIES.get('taxes')
-    client = Client.objects.get(id=client_id)
-
+# Importer des aliments
+@login_required
+def import_aliments(request):
     if request.method == 'POST':
+        # Si un fichier est importé
+        if request.FILES.get('aliments'):
+            fichier = request.FILES['aliments']
 
-        # print(request.POST)
+            try:
+                # Lire le fichier Excel
+                data = pd.read_excel(fichier)
 
-        form = PoliceForm(request.POST)
+                # Colonnes requises
+                colonnes_requises = [
+                    'num_parc', 'immat', 'immat_prov', 'num_serie', 'proprietaire',
+                    'chauffeur', 'marque', 'modele', 'place', 'energie', 'valeur_neuve',
+                    'valeur_actuelle', 'date_entree', 'date_sortie', 'mis_en_circulation',
+                    'puissance', 'poids_a_vide', 'poids_a_charge', 'T_carosserie_id',
+                    'T_categorie_id', 'T_usage_id', 'T_formule_id', 'comment'
+                ]
 
-        if form.is_valid():
+                # Vérifier que toutes les colonnes requises sont présentes
+                if not all(col in data.columns for col in colonnes_requises):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Les colonnes suivantes sont obligatoires : ' + ', '.join(colonnes_requises)
+                    }, status=400)
 
-            produit = Produit.objects.get(id=request.POST.get('produit'))
-            branche = produit.branche
-            compagnie = Compagnie.objects.get(id=request.POST.get('compagnie'))
-            numero = request.POST.get('numero')
-            apporteur = request.POST.get('apporteur')
-            date_debut_effet = request.POST.get('date_debut_effet')
-            date_fin_effet = request.POST.get('date_fin_effet')
-            preavis_de_resiliation = request.POST.get('preavis_de_resiliation')
-            mode_renouvellement = request.POST.get('mode_renouvellement')
-            fractionnement_id = request.POST.get('fractionnement')
-            mode_reglement_id = request.POST.get('mode_reglement')
-            regularisation_id = request.POST.get('regularisation')
-            date_prochaine_facture = request.POST.get('date_prochaine_facture')
-            participation = request.POST.get('participation')
-            taux_participation = request.POST.get('taux_participation').replace(' ', '')
-            if taux_participation == "": taux_participation = 0
-            prime_ht = request.POST.get('prime_ht').replace(' ', '')
-            if prime_ht == "": prime_ht = 0
-            prime_ttc = request.POST.get('prime_ttc').replace(' ', '')
-            if prime_ttc == "": prime_ttc = 0
-            taxe = request.POST.get('taxe').replace(' ', '')
-            if taxe == "": taxe = 0
-            autres_taxes = request.POST.get('autres_taxes').replace(' ', '')
-            if autres_taxes == "": autres_taxes = 0
-            taux_com_courtage = request.POST.get('taux_com_courtage').replace(' ', '')
-            if taux_com_courtage == "": taux_com_courtage = 0
-            taux_com_courtage_terme = request.POST.get('taux_com_courtage_terme').replace(' ', '')
-            if taux_com_courtage_terme == "": taux_com_courtage_terme = 0
-            taux_com_gestion = request.POST.get('taux_com_gestion').replace(' ', '')
-            if taux_com_gestion == "": taux_com_gestion = 0
-            commission_gestion = request.POST.get('commission_gestion').replace(' ', '')
-            if commission_gestion == "": commission_gestion = 0
-            commission_courtage = request.POST.get('commission_courtage').replace(' ', '')
-            if commission_courtage == "": commission_courtage = 0
-            commission_intermediaires = request.POST.get('commission_intermediaire').replace(' ', '')
-            if commission_intermediaires == "": commission_intermediaires = 0
-            cout_police_compagnie = request.POST.get('cout_police_compagnie').replace(' ', '')
-            if cout_police_compagnie == "": cout_police_compagnie = 0
-            cout_police_courtier = request.POST.get('cout_police_courtier').replace(' ', '')
-            if cout_police_courtier == "": cout_police_courtier = 0
-            ticket_moderateur_id = request.POST.get('ticket_moderateur')
-            calcul_tm = request.POST.get('calcul_tm')
-            type_prefinancement_id = request.POST.get('type_prefinancement')
+                # Prendre les données à partir de la ligne 2 (ignorer la première ligne si en-tête présent)
+                data = data.iloc[1:]
 
-            mode_calcul_id = request.POST.get('mode_calcul')
-            prime_famille = request.POST.get('prime_famille').replace(' ', '')
-            if prime_famille == "": prime_famille = 0
-            nombre_max_enfants_famille = request.POST.get('nombre_max_enfants_famille').replace(' ', '')
-            if nombre_max_enfants_famille == "": nombre_max_enfants_famille = 0
-            nombre_max_personne_famille = request.POST.get('nombre_max_personne_famille').replace(' ', '')
-            if nombre_max_personne_famille == "": nombre_max_personne_famille = 0
-            age_max_enfants = request.POST.get('age_max_enfants').replace(' ', '')
-            if age_max_enfants == "": age_max_enfants = 0
-            age_max_adultes = request.POST.get('age_max_adultes').replace(' ', '')
-            if age_max_adultes == "": age_max_adultes = 0
-            surprime_personne_sup = request.POST.get('surprime_personne_sup').replace(' ', '')
-            if surprime_personne_sup == "": surprime_personne_sup = 0
-            surprime_enfant_sup = request.POST.get('surprime_enfant_sup').replace(' ', '')
-            if surprime_enfant_sup == "": surprime_enfant_sup = 0
-            surprime_age_adulte = request.POST.get('surprime_age_adulte').replace(' ', '')
-            if surprime_age_adulte == "": surprime_age_adulte = 0
-            surprime_ascendant = request.POST.get('surprime_ascendant').replace(' ', '')
-            if surprime_ascendant == "": surprime_ascendant = 0
-            prime_personne = request.POST.get('prime_personne').replace(' ', '')
-            if prime_personne == "": prime_personne = 0
-            prime_adulte = request.POST.get('prime_adulte').replace(' ', '')
-            if prime_adulte == "": prime_adulte = 0
-            prime_enfant = request.POST.get('prime_enfant').replace(' ', '')
-            if prime_enfant == "": prime_enfant = 0
-            taux_cotisation = request.POST.get('taux_cotisation').replace(' ', '')
-            if taux_cotisation == "": taux_cotisation = 0
-            part_employeur = request.POST.get('part_employeur').replace(' ', '')
-            if part_employeur == "": part_employeur = 0
-            cotisation_minimale = request.POST.get('cotisation_minimale').replace(' ', '')
-            if cotisation_minimale == "": cotisation_minimale = 0
-            cotisation_maximale = request.POST.get('cotisation_maximale').replace(' ', '')
-            if cotisation_maximale == "": cotisation_maximale = 0
+                # Remplacer les IDs de catégories par leurs libellés
+                categories = {cat.id: cat.libelle for cat in CategorieVehicule.objects.all()}
+                data['T_categorie_id'] = data['T_categorie_id'].map(categories)
 
-            autofinancement = request.POST.get('autofinancement')
-            devise_id = request.POST.get('devise')
-            taux_charge = request.POST.get('taux_charge').replace(' ', '')
-            if taux_charge == "": taux_charge = 0
-            coefficient_n = request.POST.get('coefficient_n').replace(' ', '')
-            if coefficient_n == "": coefficient_n = 0
-            coefficient_n1 = request.POST.get('coefficient_n1').replace(' ', '')
-            if coefficient_n1 == "": coefficient_n1 = 0
-            coefficient_n2 = request.POST.get('coefficient_n2').replace(' ', '')
-            if coefficient_n2 == "": coefficient_n2 = 0
-            coefficient_n3 = request.POST.get('coefficient_n3').replace(' ', '')
-            if coefficient_n3 == "": coefficient_n3 = 0
+                # Vérifier si des catégories ne sont pas trouvées
+                if data['T_categorie_id'].isnull().any():
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Certaines catégories dans le fichier ne correspondent pas à la base de données.'
+                    }, status=400)
 
-            statut_contrat = request.POST.get('statut_contrat')
-            statut_contrat = "CONTRAT"
+                # Extraire les colonnes nécessaires pour le tableau
+                aliments = data[[
+                    'num_parc', 'immat', 'immat_prov', 'num_serie', 'proprietaire',
+                    'chauffeur', 'marque', 'modele', 'place', 'energie', 'valeur_neuve',
+                    'valeur_actuelle', 'date_entree', 'date_sortie', 'mis_en_circulation',
+                    'puissance', 'poids_a_vide', 'poids_a_charge', 'T_carosserie_id',
+                    'T_categorie_id', 'T_usage_id', 'T_formule_id', 'comment'
+                ]].to_dict(orient='records')
 
-            police_created = Police.objects.create(bureau_id=client.bureau_id,
-                                           client_id=client_id,
-                                           compagnie_id=compagnie.id,
-                                           produit_id=produit.id,
-                                           numero=numero,
-                                           apporteur=apporteur,
-                                           date_souscription=date_debut_effet,
-                                           date_debut_effet=date_debut_effet,
-                                           date_fin_effet=date_fin_effet,
-                                           preavis_de_resiliation=preavis_de_resiliation,
-                                           mode_renouvellement=mode_renouvellement,
-                                           fractionnement_id=fractionnement_id,
-                                           mode_reglement_id=mode_reglement_id,
-                                           regularisation_id=regularisation_id,
-                                           date_prochaine_facture=date_prochaine_facture,
-                                           participation=participation,
-                                           taux_participation=taux_participation,
-                                           prime_ht=prime_ht,
-                                           prime_ttc=prime_ttc,
-                                           taxe=taxe,
-                                           autres_taxes=autres_taxes,
-                                           taux_com_courtage=taux_com_courtage,
-                                           taux_com_courtage_terme=taux_com_courtage_terme,
-                                           commission_gestion=commission_gestion,
-                                           commission_courtage=commission_courtage,
-                                           commission_intermediaires=commission_intermediaires,
-                                           cout_police_compagnie=cout_police_compagnie,
-                                           cout_police_courtier=cout_police_courtier,
-                                           ticket_moderateur_id=ticket_moderateur_id,
-                                           type_prefinancement_id=type_prefinancement_id,
-                                           calcul_tm=calcul_tm,
+                # Charger les aliments existants de la session
+                aliments_existant = request.session.get('aliments', [])
 
-                                           #mode_calcul_id=mode_calcul_id,
-                                           #prime_famille=prime_famille,
-                                           #nombre_max_enfants_famille=nombre_max_enfants_famille,
-                                           #nombre_max_personne_famille=nombre_max_personne_famille,
-                                           #age_max_enfants=age_max_enfants,
-                                           #age_max_adultes=age_max_adultes,
-                                           #surprime_personne_sup=surprime_personne_sup,
-                                           #surprime_enfant_sup=surprime_enfant_sup,
-                                           #surprime_age_adulte=surprime_age_adulte,
-                                           #surprime_ascendant=surprime_ascendant,
-                                           #prime_personne=prime_personne,
-                                           #prime_adulte=prime_adulte,
-                                           #prime_enfant=prime_enfant,
-                                           #taux_cotisation=taux_cotisation,
-                                           #part_employeur=part_employeur,
-                                           #cotisation_minimale=cotisation_minimale,
-                                           #cotisation_maximale=cotisation_maximale,
-                                           #type_majoration=type_majoration,
-                                           #taux_com_gestion=taux_com_gestion,
-                                           #programme_international=programme_international,
-                                           #placement_gestion=placement_gestion,
+                # Ajouter les aliments du fichier à la session
+                request.session['aliments'] = aliments + aliments_existant
 
-                                           #autofinancement=autofinancement,
-                                           #devise_id=devise_id,
-                                           #taux_charge=taux_charge,
-                                           #coefficient_n=coefficient_n,
-                                           #coefficient_n1=coefficient_n1,
-                                           #coefficient_n2=coefficient_n2,
-                                           #coefficient_n3=coefficient_n3,
+                return JsonResponse({'success': True, 'data': aliments}, status=200)
 
-                                           statut_contrat=statut_contrat,
-                                           statut=Statut.ACTIF,
-                                           created_by=request.user
-                                           )
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': f"Erreur lors de l'importation : {str(e)}"}, status=500)
 
-            police_created.save()
+        # Sinon, enregistrer les données saisies dans le formulaire
+        else:
+            try:
 
-            code_bureau = request.user.bureau.code
-            police_created.numero_provisoire = str(code_bureau)+'P' + str(Date.today().year)[-2:] + str(police_created.pk).zfill(6)
-            if police_created.numero == "": police_created.numero = police_created.numero_provisoire
+                categorie_id = request.POST.get('categorie_id')
+                categorie = CategorieVehicule.objects.filter(id=categorie_id).first()
+                print(categorie)
+                # Récupérer les données saisies dans le formulaire
+                if categorie:
+                    aliment = {
+                        'immat': request.POST.get('immatriculation'),
+                        'immat_prov': request.POST.get('immatriculation_provisioire'),
+                        'num_serie': request.POST.get('num_serie'),
+                        'proprietaire': request.POST.get('proprietaire'),
+                        'chauffeur': request.POST.get('conducteur'),
+                        'marque': request.POST.get('marque'),
+                        'modele': request.POST.get('modele'),
+                        'place': request.POST.get('places_assises'),
+                        'energie': request.POST.get('carburant_id'),
+                        'valeur_neuve': request.POST.get('valeur_a_neuf'),
+                        'valeur_actuelle': request.POST.get('valeur_actuelle'),
+                        'date_entree': request.POST.get('date_entree'),
+                        'date_sortie': request.POST.get('date_sortie'),
+                        'mis_en_circulation': request.POST.get('date_mise_circulation'),
+                        'puissance': request.POST.get('puissance_fiscale'),
+                        'poids_a_vide': request.POST.get('poid_vide'),
+                        'poids_a_charge': request.POST.get('poid_tac'),
+                        'T_carosserie_id': request.POST.get('carosserie_id'),
+                        'T_categorie_id': categorie.libelle,
+                        'T_usage_id': request.POST.get('usage_id'),
+                        'comment': request.POST.get('commentaire')
+                    }
+                    print(aliment)
+                else:
+                    return JsonResponse({'success': False, 'error': 'Catégorie non trouvée.'}, status=400)
 
-            police_created.save()
+                # Charger les aliments existants de la session
+                aliments = request.session.get('aliments', [])
 
-            # Handle logo_partenaire upload
-            logo_partenaire_file = request.FILES.get('logo_partenaire')
-            #dd(logo_partenaire_file)
-            if logo_partenaire_file:
-                police_created.logo_partenaire.save(logo_partenaire_file.name, logo_partenaire_file)
-                police_created.save()
-                pprint("Logo partenaire joint")
-            else:
-                pprint("Pas de logo partenaire joint")
+                # Ajouter le nouvel aliment
+                aliments.append(aliment)
 
-            police = Police.objects.get(id=police_created.pk)
+                # Mettre à jour la session
+                request.session['aliments'] = aliments
 
-            # enregistrer les intermédiaires si existants
-            intermediaires = request.POST.getlist('intermediaires')
-            base_calcul_taux_retrocession = request.POST.getlist('base_calcul_taux_retrocession')
-            taux_com_affaire_nouvelle = request.POST.getlist('taux_com_affaire_nouvelle')
-            taux_com_renouvelement = request.POST.getlist('taux_com_renouvelement')
+                # Retourner les aliments avec les nouveaux
+                return JsonResponse({'success': True, 'data': aliments}, status=200)
 
-            pprint('len(intermediaires) : ' + str(len(intermediaires)))
-            if len(intermediaires) > 0:  # pourquoi j'ai mis 3: à vérifier, en attendant je met à 0
-                i = 0
-                for apporteur_id in intermediaires:
-                    apporteur_id = int('0' + apporteur_id)
-                    base_calcul = int('0' + base_calcul_taux_retrocession[i])
-                    taux_com_an = float('0' + taux_com_affaire_nouvelle[i])
-                    taux_com_renew = float('0' + taux_com_renouvelement[i])
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': f"Erreur lors de l'enregistrement : {str(e)}"}, status=500)
 
-                    pprint({'apporteur_id': apporteur_id, 'base_calcul': base_calcul, 'taux_com_an': taux_com_an,
-                            'taux_com_renew': taux_com_renew})
+    return JsonResponse({'success': False, 'error': 'Requête invalide ou données manquantes.'}, status=400)
 
-                    # Insérer la ligne si renseignée
-                    if apporteur_id > 0 and base_calcul > 0 and (taux_com_an > 0 or taux_com_renew > 0):
-                        ApporteurPolice.objects.create(police_id=police.id, apporteur_id=apporteur_id,
-                                                       base_calcul_id=base_calcul,
-                                                       taux_com_affaire_nouvelle=taux_com_an,
-                                                       taux_com_renouvellement=taux_com_renew, ).save()
-                    i += 1
 
-            # enregistrer les autres taxes
-            taxes = request.COOKIES.get('taxes')
-            if taxes:
-                taxes = json.loads(taxes)
 
-                for taxe in taxes:
-                    taxe = list(taxe.values())
-                    taxe_id = taxe[0]
-                    taxe_montant = taxe[1]
 
-                    # Insérer la ligne
-                    #TaxePolice.objects.create(police_id=police.id, taxe_id=taxe_id, montant=taxe_montant).save()
 
-            # créer une ligne de mouvement_police avec le mouvement affaire nouvelle et le motif affaire nouvelle
-            mp = MouvementPolice()
-            mp.police = police
-            mp.mouvement = Mouvement.objects.get(code='AN')
-            mp.motif = Motif.objects.get(code='AN')
-            mp.date_effet = police.date_debut_effet
-            mp.date_fin_periode_garantie = police.date_fin_effet
-            mp.save()
+def import_aliments(request):
+    if request.method == 'POST':
+        # Si un fichier est importé
+        if request.FILES.get('aliments'):
+            fichier = request.FILES['aliments']
 
-            # créer une ligne dans période de couverture
-            periode_couverture = PeriodeCouverture.objects.create(
-                police_id=police.id,
-                date_debut_effet=date_debut_effet,
-                date_fin_effet=date_fin_effet,
-            ).save()
+            try:
+                # Lire le fichier Excel
+                data = pd.read_excel(fichier)
 
-            response = {
-                'statut': 1,
-                'message': "Police enregistrée avec succès !",
-                'data': {
-                    'id': police.pk,
-                    'numero': police.numero,
-                    'produit': police.produit.nom,
-                    'compagnie': police.compagnie.nom,
-                    'prime_ht': police.prime_ht,
-                    'prime_ttc': police.prime_ttc,
-                    'commission_gestion': police.commission_gestion,
-                    'commission_courtage': police.commission_courtage,
-                    'date_debut_effet': police.date_debut_effet,
-                    'date_fin_effet': police.date_fin_effet,
-                    'statut': police.statut,
-                }
-            }
+                # Colonnes obligatoires
+                colonnes_obligatoires = [
+                    'immat', 'proprietaire', 'num_serie', 'marque', 'energie',
+                    'date_entree', 'puissance', 'mis_en_circulation', 'T_categorie_id'
+                ]
 
-            return JsonResponse(response)
+                # Vérifier si toutes les colonnes obligatoires sont présentes
+                if not all(col in data.columns for col in colonnes_obligatoires):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Les colonnes obligatoires manquantes : ' + ', '.join(colonnes_obligatoires)
+                    }, status=400)
+
+                # Prendre les données à partir de la ligne 2 (ignorer la première ligne si en-tête présent)
+                data = data.iloc[1:]
+
+                # Remplacer les IDs de catégories par leurs libellés
+                categories = {cat.id: cat.libelle for cat in CategorieVehicule.objects.all()}
+                data['T_categorie_id'] = data['T_categorie_id'].map(categories)
+
+                # Vérifier si des catégories ne sont pas trouvées
+                if data['T_categorie_id'].isnull().any():
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Certaines catégories dans le fichier ne correspondent pas à la base de données.'
+                    }, status=400)
+
+                # Charger les immatriculations existantes de la session
+                immatriculations_existes = [alim['immat'] for alim in request.session.get('aliments', [])]
+
+                # Filtrer les aliments pour ne garder que ceux avec une immatriculation unique
+                nouveaux_aliments = []
+                for _, row in data.iterrows():
+                    immat = row['immat']
+                    if immat not in immatriculations_existes:
+                        # Créer un aliment avec les colonnes obligatoires et facultatives
+                        aliment = {
+                            'immat': immat,
+                            'proprietaire': row['proprietaire'],
+                            'num_serie': row['num_serie'],
+                            'marque': row['marque'],
+                            'energie': row['energie'],
+                            'date_entree': row['date_entree'],
+                            'puissance': row['puissance'],
+                            'mis_en_circulation': row['mis_en_circulation'],
+                            'T_categorie_id': row['T_categorie_id'],
+                            'immat_prov': row.get('immat_prov', None),  # Facultatif
+                            'place': row.get('place', None),  # Facultatif
+                            'valeur_neuve': row.get('valeur_neuve', None),  # Facultatif
+                            'valeur_actuelle': row.get('valeur_actuelle', None),  # Facultatif
+                            'poids_a_vide': row.get('poids_a_vide', None),  # Facultatif
+                            'poids_a_charge': row.get('poids_a_charge', None),  # Facultatif
+                            'T_carosserie_id': row.get('T_carosserie_id', None),  # Facultatif
+                            'T_usage_id': row.get('T_usage_id', None),  # Facultatif
+                            'T_formule_id': row.get('T_formule_id', None),  # Facultatif
+                            'comment': row.get('comment', None),  # Facultatif
+                        }
+                        nouveaux_aliments.append(aliment)
+
+                # Charger les aliments existants de la session
+                aliments_existant = request.session.get('aliments', [])
+
+                # Ajouter les nouveaux aliments aux anciens
+                aliments_existant.extend(nouveaux_aliments)
+
+                # Mettre à jour la session avec les nouveaux aliments
+                request.session['aliments'] = aliments_existant
+
+                return JsonResponse({'success': True, 'data': nouveaux_aliments}, status=200)
+
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': f"Erreur lors de l'importation : {str(e)}"}, status=500)
 
         else:
+            return JsonResponse({'success': False, 'error': 'Aucun fichier importé.'}, status=400)
 
-            response = {
-                'statut': 0,
-                'message': "Veuillez renseigner correctement le formulaire",
-                'errors': form.errors,
-            }
+    return JsonResponse({'success': False, 'error': 'Requête invalide ou données manquantes.'}, status=400)
 
-            return JsonResponse(response)
+
+
+
+<div class="form-group row">
+								<label class="col-sm-6 col-form-label">{{_("Date règlement")}}<span class="required">*</span></label>
+								<div class="col-sm-6">
+									<input type="date" class="form-control" name="date_paiement" value="{{ today|date:'Y-m-d' }}" required/>
+								</div>
+							</div>

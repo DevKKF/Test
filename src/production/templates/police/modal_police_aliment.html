@@ -25,7 +25,7 @@
 												<div class="col-md-6">
 													<div class="form-group">
 														<label>Date d'entrée <span class="required">*</span></label>
-														<input type="date" class="form-control champ_obligatoire" name="date_entree" id="date_entree" required>
+														<input type="date" class="form-control mod_aliment_champ_obligatoire" name="date_entree" id="date_entree">
 													</div>
 												</div>
 												<div class="col-md-6">
@@ -37,7 +37,7 @@
 												<div class="col-md-6">
 													<div class="form-group">
 														<label>Immatriculation <span class="required">*</span></label>
-														<input type="text" class="form-control champ_obligatoire" name="immatriculation" id="immatriculation" required>
+														<input type="text" class="form-control mod_aliment_champ_obligatoire" name="immatriculation" id="immatriculation">
 													</div>
 												</div>
 												<div class="col-md-6">
@@ -60,13 +60,13 @@
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>Mise en circulation <span class="required">*</span></label>
-                                                    <input type="date" class="form-control champ_obligatoire" name="date_mise_circulation" id="date_mise_circulation" required>
+                                                    <input type="date" class="form-control mod_aliment_champ_obligatoire" name="date_mise_circulation" id="date_mise_circulation">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>Catégorie <span class="required">*</span></label>
-                                                    <select class="form-control champ_obligatoire tags-multiple" name="categorie_id" id="categorie_id" autocomplete="off" required>
+                                                    <select class="form-control mod_aliment_champ_obligatoire tags-multiple" name="categorie_id" id="categorie_id" autocomplete="off">
                                                         <option value="">{{_('Choisir')}}</option>
                                                         {% for cat in catgories %}
                                                             <option value="{{ cat.id }}">{{ cat.libelle }}</option>
@@ -77,30 +77,30 @@
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>Parc</label>
-                                                    <input type="text" class="form-control" name="parc" id="parc" required>
+                                                    <input type="text" class="form-control" name="parc" id="parc">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Marque <span class="required">*</span></label>
-                                                    <input type="text" class="form-control champ_obligatoire" name="marque" id="marque" required>
+                                                    <label class="f_none_bold">Marque <span class="required">*</span></label>
+                                                    <input type="text" class="form-control mod_aliment_champ_obligatoire" name="marque" id="marque">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Modèle</label>
+                                                    <label class="f_none_bold">Modèle</label>
                                                     <input type="text" class="form-control" name="modele" id="modele">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>N° de série</label>
+                                                    <label class="f_none_bold">N° de série</label>
                                                     <input type="text" class="form-control" name="num_serie" id="num_serie">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Carrosserie</label>
+                                                    <label class="f_none_bold">Carrosserie</label>
                                                     <select class="form-control tags-multiple" name="carosserie_id" id="carosserie_id" autocomplete="off">
                                                         <option value="">{{_('Choisir')}}</option>
                                                         {% for car in carosseries %}
@@ -111,8 +111,8 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Carburant <span class="required">*</span></label>
-                                                    <select class="form-control tags-multiple champ_obligatoire" name="carburant_id" id="carburant_id" autocomplete="off" required>
+                                                    <label class="f_none_bold">Energie <span class="required">*</span></label>
+                                                    <select class="form-control mod_aliment_champ_obligatoire tags-multiple" name="carburant_id" id="carburant_id" autocomplete="off">
                                                         <option value="">{{_('Choisir')}}</option>
                                                         {% for cab in carburants %}
                                                             <option value="{{ cab.id }}">{{ cab.libelle }}</option>
@@ -122,32 +122,32 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Puissance fiscale <span class="required">*</span></label>
-                                                    <input type="text" class="form-control champ_obligatoire" name="puissance_fiscale" id="puissance_fiscale" required>
+                                                    <label class="f_none_bold">Puissance fiscale <span class="required">*</span></label>
+                                                    <input type="text" class="form-control mod_aliment_champ_obligatoire" name="puissance_fiscale" id="puissance_fiscale" onkeypress="isInputNumber(event)">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Places assises</label>
-                                                    <input type="text" class="form-control" name="places_assises" id="places_assises">
+                                                    <label class="f_none_bold">Places assises</label>
+                                                    <input type="text" class="form-control" name="places_assises" id="places_assises" onkeypress="isInputNumber(event)">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Poid T.A.C</label>
-                                                    <input type="text" class="form-control" name="poid_tac" id="poid_tac">
+                                                    <label class="f_none_bold">Poid T.A.C</label>
+                                                    <input type="text" class="form-control" name="poid_tac" id="poid_tac" onkeypress="isInputNumber(event)">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Poid à vide</label>
-                                                    <input type="text" class="form-control" name="poid_vide" id="poid_vide">
+                                                    <label class="f_none_bold">Poid à vide</label>
+                                                    <input type="text" class="form-control" name="poid_vide" id="poid_vide" onkeypress="isInputNumber(event)">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Usage <span class="required">*</span></label>
-                                                    <select class="form-control champ_obligatoire tags-multiple" name="usage_id" id="usage_id" autocomplete="off" required>
+                                                    <label class="f_none_bold">Usage <span class="required">*</span></label>
+                                                    <select class="form-control mod_aliment_champ_obligatoire tags-multiple" name="usage_id" id="usage_id" autocomplete="off">
                                                         <option value="">{{_('Choisir')}}</option>
                                                         {% for u in usages %}
                                                             <option value="{{ u.id }}">{{ u.libelle }}</option>
@@ -157,14 +157,14 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Valeur à neuf</label>
-                                                    <input type="text" class="form-control" name="valeur_a_neuf" id="valeur_a_neuf">
+                                                    <label class="f_none_bold">Valeur à neuf</label>
+                                                    <input type="text" class="form-control money_field" name="valeur_a_neuf" id="valeur_a_neuf">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Valeur actuelle</label>
-                                                    <input type="text" class="form-control" name="valeur_actuelle" id="valeur_actuelle">
+                                                    <label class="f_none_bold">Valeur actuelle</label>
+                                                    <input type="text" class="form-control money_field" name="valeur_actuelle" id="valeur_actuelle">
                                                 </div>
                                             </div>
                                         </div>
@@ -180,19 +180,19 @@
 											<div class="row">
 												<div class="col-md-6">
 													<div class="form-group">
-														<label>Propriétaire <span class="required">*</span></label>
-														<input type="text" class="form-control champ_obligatoire" name="proprietaire" id="proprietaire" required>
+														<label class="f_none_bold">Propriétaire <span class="required">*</span></label>
+														<input type="text" class="form-control mod_aliment_champ_obligatoire" name="proprietaire" id="proprietaire">
 													</div>
 												</div>
 												<div class="col-md-6">
 													<div class="form-group">
-														<label>Conducteur</label>
+														<label class="f_none_bold">Conducteur</label>
 														<input type="text" class="form-control" name="conducteur" id="conducteur">
 													</div>
 												</div>
 												<div class="col-md-12">
 													<div class="form-group">
-														<label>Commentaire</label>
+														<label class="f_none_bold">Commentaire</label>
 														<textarea class="form-control" name="commentaire" id="commentaire" cols="30" rows="3"></textarea>
 													</div>
 												</div>
@@ -205,7 +205,7 @@
                 </div>
                 <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Fermer')}}</button>
-                    <button type="button" id="btn_save_police_aliment" class="btn btn-info o-bg-primary" data-dismiss="modal"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
+                    <button type="button" id="btn_save_police_aliment" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
                 </div>
             </form>
 		</div>

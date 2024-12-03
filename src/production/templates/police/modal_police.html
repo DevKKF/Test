@@ -16,7 +16,7 @@
 				<div class="col-md-12 offset-0">
 					<ul class="nav nav-tabs" id="myTab" role="tablist">
 						<li class="nav-item"><a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true">{{_('GENERAL')}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="intermediaire-tab" data-toggle="tab" href="#intermediaire" role="tab" aria-controls="intermediaire" aria-selected="false">{{_('INTERMEDIAIRES')}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="intermediaire-tab" data-toggle="tab" href="#intermediaire" role="tab" aria-controls="intermediaire" aria-selected="false">{{_('APPORTEURS')}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="garantie-tab" data-toggle="tab" href="#garantie" role="tab" aria-controls="garantie" aria-selected="false">{{_('GARANTIE')}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="risque-tab" data-toggle="tab" href="#risque" role="tab" aria-controls="risque" aria-selected="false">{{_('RISQUE')}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="aliment-tab" data-toggle="tab" href="#aliment" role="tab" aria-controls="aliment" aria-selected="false">{{_('ALIMENTS')}}</a></li>
@@ -33,10 +33,10 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Produit')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control " name="produit" id="produit" autocomplete="off" required>
+											<select class="form-control tags-multiple" name="produit" id="produit" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for produit in produits %}
-												<option value="{{ produit.id }}" data-produit_id="{{ produit.branche.id }}" data-branche_code="{{ produit.code }}" data-typeproduit_id="{{ produit.type_produit.id }}">{{ produit.nom }}</option>
+												<option value="{{ produit.id }}" data-produit_id="{{ produit.branche.id }}" data-branche_code="{{ produit.branche.code }}" data-typeproduit_id="{{ produit.type_produit.id }}">{{ produit.nom }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -44,7 +44,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Assureur')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control" name="compagnie" id="compagnie" autocomplete="off" required>
+											<select class="form-control tags-multiple" name="compagnie" id="compagnie" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for compagnie in compagnies %}
 												<option value="{{ compagnie.id }}">{{ compagnie.nom }}</option>
@@ -124,6 +124,18 @@
 										</div>
 									</div>
 
+									<!--div class="form-group row">
+										<label class="col-sm-5 col-form-label">Devise <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<select class="form-control" name="devise" required>
+												<option selected value="">Choisir</option>
+												{% for devise in devises %}
+												<option value="{{ devise.id }}">{{ devise.libelle }}</option>
+												{% endfor %}
+											</select>
+										</div>
+									</div-->
+
 									<div class="form-group row  ">
 										<label class="col-sm-6 col-form-label">{{_("Logo du partenaire")}}<span class="required"></span></label>
 										<div class="col-sm-6">
@@ -191,14 +203,14 @@
 							<div class="row">
 								<div class="col-md-12">
 									<div class="form-group">
-										<label class="form-label">{{_('Risque')}} <span class="required">*</span></label>
-									  	<input type="text" class="form-control" name="risque_name" value="" id="risque_name" required>
+										<label class="form-label">{{_('Risque')}}</label>
+									  	<input type="text" class="form-control" name="risque_name" value="" id="risque_name">
 									</div>
 								</div>
 								<div class="col-md-12">
 									<div class="form-group">
-										<label class="form-label">{{_('Description')}} <span class="required">*</span></label>
-										<textarea class="form-control" name="risque_description" id="risque_description" cols="30" rows="5" required></textarea>
+										<label class="form-label">{{_('Description')}}</label>
+										<textarea class="form-control" name="risque_description" id="risque_description" cols="30" rows="5"></textarea>
 									</div>
 								</div>
 							</div>
@@ -206,7 +218,7 @@
 
 						<div class="tab-pane fade mt-3" id="intermediaire" role="tabpanel" aria-labelledby="intermediaire-tab">
 							<div class="row">
-								<div class="col-md-12">
+								<div class="col-md-6">
 									<div class="form-group row">
 										<label class="col-sm-6 col-form-label">{{_('Apporteur')}} <span class="required"></span></label>
 										<div class="col-sm-6">
@@ -240,7 +252,7 @@
 														<select class="form-control calculs_handler_police intermediaire " name="intermediaires" id="intermediaires">
 															<option value="">{{_('Choisir')}}</option>
 															{% for apporteur in apporteurs %}
-															<option value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
+																<option value="{{ apporteur.id }}">{{ apporteur.nom|default_if_none:"" }} {{ apporteur.prenoms|default_if_none:"" }}</option>
 															{% endfor %}
 														</select>
 													</div>
@@ -287,9 +299,9 @@
 								</div>
 							</div>
 							<hr>
-							<div class="text-danger text-italic" id="message-error"></div>
-							<div class="text-warning text-italic" id="message-warning"></div>
-							<div class="text-success text-italic" id="message-success"></div>
+							<div id="message-success" class="alert alert-success" style="display:none;"></div>
+							<div id="message-warning" class="alert alert-warning" style="display:none;"></div>
+							<div id="message-error" class="alert alert-danger" style="display:none;"></div>
 							<div class="row">
 								<div class="col-md-12">
 									<table id="table_liste_aliment" class="table table-bordered table-striped dataTable_ dtr-inline">
@@ -317,15 +329,15 @@
 							<div class="row">
 								<div class="col-md-12">
 									<div class="card bordered_block">
-									  	<div class="card-header card-header-gray">
+										<div class="card-header card-header-gray">
 											<h3 class="card-title">Généralité</h3>
-									 	</div>
+										</div>
 										<div class="card-body">
 											<div class="row">
 												<div class="col-md-6">
 													<div class="form-group">
 														<label>Date d'entrée <span class="required">*</span></label>
-														<input type="date" class="form-control" name="date_entree" id="date_entree" required>
+														<input type="date" class="form-control aliment_champ_obligatoire" name="date_entree" id="date_entree">
 													</div>
 												</div>
 												<div class="col-md-6">
@@ -337,7 +349,7 @@
 												<div class="col-md-6">
 													<div class="form-group">
 														<label>Immatriculation <span class="required">*</span></label>
-														<input type="text" class="form-control" name="immatriculation" id="immatriculation" required>
+														<input type="text" class="form-control aliment_champ_obligatoire" name="immatriculation" id="immatriculation">
 													</div>
 												</div>
 												<div class="col-md-6">
@@ -352,21 +364,21 @@
 								</div>
 								<div class="col-md-12">
 									<div class="card bordered_block">
-									  	<div class="card-header card-header-gray">
+										<div class="card-header card-header-gray">
 											<h3 class="card-title">Caracteristiques</h3>
-									 	</div>
+										</div>
 										<div class="card-body">
 											<div class="row">
 												<div class="col-md-4">
 													<div class="form-group">
 														<label>Mise en circulation <span class="required">*</span></label>
-														<input type="date" class="form-control" name="date_mise_circulation" id="date_mise_circulation" required>
+														<input type="date" class="form-control aliment_champ_obligatoire" name="date_mise_circulation" id="date_mise_circulation">
 													</div>
 												</div>
 												<div class="col-md-4">
 													<div class="form-group">
 														<label>Catégorie <span class="required">*</span></label>
-														<select class="form-control tags-multiple" name="categorie_id" id="categorie_id" autocomplete="off" required>
+														<select class="form-control aliment_champ_obligatoire tags-multiple" name="categorie_id" id="categorie_id" autocomplete="off">
 															<option value="">{{_('Choisir')}}</option>
 															{% for cat in catgories %}
 																<option value="{{ cat.id }}">{{ cat.libelle }}</option>
@@ -377,13 +389,13 @@
 												<div class="col-md-4">
 													<div class="form-group">
 														<label>Parc</label>
-														<input type="text" class="form-control" name="parc" id="parc" required>
+														<input type="text" class="form-control" name="parc" id="parc">
 													</div>
 												</div>
 												<div class="col-md-4">
 													<div class="form-group">
-														<label>Parc <span class="required">*</span></label>
-														<input type="text" class="form-control" name="marque" id="marque" required>
+														<label>Marque <span class="required">*</span></label>
+														<input type="text" class="form-control aliment_champ_obligatoire" name="marque" id="marque">
 													</div>
 												</div>
 												<div class="col-md-4">
@@ -411,8 +423,8 @@
 												</div>
 												<div class="col-md-4">
 													<div class="form-group">
-														<label>Carburant <span class="required">*</span></label>
-														<select class="form-control tags-multiple" name="carburant_id" id="carburant_id" autocomplete="off" required>
+														<label>Energie <span class="required">*</span></label>
+														<select class="form-control aliment_champ_obligatoire tags-multiple" name="carburant_id" id="carburant_id" autocomplete="off">
 															<option value="">{{_('Choisir')}}</option>
 															{% for cab in carburants %}
 																<option value="{{ cab.id }}">{{ cab.libelle }}</option>
@@ -423,31 +435,31 @@
 												<div class="col-md-4">
 													<div class="form-group">
 														<label>Puissance fiscale <span class="required">*</span></label>
-														<input type="text" class="form-control" name="puissance_fiscale" id="puissance_fiscale" required>
+														<input type="text" class="form-control aliment_champ_obligatoire" name="puissance_fiscale" id="puissance_fiscale" onkeypress="isInputNumber(event)">
 													</div>
 												</div>
 												<div class="col-md-4">
 													<div class="form-group">
 														<label>Places assises</label>
-														<input type="text" class="form-control" name="places_assises" id="places_assises">
+														<input type="text" class="form-control" name="places_assises" id="places_assises" onkeypress="isInputNumber(event)">
 													</div>
 												</div>
 												<div class="col-md-4">
 													<div class="form-group">
 														<label>Poid T.A.C</label>
-														<input type="text" class="form-control" name="poid_tac" id="poid_tac">
+														<input type="text" class="form-control" name="poid_tac" id="poid_tac" onkeypress="isInputNumber(event)">
 													</div>
 												</div>
 												<div class="col-md-4">
 													<div class="form-group">
 														<label>Poid à vide</label>
-														<input type="text" class="form-control" name="poid_vide" id="poid_vide">
+														<input type="text" class="form-control" name="poid_vide" id="poid_vide" onkeypress="isInputNumber(event)">
 													</div>
 												</div>
 												<div class="col-md-4">
 													<div class="form-group">
 														<label>Usage <span class="required">*</span></label>
-														<select class="form-control tags-multiple" name="usage_id" id="usage_id" autocomplete="off" required>
+														<select class="form-control aliment_champ_obligatoire tags-multiple" name="usage_id" id="usage_id" autocomplete="off">
 															<option value="">{{_('Choisir')}}</option>
 															{% for u in usages %}
 																<option value="{{ u.id }}">{{ u.libelle }}</option>
@@ -458,13 +470,13 @@
 												<div class="col-md-4">
 													<div class="form-group">
 														<label>Valeur à neuf</label>
-														<input type="text" class="form-control" name="valeur_a_neuf" id="valeur_a_neuf">
+														<input type="text" class="form-control money_field" name="valeur_a_neuf" id="valeur_a_neuf">
 													</div>
 												</div>
 												<div class="col-md-4">
 													<div class="form-group">
 														<label>Valeur actuelle</label>
-														<input type="text" class="form-control" name="valeur_actuelle" id="valeur_actuelle">
+														<input type="text" class="form-control money_field" name="valeur_actuelle" id="valeur_actuelle">
 													</div>
 												</div>
 											</div>
@@ -473,15 +485,15 @@
 								</div>
 								<div class="col-md-12">
 									<div class="card bordered_block">
-									  	<div class="card-header card-header-gray">
+										<div class="card-header card-header-gray">
 											<h3 class="card-title">Compléments</h3>
-									 	</div>
+										</div>
 										<div class="card-body">
 											<div class="row">
 												<div class="col-md-6">
 													<div class="form-group">
 														<label>Propriétaire <span class="required">*</span></label>
-														<input type="text" class="form-control" name="proprietaire" id="proprietaire" required>
+														<input type="text" class="form-control aliment_champ_obligatoire" name="proprietaire" id="proprietaire">
 													</div>
 												</div>
 												<div class="col-md-6">
@@ -670,5 +682,30 @@
 		</div>
 	</div>
 </div>
-
 {% include 'police/modal_police_aliment.html' %}
+<script>
+    function isInputNumber(evt){
+
+        var ch = String.fromCharCode(evt.which);
+
+        if(!(/[0-9]/.test(ch))){
+            evt.preventDefault();
+        }
+    }
+
+    function formatMontant(input) {
+		// Supprimez d'abord tous les caractères non numériques
+		var montant = input.value.replace(/\D/g, '');
+
+		// Ajoutez un espace comme séparateur pour les milliers
+		montant = addSpacesForThousands(montant);
+
+		// Mettez à jour la valeur de l'input
+		input.value = montant;
+	}
+
+	// Fonction pour ajouter un espace comme séparateur pour les milliers
+	function addSpacesForThousands(x) {
+		return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+	}
+</script>

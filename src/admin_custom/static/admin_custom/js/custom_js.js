@@ -4817,6 +4817,18 @@ $(document).ready(function () {
                 formData.append(key, valeur);
             });
 
+            // Récupérer les garanties cochées
+            $('.garantie-checkbox:checked').each(function () {
+                let garantieId = $(this).val(); // ID de la garantie
+                let franchise = $(`input[name="franchise_${garantieId}"]`).val() || ''; // Franchise associée
+                let capital = $(`input[name="capital_${garantieId}"]`).val() || ''; // Capital associé
+
+                // Ajouter ces données au FormData
+                formData.append(`garanties[${garantieId}][id]`, garantieId);
+                formData.append(`garanties[${garantieId}][franchise]`, franchise);
+                formData.append(`garanties[${garantieId}][capital]`, capital);
+            });
+
             // Ajout du fichier logo_partenaire au FormData
             let logo_partenaire_input = $('#logo_partenaire')[0];
             let logo_partenaire_file = logo_partenaire_input.files[0];
@@ -4848,6 +4860,13 @@ $(document).ready(function () {
                             location.reload();
                         });
 
+                    }
+                    if (response.statut == 2) {
+
+                        notifyInfo(response.message, function () {
+                            location.reload();
+                        });
+
                     } else {
 
                         let errors = JSON.parse(JSON.stringify(response.errors));
@@ -4858,8 +4877,8 @@ $(document).ready(function () {
 
                         $('#modal-police .alert .message').html(errors_list_to_display);
 
-                        $('#modal-police .alert').fadeTo(2000, 500).slideUp(500, function () {
-                            $(this).slideUp(500);
+                        $('#modal-police .alert').fadeTo(5000, 2000).slideUp(2000, function () {
+                            $(this).slideUp(2000);
                         }).removeClass('alert-success').addClass('alert-warning');
                     }
                 },
@@ -13251,6 +13270,26 @@ $(document).ready(function () {
         });
     }
 
+    function notifyInfo(message, fnCallback) {
+        my_noty = noty({
+            text: message,
+            type: 'info',
+            dismissQueue: true,
+            layout: 'center',
+            theme: 'defaultTheme',
+            buttons: [
+                {
+                    addClass: 'btn btn-info', text: 'OK', onClick: function ($noty) {
+
+                        if (typeof fnCallback === 'function') fnCallback();
+
+                        $noty.close();
+                    }
+                }
+            ]
+        });
+    }
+
 
     function addInputAlphaNumValidation(inputSelector, errorId) {
         var previousValue = ""; // Déclarer previousValue en dehors de la fonction
@@ -13351,6 +13390,9 @@ $(document).ready(function () {
         // Masquer les onglets spécifiques par défaut
         $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab').addClass('d-none');
 
+        // Réinitialiser les champs obligatoires
+        $('.aliment_champ_obligatoire').removeAttr('required');
+
         // Logique pour afficher les onglets en fonction des conditions
         if (typeproduit_id == 1) {
 
@@ -13361,6 +13403,7 @@ $(document).ready(function () {
             $('#garantie-tab').removeClass('d-none');
             if (branche_code == 100991) {
                 $('#vehicule-tab').removeClass('d-none');
+                $('.aliment_champ_obligatoire').attr('required', true);
             }
             if (branche_code == 100992) {
                 $('#aliment-tab').removeClass('d-none');
@@ -13431,17 +13474,14 @@ $(document).ready(function () {
             processData: false,
             contentType: false,
             success: function (response) {
+                const tbody = $('#table_liste_aliment tbody');
                 if (response.success) {
-                    // Effacer les lignes existantes du tableau
-                    const tbody = $('#table_liste_aliment tbody');
-                    //tbody.empty();
-
                     // Ajouter les nouvelles lignes au tableau
                     response.data.forEach((row, index) => {
                         tbody.append(`
                             <tr data-index="${index}">
                                 <td>
-                                    <button class="btn btn-danger btn-sm"  onclick="supprimerAliment(${index})"><i class="fa fa-trash-o"></i></button>
+                                    <button class="btn btn-danger btn-sm" onclick="supprimerAliment(${index})"><i class="fa fa-trash-o"></i></button>
                                 </td>
                                 <td>${row.immat || ''}</td>
                                 <td>${row.marque || ''}</td>
@@ -13458,27 +13498,33 @@ $(document).ready(function () {
                     // Vider le champ fichier après importation réussie
                     $('#fichier_aliment').removeClass('is-invalid').val('');
 
-                    $('#message-success').text('Importation réussie !');
+                    // Afficher le message de succès renvoyé par le backend
+                    $('#message-success').text(response.message || 'Importation réussie !').show();
 
+                    // Masquer le message après 5 secondes
                     setTimeout(function () {
-                        $('#message-success').text('');
+                        $('#message-success').fadeOut();
                     }, 5000);
 
                 } else {
-                    $('#message-error').text(response.error || 'Une erreur est survenue lors de l\'importation.');
+                    // Afficher le message d'erreur renvoyé par le backend
+                    $('#message-error').text(response.message || 'Une erreur est survenue lors de l\'importation.').show();
                     $('#fichier_aliment').addClass('is-invalid');
 
                     setTimeout(function () {
-                        $('#message-error').text('');
+                        $('#message-error').fadeOut();
                     }, 5000);
                 }
             },
             error: function (xhr) {
-                $('#message-warning').text('Une erreur est survenue lors de l\'importation.');
+                // Récupérer le message d'erreur envoyé par le backend ou afficher un message générique
+                const errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Une erreur est survenue lors de l\'importation.';
+
+                $('#message-warning').text(errorMessage).show();
                 $('#fichier_aliment').addClass('is-invalid');
 
                 setTimeout(function () {
-                    $('#message-warning').text('');
+                    $('#message-warning').fadeOut();
                 }, 5000);
             }
         });
@@ -13487,13 +13533,13 @@ $(document).ready(function () {
     // Bouton pour enregistrer via le formulaire modal
     $('#btn_save_police_aliment').on('click', function () {
         // Supprimer les erreurs précédentes
-        $('.champ_obligatoire').removeClass('is-invalid').removeClass('is-valid');
+        $('.mod_aliment_champ_obligatoire').removeClass('is-invalid').removeClass('is-valid');
         $('#message-error').text('').hide();
         $('#message-success').text('').hide();
 
         // Valider les champs obligatoires
         let valide = true;
-        $('.champ_obligatoire').each(function () {
+        $('.mod_aliment_champ_obligatoire').each(function () {
             if (!$(this).val().trim()) {
                 $(this).addClass('is-invalid'); // Ajouter classe invalide
                 valide = false;
@@ -13520,19 +13566,14 @@ $(document).ready(function () {
             processData: false,
             contentType: false,
             success: function (response) {
+                const tbody = $('#table_liste_aliment tbody');
                 if (response.success) {
-                    // Réinitialiser le formulaire et les classes
-                    $('#form_add_police_aliment')[0].reset();
-                    $('.champ_obligatoire').removeClass('is-invalid');
-
-                    // Ajouter les nouvelles données au tableau
-                    const tbody = $('#table_liste_aliment tbody');
-                    //tbody.empty(); // Effacer les données existantes
+                    // Ajouter les nouvelles lignes au tableau
                     response.data.forEach((row, index) => {
                         tbody.append(`
                             <tr data-index="${index}">
                                 <td>
-                                    <button class="btn btn-danger btn-sm"  onclick="supprimerAliment(${index})"><i class="fa fa-trash-o"></i></button>
+                                    <button class="btn btn-danger btn-sm" onclick="supprimerAliment(${index})"><i class="fa fa-trash-o"></i></button>
                                 </td>
                                 <td>${row.immat || ''}</td>
                                 <td>${row.marque || ''}</td>
@@ -13546,19 +13587,37 @@ $(document).ready(function () {
                         `);
                     });
 
-                    // Afficher le message de succès
-                    $('#message-success').text('Données enregistrées avec succès.').show();
-                    setTimeout(() => $('#message-success').fadeOut(), 5000);
+                    // Vider le champ fichier après importation réussie
+                    $('#fichier_aliment').removeClass('is-invalid').val('');
+
+                    // Afficher le message de succès renvoyé par le backend
+                    $('#message-success').text(response.message || 'Importation réussie !').show();
+
+                    // Masquer le message après 5 secondes
+                    setTimeout(function () {
+                        $('#message-success').fadeOut();
+                    }, 5000);
+
                 } else {
-                    // Afficher le message d'erreur retourné par le backend
-                    $('#message-error').text(response.error || 'Une erreur est survenue lors de l’enregistrement des données.').show();
-                    setTimeout(() => $('#message-error').fadeOut(), 5000);
+                    // Afficher le message d'erreur renvoyé par le backend
+                    $('#message-error').text(response.message || 'Une erreur est survenue lors de l\'importation.').show();
+                    $('#fichier_aliment').addClass('is-invalid');
+
+                    setTimeout(function () {
+                        $('#message-error').fadeOut();
+                    }, 5000);
                 }
             },
-            error: function () {
-                // Afficher une erreur générique en cas de problème de communication avec le serveur
-                $('#message-error').text('Une erreur s’est produite lors de la communication avec le serveur.').show();
-                setTimeout(() => $('#message-error').fadeOut(), 5000);
+            error: function (xhr) {
+                // Récupérer le message d'erreur envoyé par le backend ou afficher un message générique
+                const errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Une erreur est survenue lors de l\'importation.';
+
+                $('#message-warning').text(errorMessage).show();
+                $('#fichier_aliment').addClass('is-invalid');
+
+                setTimeout(function () {
+                    $('#message-warning').fadeOut();
+                }, 5000);
             }
         });
     });
@@ -13616,14 +13675,14 @@ $(document).ready(function () {
                         let row = `
                             <tr>
                                 <td style="vertical-align:middle;">
-                                    <input type="checkbox" class="form-control" name="garantie_${garantie.id}" value="${garantie.id}" style="width: 1rem; height: 1.25rem;">
+                                    <input type="checkbox" class="form-control garantie-checkbox" name="garantie_${garantie.id}" value="${garantie.id}" style="width: 1rem; height: 1.25rem;">
                                 </td>
                                 <td style="vertical-align:middle;">${garantie.nom}</td>
                                 <td style="vertical-align:middle;padding:5px;">
-                                    <input type="text" class="form-control form-control-sm" name="franchise_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)">
+                                    <input type="text" class="form-control form-control-sm franchise-input" name="franchise_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)" disabled>
                                 </td>
                                 <td style="vertical-align:middle;padding:5px;">
-                                    <input type="text" class="form-control form-control-sm" name="capital_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)">
+                                    <input type="text" class="form-control form-control-sm capital-input" name="capital_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)" disabled>
                                 </td>
                             </tr>
                         `;
@@ -13674,14 +13733,14 @@ $(document).ready(function () {
                         let row = `
                             <tr>
                                 <td style="vertical-align:middle;">
-                                    <input type="checkbox" class="form-control" name="garantie_${garantie.id}" value="${garantie.id}" style="width: 1rem; height: 1.25rem;">
+                                    <input type="checkbox" class="form-control garantie-checkbox" name="garantie_${garantie.id}" value="${garantie.id}" style="width: 1rem; height: 1.25rem;">
                                 </td>
                                 <td style="vertical-align:middle;">${garantie.nom}</td>
                                 <td style="vertical-align:middle;padding:5px;">
-                                    <input type="text" class="form-control form-control-sm" name="franchise_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)">
+                                    <input type="text" class="form-control form-control-sm franchise-input" name="franchise_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)" disabled>
                                 </td>
                                 <td style="vertical-align:middle;padding:5px;">
-                                    <input type="text" class="form-control form-control-sm" name="capital_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)">
+                                    <input type="text" class="form-control form-control-sm capital-input" name="capital_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)" disabled>
                                 </td>
                             </tr>
                         `;
@@ -13714,6 +13773,47 @@ $(document).ready(function () {
         chargementGarantiesProduitTable(produitId);
     }
 
+    // Surveiller les changements des cases à cocher
+    $(document).on('change', '.garantie-checkbox', function () {
+        // Récupérer la ligne parente (tr) de la case cochée/décochée
+        const parentRow = $(this).closest('tr');
+
+        // Trouver les champs franchise et capital associés
+        const franchiseInput = parentRow.find('.franchise-input');
+        const capitalInput = parentRow.find('.capital-input');
+
+        if ($(this).is(':checked')) {
+            // Activer les champs si la case est cochée
+            franchiseInput.prop('disabled', false);
+            capitalInput.prop('disabled', false);
+        } else {
+            // Désactiver et vider les champs si la case est décochée
+            franchiseInput.prop('disabled', true).val('');
+            capitalInput.prop('disabled', true).val('');
+        }
+    });
+
+    // Lorsque le modal est complètement fermé
+    $('#modal-police').on('hidden.bs.modal', function () {
+        $.ajax({
+            url: '/production/clear_session/',
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            success: function (response) {
+                if (response.success) {
+                    console.log(response.message);
+                } else {
+                    console.error(response.error || 'Erreur lors de la suppression de la session.');
+                }
+            },
+            error: function () {
+                console.error('Erreur de communication avec le serveur.');
+            }
+        });
+    });
+
     // Fonction pour récupérer le CSRF token
     function getCookie(name) {
         let cookieValue = null;
@@ -13731,4 +13831,6 @@ $(document).ready(function () {
     }
 
 });
+
+
 
