@@ -1370,10 +1370,10 @@ class Branche(models.Model):
     status = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.nom
+        return f"{self.code} - {self.status} - {self.nom} "
 
     class Meta:
-        db_table = 'branche'
+        db_table = 'Branche'
         verbose_name = 'Branche'
         verbose_name_plural = 'Branches'
 

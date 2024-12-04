@@ -33,7 +33,7 @@ from openpyxl.styles import Font, PatternFill
 
 from configurations.helper_config import verify_sql_query
 from configurations.models import ActionLog, Prescripteur, PrescripteurPrestataire, Prestataire, Specialite, Secteur, \
-    Bureau, TypeActe, \
+    Bureau, TypeActe, BusinessUnit, Branche,\
     TypePrestataire, User, AuthGroup, TypeEtablissement, Tarif, Rubrique, RegroupementActe, Acte, ReseauSoin, \
     PrestataireReseauSoin, WsBoby, ParamWsBoby, Affection, BackgroundQueryTask, ParamProduitCompagnie, Compagnie, \
     AlimentMatricule, ParamActe
@@ -53,6 +53,7 @@ from sinistre.models import Sinistre, PaiementComptable, HistoriqueOrdonnancemen
     HistoriquePaiementComptableSinistre, BordereauOrdonnancement
 import json
 import io
+
 
 
 def generate_numero_famille_all(request):
@@ -3813,4 +3814,65 @@ class DbSuperAdminQueryView(TemplateView):
         }
 
 
+#---------------------BRANCHE---------------------------------------------
 
+class brancheView(PermissionRequiredMixin,TemplateView):
+    template_name = 'Branches/branche.html'
+    permission_required = "configurations.view_branches"
+    model = Branche
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        branche = Branche.objects.all()
+        utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
+                                           is_active=True).order_by('last_name')
+
+        context_perso = {'branches': branche, 'utilisateurs': utilisateurs}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+#------------------------------BUSINESS_UNIT---------------------------------------
+
+class businessView(PermissionRequiredMixin,TemplateView):
+    template_name = 'BusinessUnit/business.html'
+    permission_required = "configurations.view_business"
+    model = BusinessUnit
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        business = BusinessUnit.objects.all()
+        utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
+                                           is_active=True).order_by('last_name')
+
+        context_perso = {'businessunits': business, 'utilisateurs': utilisateurs}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }

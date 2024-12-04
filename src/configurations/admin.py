@@ -535,6 +535,9 @@ class ProduitAdmin(admin.ModelAdmin):
     list_per_page = 20
 
 class BrancheAdmin(admin.ModelAdmin):
+    list_filter = ('code', 'nom', 'status')
+    list_display = ('code', 'nom', 'status')
+    search_field = ('code', 'nom', 'status')
     list_per_page = 20
 
 

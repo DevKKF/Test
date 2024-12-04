@@ -5,7 +5,8 @@ from shared import veos
 from shared.helpers import openai_complete
 from . import views
 from .views import PrestatairesView, DetailsPrestatairesView, GroupePermissionsView, TarifsView, ReseauxSoinsView, \
-    DetailsReseauSoinView, WsBobyView, WsBobyCreateView, WsBobyEditeView, ActesView, ConnectedUsersView
+    DetailsReseauSoinView, WsBobyView, WsBobyCreateView, WsBobyEditeView, ActesView, ConnectedUsersView, businessView, \
+    brancheView
 
 urlpatterns = [
 
@@ -42,6 +43,11 @@ urlpatterns = [
     #
     path('generate_modele_tarifs_bureau/', views.generate_modele_tarifs_bureau, name='generate_modele_tarifs_bureau'),
     path('import_tarifs_bureau/', views.import_tarifs_bureau, name='import_tarifs_bureau'),
+    #
+
+    path('businessunit/', businessView.as_view(), name='business_unit'),
+    #
+    path('branche/',brancheView.as_view(), name='branche'),
     #
     path('acte2/', ActesView.as_view(), name='acte'),
     path('actes_datatable/', views.actes_datatable, name='actes_datatable'),
