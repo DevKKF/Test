@@ -1,42 +1,51 @@
-{% extends 'police/base.html' %} {% block extrastyle %} {% endblock %} {% block content %}
-<div class="col-12 col-md-12 order-2 order-md-1">{% include 'police/header.html' %}
-
-  <!--div class="row mb-2">
-    <div class="col-sm-8 offset-2 mb-5">
-      <div class="float-left">
-        <a href="#" class="btn o-bg-primary mr-5" data-toggle="modal" data-target="#modal-import"><i class="fas fa-cloud-upload-alt"></i>Importation</a>
-        <a href="#" class="btn o-bg-primary mr-5"><i class="fas fa-exclamation-circle"></i>Vérification des bénéficiaires</a>
-        <a href="#" class="btn o-bg-primary mr-5"><i class="fas fa-users"></i>Prime par famille</a>
-        <a href="{% url 'benefs_pictures' 9 %}" class="btn o-bg-primary"><i class="fas fa-image"></i>Charger les photos</a>
-      </div>
+{% extends 'police/menu_police.html' %}
+{% load my_filters %}
+{% load i18n %}
+{% block extrastyle %} {% endblock %}
+{% block content_title %}
+    <div class="row mb-2">
+          <div class="col-sm-6">
+                <h4 class="m-0 f-bold">POLICE : N° {{ police.numero|default_if_none:"" }}</h4>
+          </div>
+          <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
+                    <li class="breadcrumb-item">Production</li>
+                    <li class="breadcrumb-item"><a href="{% url 'clients' %}">Clients</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'police.details' police.id %}">Police</a></li>
+                    <li class="breadcrumb-item active">Aliments</li>
+                </ol>
+          </div>
     </div>
-  </div-->
+{% endblock %}
+{% block content %}
+<div class="col-12 col-md-12 order-2 order-md-1">
 
   <div class="card">
     <div class="card-header">
-        <h3 class="card-title text-white">{{_('VEHICULES')}}</h3>
-        <div class="card-tools">
-          <a href="#" class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal-import_vehicules"><i class="fas fa-cloud-upload-alt"></i> {{_('Importation')}}</a>
-          <a class="btn btn-sm btn-default" data-toggle="modal"  data-target="#modal-vehicule"><i class="fas fa-plus"></i> {{_('Nouveau_vehicule')}}</a>
-          
-        </div>
+        <h3 class="card-title text-white">{{_('LISTE DES VEHICULES')}}</h3>
+        <div class="card-tools"></div>
     </div>
     <div class="card-body">
+      <div class="button-link pull-right mb-2">
+        <a href="#" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modal-import_vehicules"><i class="fas fa-cloud-upload-alt"></i> {{_('Importation')}}</a>
+        <a class="btn btn-sm btn-primary" data-toggle="modal"  data-target="#modal-vehicule"><i class="fas fa-plus-circle"></i> {{_("Nouveau véhicule")}}</a>
+      </div>
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
         <div class="row">
           <div class="col-12 col-md-12 col-sm-12 table-responsive">
             <table class="table table-bordered table-striped dataTable dtr-inline" id="table_vehicules">
               <thead>
                 <tr>
-                  <th scope="col">{{_('Numero_immatriculation')}}</th>
+                  <th scope="col">{{_("N° immat")}}</th>
                   <th scope="col">{{_('Marque')}}</th>
-                  <th scope="col">{{_('Modele')}}</th>
-                  <th scope="col">{{_('Numero_Serie')}}</th>
+                  <th scope="col">{{_("Modèle")}}</th>
+                  <th scope="col">{{_("N° Série")}}</th>
                   <th scope="col">{{_('Conducteur')}}</th>
-                  <th scope="col">{{_('Valeur_neuve')}}</th>
-                  <th scope="col">{{_('Valeur_actuelle')}}</th>
-                  <th scope="col">{{_('Mise_en_circulation')}}</th>
-                  <th scope="col">{{_('Type_carrosserie')}}</th>
+                  <th scope="col">{{_("Valeur neuve")}}</th>
+                  <th scope="col">{{_("Valeur actuelle")}}</th>
+                  <th scope="col">{{_("Mise en circulation")}}</th>
+                  <th scope="col">{{_('Carrosserie')}}</th>
                   <th scope="col">{{_('Place')}}</th>
                   <th scope="col">{{_('Poids')}}</th>
                   <th scope="col">{{_('Actions')}}</th>

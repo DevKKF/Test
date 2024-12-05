@@ -382,14 +382,16 @@
                   </p>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="{% url 'police_vehicules' police.id %}" class="nav-link">
-                  <i class="nav-icon fa fa-car"></i>
-                  <p>
-                    Aliments
-                  </p>
-                </a>
-            </li>
+            {% if police.produit.type_produit_id == 1 %}
+                <li class="nav-item">
+                    <a href="{% url 'police_vehicules' police.id %}" class="nav-link">
+                      <i class="nav-icon fa fa-car"></i>
+                      <p>
+                        Aliments
+                      </p>
+                    </a>
+                </li>
+            {% endif %}
             <li class="nav-item">
                 <a href="{% url 'police_quittances' police.id %}" class="nav-link">
                   <i class="nav-icon fas fa-file-invoice-dollar"></i>

@@ -1,216 +1,213 @@
-# Importer des aliments
-@login_required
-def import_aliments(request):
-    if request.method == 'POST':
-        # Si un fichier est importé
-        if request.FILES.get('aliments'):
-            fichier = request.FILES['aliments']
-
-            try:
-                # Lire le fichier Excel
-                data = pd.read_excel(fichier)
-
-                # Colonnes requises
-                colonnes_requises = [
-                    'num_parc', 'immat', 'immat_prov', 'num_serie', 'proprietaire',
-                    'chauffeur', 'marque', 'modele', 'place', 'energie', 'valeur_neuve',
-                    'valeur_actuelle', 'date_entree', 'date_sortie', 'mis_en_circulation',
-                    'puissance', 'poids_a_vide', 'poids_a_charge', 'T_carosserie_id',
-                    'T_categorie_id', 'T_usage_id', 'T_formule_id', 'comment'
-                ]
-
-                # Vérifier que toutes les colonnes requises sont présentes
-                if not all(col in data.columns for col in colonnes_requises):
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Les colonnes suivantes sont obligatoires : ' + ', '.join(colonnes_requises)
-                    }, status=400)
-
-                # Prendre les données à partir de la ligne 2 (ignorer la première ligne si en-tête présent)
-                data = data.iloc[1:]
-
-                # Remplacer les IDs de catégories par leurs libellés
-                categories = {cat.id: cat.libelle for cat in CategorieVehicule.objects.all()}
-                data['T_categorie_id'] = data['T_categorie_id'].map(categories)
-
-                # Vérifier si des catégories ne sont pas trouvées
-                if data['T_categorie_id'].isnull().any():
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Certaines catégories dans le fichier ne correspondent pas à la base de données.'
-                    }, status=400)
-
-                # Extraire les colonnes nécessaires pour le tableau
-                aliments = data[[
-                    'num_parc', 'immat', 'immat_prov', 'num_serie', 'proprietaire',
-                    'chauffeur', 'marque', 'modele', 'place', 'energie', 'valeur_neuve',
-                    'valeur_actuelle', 'date_entree', 'date_sortie', 'mis_en_circulation',
-                    'puissance', 'poids_a_vide', 'poids_a_charge', 'T_carosserie_id',
-                    'T_categorie_id', 'T_usage_id', 'T_formule_id', 'comment'
-                ]].to_dict(orient='records')
-
-                # Charger les aliments existants de la session
-                aliments_existant = request.session.get('aliments', [])
-
-                # Ajouter les aliments du fichier à la session
-                request.session['aliments'] = aliments + aliments_existant
-
-                return JsonResponse({'success': True, 'data': aliments}, status=200)
-
-            except Exception as e:
-                return JsonResponse({'success': False, 'error': f"Erreur lors de l'importation : {str(e)}"}, status=500)
-
-        # Sinon, enregistrer les données saisies dans le formulaire
-        else:
-            try:
-
-                categorie_id = request.POST.get('categorie_id')
-                categorie = CategorieVehicule.objects.filter(id=categorie_id).first()
-                print(categorie)
-                # Récupérer les données saisies dans le formulaire
-                if categorie:
-                    aliment = {
-                        'immat': request.POST.get('immatriculation'),
-                        'immat_prov': request.POST.get('immatriculation_provisioire'),
-                        'num_serie': request.POST.get('num_serie'),
-                        'proprietaire': request.POST.get('proprietaire'),
-                        'chauffeur': request.POST.get('conducteur'),
-                        'marque': request.POST.get('marque'),
-                        'modele': request.POST.get('modele'),
-                        'place': request.POST.get('places_assises'),
-                        'energie': request.POST.get('carburant_id'),
-                        'valeur_neuve': request.POST.get('valeur_a_neuf'),
-                        'valeur_actuelle': request.POST.get('valeur_actuelle'),
-                        'date_entree': request.POST.get('date_entree'),
-                        'date_sortie': request.POST.get('date_sortie'),
-                        'mis_en_circulation': request.POST.get('date_mise_circulation'),
-                        'puissance': request.POST.get('puissance_fiscale'),
-                        'poids_a_vide': request.POST.get('poid_vide'),
-                        'poids_a_charge': request.POST.get('poid_tac'),
-                        'T_carosserie_id': request.POST.get('carosserie_id'),
-                        'T_categorie_id': categorie.libelle,
-                        'T_usage_id': request.POST.get('usage_id'),
-                        'comment': request.POST.get('commentaire')
-                    }
-                    print(aliment)
-                else:
-                    return JsonResponse({'success': False, 'error': 'Catégorie non trouvée.'}, status=400)
-
-                # Charger les aliments existants de la session
-                aliments = request.session.get('aliments', [])
-
-                # Ajouter le nouvel aliment
-                aliments.append(aliment)
-
-                # Mettre à jour la session
-                request.session['aliments'] = aliments
-
-                # Retourner les aliments avec les nouveaux
-                return JsonResponse({'success': True, 'data': aliments}, status=200)
-
-            except Exception as e:
-                return JsonResponse({'success': False, 'error': f"Erreur lors de l'enregistrement : {str(e)}"}, status=500)
-
-    return JsonResponse({'success': False, 'error': 'Requête invalide ou données manquantes.'}, status=400)
-
-
-
-
-
-def import_aliments(request):
-    if request.method == 'POST':
-        # Si un fichier est importé
-        if request.FILES.get('aliments'):
-            fichier = request.FILES['aliments']
-
-            try:
-                # Lire le fichier Excel
-                data = pd.read_excel(fichier)
-
-                # Colonnes obligatoires
-                colonnes_obligatoires = [
-                    'immat', 'proprietaire', 'num_serie', 'marque', 'energie',
-                    'date_entree', 'puissance', 'mis_en_circulation', 'T_categorie_id'
-                ]
-
-                # Vérifier si toutes les colonnes obligatoires sont présentes
-                if not all(col in data.columns for col in colonnes_obligatoires):
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Les colonnes obligatoires manquantes : ' + ', '.join(colonnes_obligatoires)
-                    }, status=400)
-
-                # Prendre les données à partir de la ligne 2 (ignorer la première ligne si en-tête présent)
-                data = data.iloc[1:]
-
-                # Remplacer les IDs de catégories par leurs libellés
-                categories = {cat.id: cat.libelle for cat in CategorieVehicule.objects.all()}
-                data['T_categorie_id'] = data['T_categorie_id'].map(categories)
-
-                # Vérifier si des catégories ne sont pas trouvées
-                if data['T_categorie_id'].isnull().any():
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Certaines catégories dans le fichier ne correspondent pas à la base de données.'
-                    }, status=400)
-
-                # Charger les immatriculations existantes de la session
-                immatriculations_existes = [alim['immat'] for alim in request.session.get('aliments', [])]
-
-                # Filtrer les aliments pour ne garder que ceux avec une immatriculation unique
-                nouveaux_aliments = []
-                for _, row in data.iterrows():
-                    immat = row['immat']
-                    if immat not in immatriculations_existes:
-                        # Créer un aliment avec les colonnes obligatoires et facultatives
-                        aliment = {
-                            'immat': immat,
-                            'proprietaire': row['proprietaire'],
-                            'num_serie': row['num_serie'],
-                            'marque': row['marque'],
-                            'energie': row['energie'],
-                            'date_entree': row['date_entree'],
-                            'puissance': row['puissance'],
-                            'mis_en_circulation': row['mis_en_circulation'],
-                            'T_categorie_id': row['T_categorie_id'],
-                            'immat_prov': row.get('immat_prov', None),  # Facultatif
-                            'place': row.get('place', None),  # Facultatif
-                            'valeur_neuve': row.get('valeur_neuve', None),  # Facultatif
-                            'valeur_actuelle': row.get('valeur_actuelle', None),  # Facultatif
-                            'poids_a_vide': row.get('poids_a_vide', None),  # Facultatif
-                            'poids_a_charge': row.get('poids_a_charge', None),  # Facultatif
-                            'T_carosserie_id': row.get('T_carosserie_id', None),  # Facultatif
-                            'T_usage_id': row.get('T_usage_id', None),  # Facultatif
-                            'T_formule_id': row.get('T_formule_id', None),  # Facultatif
-                            'comment': row.get('comment', None),  # Facultatif
-                        }
-                        nouveaux_aliments.append(aliment)
-
-                # Charger les aliments existants de la session
-                aliments_existant = request.session.get('aliments', [])
-
-                # Ajouter les nouveaux aliments aux anciens
-                aliments_existant.extend(nouveaux_aliments)
-
-                # Mettre à jour la session avec les nouveaux aliments
-                request.session['aliments'] = aliments_existant
-
-                return JsonResponse({'success': True, 'data': nouveaux_aliments}, status=200)
-
-            except Exception as e:
-                return JsonResponse({'success': False, 'error': f"Erreur lors de l'importation : {str(e)}"}, status=500)
-
-        else:
-            return JsonResponse({'success': False, 'error': 'Aucun fichier importé.'}, status=400)
-
-    return JsonResponse({'success': False, 'error': 'Requête invalide ou données manquantes.'}, status=400)
-
-
-
-
-<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{_("Date règlement")}}<span class="required">*</span></label>
-								<div class="col-sm-6">
-									<input type="date" class="form-control" name="date_paiement" value="{{ today|date:'Y-m-d' }}" required/>
+<div  class="modal fade modal_interne"  id="modal-police_aliment" data-backdrop="static" data-keyboard="false" aria-hidden="true" style="display: none">
+	<div class="modal-dialog modal-lg" style="width:;">
+		<div class="modal-content">
+			<form id="form_add_police_aliment" action="" method="post">
+				{% csrf_token %}
+                <div class="modal-header">
+                    <h4 class="modal-title">{{_("AJOUTER UN VEHICULE A LA POLICE")}}</h4>
+                    <button type="button" data-dismiss="modal" aria-label="Close" style="border:none;background:none; color:#3F3F3F">
+                        <span aria-hidden="true"><i class="fa fa-remove"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert  alert-dismissible fade show hidden" role="alert">
+                        <span class="message"> {{_("TRAITEMENT EN COURS")}}</span>
+                    </div>
+                    <div class="col-md-12 offset-0">
+                        <div class="row">
+                            <div class="col-md-12">
+									<div class="card bordered_block">
+									  	<div class="card-header card-header-gray">
+											<h3 class="card-title">Généralité</h3>
+									 	</div>
+										<div class="card-body">
+											<div class="row">
+												<div class="col-md-6">
+													<div class="form-group">
+														<label>Date d'entrée <span class="required">*</span></label>
+														<input type="date" class="form-control mod_aliment_champ_obligatoire" name="date_entree" id="date_entree">
+													</div>
+												</div>
+												<div class="col-md-6">
+													<div class="form-group">
+														<label>Date de sortie</label>
+														<input type="date" class="form-control" name="date_sortie" id="date_sortie">
+													</div>
+												</div>
+												<div class="col-md-6">
+													<div class="form-group">
+														<label>Immatriculation <span class="required">*</span></label>
+														<input type="text" class="form-control mod_aliment_champ_obligatoire" name="immatriculation" id="immatriculation">
+													</div>
+												</div>
+												<div class="col-md-6">
+													<div class="form-group">
+														<label>Immatriculation provisioire</label>
+														<input type="text" class="form-control" name="immatriculation_provisioire" id="immatriculation_provisioire">
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
 								</div>
-							</div>
+                            <div class="col-md-12">
+                                <div class="card bordered_block">
+                                    <div class="card-header card-header-gray">
+                                        <h3 class="card-title">Caracteristiques</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Mise en circulation <span class="required">*</span></label>
+                                                    <input type="date" class="form-control mod_aliment_champ_obligatoire" name="date_mise_circulation" id="date_mise_circulation">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Catégorie <span class="required">*</span></label>
+                                                    <select class="form-control mod_aliment_champ_obligatoire tags-multiple" name="categorie_id" id="categorie_id" autocomplete="off">
+                                                        <option value="">{{_('Choisir')}}</option>
+                                                        {% for cat in catgories %}
+                                                            <option value="{{ cat.id }}">{{ cat.libelle }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Parc</label>
+                                                    <input type="text" class="form-control" name="parc" id="parc">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">Marque <span class="required">*</span></label>
+                                                    <input type="text" class="form-control mod_aliment_champ_obligatoire" name="marque" id="marque">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">Modèle</label>
+                                                    <input type="text" class="form-control" name="modele" id="modele">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">N° de série</label>
+                                                    <input type="text" class="form-control" name="num_serie" id="num_serie">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">Carrosserie</label>
+                                                    <select class="form-control tags-multiple" name="carosserie_id" id="carosserie_id" autocomplete="off">
+                                                        <option value="">{{_('Choisir')}}</option>
+                                                        {% for car in carosseries %}
+                                                            <option value="{{ car.id }}">{{ car.libelle }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">Energie <span class="required">*</span></label>
+                                                    <select class="form-control mod_aliment_champ_obligatoire tags-multiple" name="carburant_id" id="carburant_id" autocomplete="off">
+                                                        <option value="">{{_('Choisir')}}</option>
+                                                        {% for cab in carburants %}
+                                                            <option value="{{ cab.id }}">{{ cab.libelle }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">Puissance fiscale <span class="required">*</span></label>
+                                                    <input type="text" class="form-control mod_aliment_champ_obligatoire" name="puissance_fiscale" id="puissance_fiscale" onkeypress="isInputNumber(event)">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">Places assises</label>
+                                                    <input type="text" class="form-control" name="places_assises" id="places_assises" onkeypress="isInputNumber(event)">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">Poid T.A.C</label>
+                                                    <input type="text" class="form-control" name="poid_tac" id="poid_tac" onkeypress="isInputNumber(event)">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">Poid à vide</label>
+                                                    <input type="text" class="form-control" name="poid_vide" id="poid_vide" onkeypress="isInputNumber(event)">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">Usage <span class="required">*</span></label>
+                                                    <select class="form-control mod_aliment_champ_obligatoire tags-multiple" name="usage_id" id="usage_id" autocomplete="off">
+                                                        <option value="">{{_('Choisir')}}</option>
+                                                        {% for u in usages %}
+                                                            <option value="{{ u.id }}">{{ u.libelle }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">Valeur à neuf</label>
+                                                    <input type="text" class="form-control money_field" name="valeur_a_neuf" id="valeur_a_neuf">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="f_none_bold">Valeur actuelle</label>
+                                                    <input type="text" class="form-control money_field" name="valeur_actuelle" id="valeur_actuelle">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+									<div class="card bordered_block">
+									  	<div class="card-header card-header-gray">
+											<h3 class="card-title">Compléments</h3>
+									 	</div>
+										<div class="card-body">
+											<div class="row">
+												<div class="col-md-6">
+													<div class="form-group">
+														<label class="f_none_bold">Propriétaire <span class="required">*</span></label>
+														<input type="text" class="form-control mod_aliment_champ_obligatoire" name="proprietaire" id="proprietaire">
+													</div>
+												</div>
+												<div class="col-md-6">
+													<div class="form-group">
+														<label class="f_none_bold">Conducteur</label>
+														<input type="text" class="form-control" name="conducteur" id="conducteur">
+													</div>
+												</div>
+												<div class="col-md-12">
+													<div class="form-group">
+														<label class="f_none_bold">Commentaire</label>
+														<textarea class="form-control" name="commentaire" id="commentaire" cols="30" rows="3"></textarea>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Fermer')}}</button>
+                    <button type="button" id="btn_save_police_aliment" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
+                </div>
+            </form>
+		</div>
+	</div>
+</div>

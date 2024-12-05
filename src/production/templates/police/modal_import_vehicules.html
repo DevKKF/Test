@@ -6,24 +6,19 @@
       {% csrf_token %}
       <input type="hidden" id="police_id" name="police_id" value="{{ police.id }}"/>
       <div class="modal-header">
-        <h4 class="modal-title">{{_('IMPORT_DES_VEHICULES')}}</h4>
-        <button
-          type="button"
-          class="close"
-          data-dismiss="modal"
-          aria-label="Close"
-        >
+        <h4 class="modal-title">{{_("IMPORT DES VEHICULES")}}</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">×</span>
         </button>
       </div>
        <div class="modal-body">
        <div class="alert  alert-dismissible fade show hidden" role="alert">
-          <span class="message"> {{_('TRAITEMENT_EN_COURS')}}</span>
+          <span class="message"> {{_("TRAITEMENT EN COURS")}}</span>
         </div>
         <div class="row">
             <div class="col-md-12">
                 <div class="form-group row">
-                    <label class="col-sm-5 col-form-label">{{_('Fichier_Excel_CSV')}} * </label>
+                    <label class="col-sm-5 col-form-label">{{_("Fichier Excel ou CSV")}} <span class="required">*</span> </label>
                     <div class="col-sm-7">
                     <input type="file" accept=".csv,.xlsx" class="form-control" name="fichier" id="fichier" required/>
                     </div>
@@ -32,17 +27,13 @@
         </div>
       </div>
       <div class="modal-footer justify-content-between">
-        <button type="button" class="btn btn-default" data-dismiss="modal">
-          {{_('Retour')}}
-        </button>
-        <button type="button" id="btn_importer_vehicules" class="btn o-bg-primary" data-href="{% url 'import_vehicules' police.id %}">
-          {{_('Importer')}}
-        </button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
+        <button type="button" id="btn_importer_vehicules" class="btn btn-info" data-href="{% url 'import_vehicules' police.id %}"><i class="fa fa-check-circle"></i> {{_('Importer')}}</button>
       </div>
 
       </form>
       <div class="col-md-12 d-none" id="box_apercu_import">
-      <div class="col-md-12"><legend>{{_('Appercu_des_donnees')}}</legend>
+      <div class="col-md-12"><legend>{{_("Appercu des données")}}</legend>
           <div class="table-responsive">
               <table id="table_import_preview" class="table table-bordered table-striped dataTable dtr-inline">
                   <thead>

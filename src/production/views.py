@@ -1069,13 +1069,13 @@ def add_police(request, client_id):
                             numero_serie=request.POST.get('num_serie'),
                             numero_parc=request.POST.get('num_parc'),
                             proprietaire=request.POST.get('proprietaire'),
-                            conducteur=request.POST.get('chauffeur'),
+                            conducteur=request.POST.get('conducteur'),
                             marque=request.POST.get('marque'),
                             modele=request.POST.get('modele'),
-                            place=request.POST.get('place'),
+                            place=request.POST.get('places_assises'),
                             valeur_neuve=supprimer_espaces(request.POST.get('valeur_neuve', '')),
                             valeur_actuelle=supprimer_espaces(request.POST.get('valeur_actuelle', '')),
-                            puissance=request.POST.get('puissance'),
+                            puissance=request.POST.get('puissance_fiscale'),
                             poids_a_vide=request.POST.get('poids_a_vide'),
                             poids_a_charge=request.POST.get('poid_tac'),
                             date_entree=date_entree if date_entree else None,
@@ -1792,6 +1792,7 @@ def import_aliments(request):
                 categorie = CategorieVehicule.objects.filter(id=categorie_id).first()
                 print(categorie)
                 # Récupérer les données saisies dans le formulaire
+                nouveaux_aliments = []
                 if categorie:
                     aliment = {
                         'immat': request.POST.get('immatriculation'),
@@ -1816,17 +1817,18 @@ def import_aliments(request):
                         'T_usage_id': request.POST.get('usage_id'),
                         'comment': request.POST.get('commentaire')
                     }
+                    nouveaux_aliments.append(aliment)
 
                     # Charger les aliments existants de la session
-                    aliments = request.session.get('aliments', [])
+                    aliments_existant = request.session.get('aliments', [])
 
-                    # Ajouter le nouvel aliment
-                    aliments.append(aliment)
+                    # Ajouter les nouveaux aliments aux anciens
+                    aliments_existant.extend(nouveaux_aliments)
 
-                    # Mettre à jour la session
-                    request.session['aliments'] = aliments
+                    # Mettre à jour la session avec les nouveaux aliments
+                    request.session['aliments'] = aliments_existant
 
-                    return JsonResponse({'success': True, 'message': 'Importation réussie !', 'data': aliments}, status=200)
+                    return JsonResponse({'success': True, 'message': 'Importation réussie !', 'data': nouveaux_aliments}, status=200)
 
                 else:
                     return JsonResponse({'success': False, 'message': 'Catégorie non trouvée.'}, status=400)
@@ -4877,18 +4879,17 @@ def police_vehicules(request, police_id):
 
     vehicules = getVehicules(police_id)
 
-    energies = Energie.choices
-
-    types_carroserie = TypeCarosserie.objects.all().order_by('libelle')
-    categories_vehicule = CategorieVehicule.objects.all().order_by('libelle')
-
-    marques = MarqueVehicule.objects.all().order_by('libelle')
+    catgories = CategorieVehicule.objects.all().order_by('libelle')
+    carburants = Carburant.objects.all().order_by('libelle')
+    usages = Usage.objects.all().order_by('libelle')
+    carosseries = Carosserie.objects.all().order_by('libelle')
+    formules = Formule.objects.filter(status=True).order_by('libelle')
 
     pprint(vehicules)
 
     return render(request, 'police/vehicules.html',
-                  {'police': police, 'vehicules': vehicules, 'energies': energies, 'marques': marques,
-                   'types_carroserie': types_carroserie, 'categories_vehicule': categories_vehicule})
+                  {'police': police, 'vehicules': vehicules, 'catgories': catgories,
+                   'carosseries': carosseries, 'carburants': carburants, 'usages': usages, 'formules': formules})
 
 
 # ajout de véhicule
@@ -4899,23 +4900,34 @@ def add_vehicule(request, police_id):
         # x = 3
         formule_id = request.POST.get('formule_id')
 
+        date_entree = request.POST.get('date_entree')
+        date_sortie = request.POST.get('date_sortie')
+        mis_en_circulation = request.POST.get('mis_en_circulation')
+
         vehicule = Vehicule.objects.create(
-            numero_immatriculation=request.POST.get('numero_immatriculation'),
-            numero_immat_provisoire=request.POST.get('numero_immat_provisoire'),
-            numero_serie=request.POST.get('numero_serie'),
+            numero_immatriculation=request.POST.get('immatriculation'),
+            numero_immat_provisoire=request.POST.get('immatriculation_provisioire'),
+            numero_serie=request.POST.get('num_serie'),
+            numero_parc=request.POST.get('num_parc'),
+            proprietaire=request.POST.get('proprietaire'),
+            conducteur=request.POST.get('chauffeur'),
+            marque=request.POST.get('marque'),
             modele=request.POST.get('modele'),
-            conducteur=request.POST.get('conducteur'),
             place=request.POST.get('place'),
-            energie=request.POST.get('energie'),
-            valeur_neuve=request.POST.get('valeur_neuve'),
-            valeur_actuelle=request.POST.get('valeur_actuelle'),
+            valeur_neuve=supprimer_espaces(request.POST.get('valeur_neuve', '')),
+            valeur_actuelle=supprimer_espaces(request.POST.get('valeur_actuelle', '')),
             puissance=request.POST.get('puissance'),
+            date_entree=date_entree if date_entree else None,
+            date_sortie=date_sortie if date_sortie else None,
+            date_mis_en_circulation=mis_en_circulation if mis_en_circulation else None,
             poids_a_vide=request.POST.get('poids_a_vide'),
-            poids_a_charge=request.POST.get('poids_a_charge'),
-            date_mis_en_circulation=request.POST.get('date_mis_en_circulation'),
-            categorie_vehicule_id=request.POST.get('categorie_vehicule_id'),
-            marque_id=request.POST.get('marque_id'),
-            type_carosserie_id=request.POST.get('type_carosserie_id'),
+            poids_a_charge=request.POST.get('poid_tac'),
+            categorie_vehicule_id=request.POST.get('categorie_id'),
+            carburant_id=request.POST.get('carburant_id'),
+            carosserie_id=request.POST.get('carosserie_id'),
+            usage_id=request.POST.get('usage_id'),
+            commentaire=request.POST.get('commentaire'),
+
         )
         vehicule.save()
 
@@ -4923,7 +4935,7 @@ def add_vehicule(request, police_id):
             motif="vehicule",
             date_mouvement=datetime.now(),
             statut=Statut.ACTIF,
-            formule_id=formule_id,
+            formule_id=formule_id if formule_id else None,
             police_id=police_id,
             vehicule_id=vehicule.id,
         )

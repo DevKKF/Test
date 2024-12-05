@@ -2125,7 +2125,7 @@ $(document).ready(function () {
                             vehicule.valeur_neuve,
                             vehicule.valeur_actuelle,
                             vehicule.date_mis_en_circulation,
-                            vehicule.type_carosserie,
+                            vehicule.carosserie.libelle,
                             vehicule.place,
                             vehicule.poids_a_vide,
                         ])
