@@ -47,10 +47,10 @@
 									<!--div class="form-group row">
 										<label class="col-sm-5 col-form-label">Branche <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control " name="branche" id="branche" required>
+											<select class="form-control " name="Branches" id="Branches" required>
 												<option value="">Choisir</option>
-												{% for branche in branches %}
-												<option value="{{ branche.id }}" data-branche_code="{{ branche.code }}">{{ branche.nom }}</option>
+												{% for Branches in branches %}
+												<option value="{{ Branches.id }}" data-branche_code="{{ Branches.code }}">{{ Branches.nom }}</option>
 												{% endfor %}
 											</select>
 										</div>

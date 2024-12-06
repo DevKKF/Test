@@ -1429,10 +1429,10 @@ def updt_mvquittances():
                         "CD_FBRANCHE": "10",
                         "FBRANCHE": "ASSURANCE DE PERSONNE",
                         "FBRANCHE_EN": "ASSURANCE DE PERSONNE",
-                        "LIB_BR": quittance.police.produit.branche.nom if hasattr(quittance.police.produit, 'branche') else 'SANTE',
+                        "LIB_BR": quittance.police.produit.branche.nom if hasattr(quittance.police.produit, 'Branches') else 'SANTE',
                         "CD_BR": "10001",
-                        "BRANCHE": quittance.police.produit.branche.nom if hasattr(quittance.police.produit, 'branche') else 'SANTE',
-                        "BRANCHE_EN": quittance.police.produit.branche.nom if hasattr(quittance.police.produit, 'branche') else 'SANTE',
+                        "BRANCHE": quittance.police.produit.branche.nom if hasattr(quittance.police.produit, 'Branches') else 'SANTE',
+                        "BRANCHE_EN": quittance.police.produit.branche.nom if hasattr(quittance.police.produit, 'Branches') else 'SANTE',
                         "PROGINT": "1" if quittance.police.programme_international == OptionYesNo.OUI else "0", #0 ou 1
                         "ASSUREUR_GRP": quittance.compagnie.groupe_compagnie.nom if quittance.compagnie.groupe_compagnie else "",
                         "CD_CIE": quittance.compagnie.code,

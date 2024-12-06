@@ -33,7 +33,7 @@ from openpyxl.styles import Font, PatternFill
 
 from configurations.helper_config import verify_sql_query
 from configurations.models import ActionLog, Prescripteur, PrescripteurPrestataire, Prestataire, Specialite, Secteur, \
-    Bureau, TypeActe, BusinessUnit, Branche,\
+    Bureau, TypeActe, BusinessUnit, Branche,Banque,\
     TypePrestataire, User, AuthGroup, TypeEtablissement, Tarif, Rubrique, RegroupementActe, Acte, ReseauSoin, \
     PrestataireReseauSoin, WsBoby, ParamWsBoby, Affection, BackgroundQueryTask, ParamProduitCompagnie, Compagnie, \
     AlimentMatricule, ParamActe
@@ -53,7 +53,6 @@ from sinistre.models import Sinistre, PaiementComptable, HistoriqueOrdonnancemen
     HistoriquePaiementComptableSinistre, BordereauOrdonnancement
 import json
 import io
-
 
 
 def generate_numero_famille_all(request):
@@ -2518,25 +2517,25 @@ class ActesView(PermissionRequiredMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         context_original = self.get_context_data(**kwargs)
 
-        rubriques = Rubrique.objects.filter(status=True)
-        liste_regroupements_actes = RegroupementActe.objects.filter(status=True)
-        regroupements_actes = {
-            rubrique.pk: [
-                {'name': regroupements_acte.pk, 'value': regroupements_acte.libelle}
-                for regroupements_acte in RegroupementActe.objects.filter(rubrique_id=rubrique.pk, status=True)
-            ]
-            for rubrique in rubriques
-        }
+        # rubriques = Rubrique.objects.filter(status=True)
+        # liste_regroupements_actes = RegroupementActe.objects.filter(status=True)
+        # regroupements_actes = {
+        #     rubrique.pk: [
+        #         {'name': regroupements_acte.pk, 'value': regroupements_acte.libelle}
+        #         for regroupements_acte in RegroupementActe.objects.filter(rubrique_id=rubrique.pk, status=True)
+        #     ]
+        #     for rubrique in rubriques
+        # }
 
         all_type_actes = TypeActe.objects.all()
         type_actes = json.dumps(list(all_type_actes.values('id', 'libelle')))
 
+        acte = Acte.objects.all()
+
         base_calcul_tm_choices = BaseCalculTM.choices
 
         context_perso = {
-            'rubriques': rubriques,
-            'regroupements_actes': regroupements_actes,
-            'liste_regroupements_actes': liste_regroupements_actes,
+            'actes': acte,
             'type_actes': type_actes,
             'base_calcul_tm_choices': base_calcul_tm_choices,
         }
@@ -3861,6 +3860,39 @@ class businessView(PermissionRequiredMixin,TemplateView):
                                            is_active=True).order_by('last_name')
 
         context_perso = {'businessunits': business, 'utilisateurs': utilisateurs}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+#------------------------------BANQUE--------------------------------------
+
+class banquesView(PermissionRequiredMixin,TemplateView):
+    template_name = 'banques/banque.html'
+    permission_required = "configurations.view_banque"
+    model = Banque
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        banque = Banque.objects.all()
+        bureau = Bureau.objects.all()
+        utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
+                                           is_active=True).order_by('last_name')
+
+        context_perso = {'banques': banque, 'utilisateurs': utilisateurs, 'bureaux': bureau}
 
         context = {**context_original, **context_perso}
 
