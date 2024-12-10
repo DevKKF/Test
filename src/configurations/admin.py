@@ -482,11 +482,11 @@ class MedicamentAdmin(ImportExportModelAdmin):
          return queryset
 
 
-class AffectionAdmin(ImportExportModelAdmin):
-    list_filter = ('libelle', 'code_cim_10', 'categorie')
-    list_display = ('libelle', 'code_cim_10', 'categorie')
-    search_field = ('libelle', 'code_cim_10', 'categorie')
-    list_per_page = 20
+# class AffectionAdmin(ImportExportModelAdmin):
+#     list_filter = ('libelle', 'code_cim_10', 'categorie')
+#     list_display = ('libelle', 'code_cim_10', 'categorie')
+#     search_field = ('libelle', 'code_cim_10', 'categorie')
+#     list_per_page = 20
 
 
 class RubiqueAdmin(ImportExportModelAdmin):
@@ -1081,7 +1081,7 @@ admin.site.register(Acte)
 # admin.site.register(SousRegroupementActe, SousRegroupementActeAdmin)
 # admin.site.register(TypeActe)
 admin.site.register(CategorieAffection)
-admin.site.register(Affection, AffectionAdmin)
+admin.site.register(Affection)
 admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(Civilite)
 # admin.site.register(TypeAssure)
@@ -1103,7 +1103,7 @@ admin.site.register(NatureOperation, NatureOperationAdmin)
 # admin.site.register(QualiteBeneficiaire,)
 # admin.site.register(TypeAssurance,)
 admin.site.register(Banque)
-admin.site.register(Devise,DeviseAdmin)
+admin.site.register(Devise)
 # admin.site.register(ModeCalcul,)
 # admin.site.register(TypeTarif,)
 #admin.site.register(Medicament, MedicamentAdmin)

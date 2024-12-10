@@ -53,8 +53,7 @@
                          <td>{{ courrier.created_at|date:"d/m/Y" }}</td>
 
                          <td>
-                            <a href="#" class="btn badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> {{_('Details')}}</a></a>
-                             <span class="btn badge btn-sm btn-complement-rouge rounded-pill btn-modal-modifier_courrier" title="Modifier" data-href="{% url 'modifier_courrier' courrier.id %}" style="color:white;font-weight:normal;"><i class="fa fa-pencil"></i> {{_('Modifier')}}</span>&nbsp;&nbsp;&nbsp;
+                            <span class="btn badge btn-sm btn-complement-rouge rounded-pill btn-modal-modifier_courrier" title="Modifier" data-href="{% url 'modifier_courrier' courrier.id %}" style="color:white;font-weight:normal;"><i class="fa fa-pencil"></i> {{_('Modifier')}}</span>&nbsp;&nbsp;&nbsp;
                              <span class="badge badge-danger btn_supprimer_courrier" data-courrier_id="{{ courrier.id }}" style="cursor:pointer;"><i class="fa fa-trash"></i> </span>&nbsp;
 
                         </td>

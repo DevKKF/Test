@@ -21,6 +21,7 @@ from django.db.models import Q
 from django.forms import model_to_dict
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
+from django.template.backends.django import Template
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -33,8 +34,8 @@ from openpyxl.styles import Font, PatternFill
 
 from configurations.helper_config import verify_sql_query
 from configurations.models import ActionLog, Prescripteur, PrescripteurPrestataire, Prestataire, Specialite, Secteur, \
-    Bureau, TypeActe, BusinessUnit, Branche,Banque,\
-    TypePrestataire, User, AuthGroup, TypeEtablissement, Tarif, Rubrique, RegroupementActe, Acte, ReseauSoin, \
+    Bureau,TypeActe,BusinessUnit,Branche,Banque,Affection,Apporteur,ApporteurInternational,CategorieAffection,Devise,\
+    TypePrestataire, User, AuthGroup, TypeEtablissement,Tarif, Rubrique, RegroupementActe, Acte, ReseauSoin, \
     PrestataireReseauSoin, WsBoby, ParamWsBoby, Affection, BackgroundQueryTask, ParamProduitCompagnie, Compagnie, \
     AlimentMatricule, ParamActe
 from inov import settings
@@ -53,6 +54,8 @@ from sinistre.models import Sinistre, PaiementComptable, HistoriqueOrdonnancemen
     HistoriquePaiementComptableSinistre, BordereauOrdonnancement
 import json
 import io
+
+
 
 
 def generate_numero_famille_all(request):
@@ -3900,6 +3903,153 @@ class banquesView(PermissionRequiredMixin,TemplateView):
 
     def post(self):
         pass
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+#-------------------------AFFECTION---------------------------------------
+
+class affectionsView(PermissionRequiredMixin, TemplateView):
+    template_name = 'affection/affection.html'
+    permission_required = "configurations.view_affection"
+    model = Affection
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        affection = Affection.objects.all()
+        utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
+                                           is_active=True).order_by('last_name')
+
+        context_perso = {'affections': affection, 'utilisateurs': utilisateurs}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+#------------------------APPORTEUR----------------------------------
+
+class ApporteurView(PermissionRequiredMixin, TemplateView):
+        template_name = 'apporteur/apporteur.html'
+        permission_required = "configurations.view_apporteur"
+        model = Apporteur
+
+        def get(self, request, *args, **kwargs):
+            context_original = self.get_context_data(**kwargs)
+
+            apporteur = Apporteur.objects.all()
+            utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
+                                               is_active=True).order_by('last_name')
+
+            context_perso = {'apporteurs': apporteur, 'utilisateurs': utilisateurs}
+
+            context = {**context_original, **context_perso}
+
+            return self.render_to_response(context)
+
+        def get_context_data(self, **kwargs):
+            pprint(kwargs)
+            return {
+                **super().get_context_data(**kwargs),
+                **admin.site.each_context(self.request),
+                "opts": self.model._meta,
+            }
+
+
+
+#--------------------------------------APPORTEUR INTERNAL----------------------------------------------------------
+
+class ApporteurinternationalView(PermissionRequiredMixin, TemplateView):
+    template_name = 'apporteur_international/apporteur_inter.html'
+    permission_required = "configurations.view_apporteurinternational"
+    model = ApporteurInternational
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        apporteurinternational = ApporteurInternational.objects.all()
+        utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
+                                           is_active=True).order_by('last_name')
+
+        context_perso = {'apporteur': apporteurinternational, 'utilisateurs': utilisateurs}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+
+#--------------------------------------CategorieAffection--------------------------------------------------
+
+class CategorieView(PermissionRequiredMixin, TemplateView):
+    template_name = 'categorie_affection/categorie.html'
+    permission_required = "configurations.view_categorie"
+    model = CategorieAffection
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        categorie = CategorieAffection.objects.all()
+        utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
+                                           is_active=True).order_by('last_name')
+
+        context_perso = {'categories': categorie, 'utilisateurs': utilisateurs}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+
+#-------------------------------Davise--------------------------------------
+
+class DeviseView(PermissionRequiredMixin, TemplateView):
+    template_name = 'Devise/devise.html'
+    permission_required = "configurations.view_devise"
+    model = Devise
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        devise = Devise.objects.all()
+        utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
+                                           is_active=True).order_by('last_name')
+
+        context_perso = {'devises': devise, 'utilisateurs': utilisateurs}
+
+        context = {**context_original, **context_perso}
+
+        return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         pprint(kwargs)

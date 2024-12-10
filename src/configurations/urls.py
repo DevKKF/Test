@@ -6,7 +6,7 @@ from shared.helpers import openai_complete
 from . import views
 from .views import PrestatairesView, DetailsPrestatairesView, GroupePermissionsView, TarifsView, ReseauxSoinsView, \
     DetailsReseauSoinView, WsBobyView, WsBobyCreateView, WsBobyEditeView, ActesView, ConnectedUsersView, businessView, \
-    brancheView, banquesView
+    brancheView, banquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView, DeviseView
 
 urlpatterns = [
 
@@ -45,12 +45,23 @@ urlpatterns = [
     path('import_tarifs_bureau/', views.import_tarifs_bureau, name='import_tarifs_bureau'),
     #
 
+    path('affection/', affectionsView.as_view(), name='affections'),
+    #
+    path('apporteur/', ApporteurView.as_view(), name='apporteurs'),
+    #
+    path('apporteurinternational/', ApporteurinternationalView.as_view(), name='apporteurinternational'),
+    #
+    path('categorieaffection/', CategorieView.as_view(), name='categorieaffections'),
+    #
     path('businessunit/', businessView.as_view(), name='business_unit'),
     #
     path('branche/',brancheView.as_view(), name='branche'),
     #
     path('banque/',banquesView.as_view(),name='banques'),
     #
+    path('devise/', DeviseView.as_view(), name='devises'),
+    #
+
     path('acte/', ActesView.as_view(), name='acte'),
     path('actes_datatable/', views.actes_datatable, name='actes_datatable'),
     path('popup_detail_acte/<int:acte_id>', views.popup_detail_acte, name='popup_detail_acte'),
