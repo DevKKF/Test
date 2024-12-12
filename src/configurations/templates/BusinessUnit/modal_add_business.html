@@ -1,7 +1,7 @@
 <div  class="modal fade"  id="modal-business" aria-hidden="true" data-backdrop="static" data-keyboard="false" style="display: none">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
-			<form enctype="multipart/form-data" id="form_add_business" action="#" method="post">
+			<form enctype="multipart/form-data" id="form_add_business" action="{% url 'add_business' %}" method="post">
 			{% csrf_token %}
 			 <div class="modal-header">
                     <h4 class="modal-title">{{_("CREATION D'UN BUSINESSUNIT ")}}</h4>
@@ -31,7 +31,7 @@
                                     <div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Status')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control" name="service"  autocomplete="off" required>
+											<select class="form-control" name="status"  autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												<option value="1" >Actif</option>
 												<option value="0">Inactif</option>
@@ -39,37 +39,15 @@
 										</div>
 									</div>
 
-
-
-								</div>
-<!--								<div class="vl"></div>-->
-								<div class="col-md-5" style="border-left:0px;">
-
-								<div class="form-group row">
-
-									</div>
-
-
-
-
 								</div>
 							</div>
 						</div>
-
-						<div class="tab-pane fade mt-3" id="coordonnee" role="tabpanel" aria-labelledby="coordonnee-tab">
-							<div class="row">
-								<div class="col-md-6">
-
-								</div>
-							</div>
-						</div>
-
 					</div>
 
 				</div>
 				<div class="modal-footer justify-content-between">
 					<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
-					<button type="button" id="btn_save_courrier" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
+					<button type="button" id="btn_save_businessunit" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
 				</div>
 			</div>
 			</form>

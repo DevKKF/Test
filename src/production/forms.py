@@ -52,10 +52,10 @@ class FilialeForm(forms.ModelForm):
         fields = ['nom', 'adresse', 'pays', 'ville', ]
 
 #
-class CourrierForm(forms.ModelForm):
-    class Meta:
-        model = Courrier
-        fields = ['code', 'designation', 'service', 'status']
+# class CourrierForm(forms.ModelForm):
+#     class Meta:
+#         model = Courrier
+#         fields = ['code', 'designation', 'service', 'status']
 
 #
 class AcompteForm(forms.ModelForm):

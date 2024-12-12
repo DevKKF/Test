@@ -58,7 +58,7 @@ from configurations.models import Compagnie, MarqueVehicule, Pays, Civilite, Qua
     GroupeInter
 from grh.models import Prospect, Campagne, CampagneProspect
 from inov import settings
-from production.forms import ContactForm, FilialeForm, AcompteForm, DocumentForm, PoliceForm, PhotoUploadForm , CourrierForm
+from production.forms import ContactForm, FilialeForm, AcompteForm, DocumentForm, PoliceForm, PhotoUploadForm
 from production.helper_production import create_alimet_helper
 from production.models import FormuleRubriquePrefinance, ModePrefinancement, Motif, Mouvement, Aliment, Client, Police, \
     Acompte, Document, Filiale, Courrier,\
@@ -6779,7 +6779,6 @@ class CourrierView(TemplateView):
 
 
 @login_required()
-
 def add_courrier(request, police_id):
     police = Police.objects.get(id=police_id)
     if police and request.method == 'POST':
@@ -6788,7 +6787,6 @@ def add_courrier(request, police_id):
         produit = get_object_or_404(Produit, id=produit_id)
 
         courrier_created = Courrier.objects.create(
-            code = request.POST.get('code'),
             designation = request.POST.get('designation'),
             lien_fichier = request.POST.get('lien_fichier'),
             service = request.POST.get('service'),
@@ -6800,7 +6798,6 @@ def add_courrier(request, police_id):
         'statut': 1,
         'message': "Enregistrement effectuée avec succès !",
         'data': {
-            'code': courrier_created.code,
             'designation': courrier_created.designation,
             'service':courrier_created.service,
             'lien_fhichier': courrier_created.lien_fichier,
@@ -6811,10 +6808,6 @@ def add_courrier(request, police_id):
 
     return JsonResponse(response)
 
-    return render(request, 'police/add_courrier.html', {
-        'police': police,
-
-    })
 
 
 
@@ -6828,7 +6821,6 @@ def modifier_courrier(request, courrier_id):
 
         # Récupérer les champs envoyés par le formulaire
         produit_id = request.POST.get('produit')
-        code = request.POST.get('code')
         designation = request.POST.get('designation')
         lien_fichier = escape(request.POST.get('lien_fichier'))
         service = escape(request.POST.get('service'))
@@ -6843,7 +6835,6 @@ def modifier_courrier(request, courrier_id):
 
         # Mettre à jour les champs
         courrier.produit = produit
-        courrier.code = code
         courrier.designation = designation
         courrier.lien_fichier = lien_fichier
         courrier.service = service

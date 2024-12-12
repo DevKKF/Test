@@ -1759,11 +1759,11 @@ $(document).ready(function () {
         // Envoi des données via AJAX
         $.ajax({
             type: 'post',
-            url: formulaire.attr('action'), // URL du formulaire (générée par Django)
-            data: formulaire.serialize(), // Sérialise les données du formulaire
-            beforeSend: function () {
-                $('#loading_gif').show(); // Affiche un loader avant l'envoi
-                btn_save_courrier.hide(); // Désactive temporairement le bouton
+            url: formulaire.attr('action'),
+            data: formulaire.serialize(),
+                beforeSend: function () {
+                $('#loading_gif').show();
+                btn_save_courrier.hide();
             },
             success: function (response) {
                 $('#loading_gif').hide(); // Cache le loader
@@ -13838,3 +13838,54 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+
+//---------------------------------BUSINESSUNIT-----------------------------------------------------
+//ajouter un business unit
+
+
+ $("#btn_save_businessunit").on('click', function () {
+    let btn_save_businessunit = $(this);
+    let formulaire = $('#form_add_business');
+
+
+    $.validator.setDefaults({ ignore: [] });
+
+    if (formulaire.valid()) {
+        // Envoi des données via AJAX
+        $.ajax({
+            type: 'post',
+            url: formulaire.attr('action'), // URL du formulaire (générée par Django)
+            data: formulaire.serialize(), // Sérialise les données du formulaire
+            beforeSend: function () {
+                $('#loading_gif').show(); // Affiche un loader avant l'envoi
+                btn_save_businessunit.hide(); // Désactive temporairement le bouton
+            },
+            success: function (response) {
+                $('#loading_gif').hide(); // Cache le loader
+                btn_save_businessunit.show(); // Réactive le bouton
+
+                if (response.statut === 1) {
+                    // Notification de succès et rechargement de la page
+                    notifySuccess(response.message, function () {
+                        location.reload();
+                    });
+                } else {
+                    notifyWarning(response.message);
+                }
+            },
+            error: function (response) {
+                $('#loading_gif').hide(); //
+                btn_save_businessunit.show(); //
+
+                console.error("Erreur lors de l'envoi AJAX :", response); //
+                notifyError("Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.");
+            }
+        });
+    } else {
+        //
+        notifyWarning("Veuillez renseigner tous les champs obligatoires.");
+    }
+});
+
+

@@ -54,6 +54,7 @@ urlpatterns = [
     path('categorieaffection/', CategorieView.as_view(), name='categorieaffections'),
     #
     path('businessunit/', businessView.as_view(), name='business_unit'),
+    path("businessunit/add_business", views.add_business, name='add_business'),
     #
     path('branche/',brancheView.as_view(), name='branche'),
     #

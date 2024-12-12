@@ -1937,7 +1937,6 @@ STATUS_CHOICES = [
 ]
 
 class Courrier(models.Model):
-    code = models.CharField(max_length=50, unique=True)
     designation = models.CharField(max_length=255)
     lien_fichier = models.CharField(max_length=50, blank=True, null=True)
     service = models.CharField(max_length=50, choices=SERVICE_CHOICES)
@@ -1948,7 +1947,7 @@ class Courrier(models.Model):
 
 
     def __str__(self):
-        return f"{self.code} - {self.designation} - {self.service} - {self.status} - {self.created_at} "
+        return f" {self.designation} - {self.service} - {self.status} - {self.created_at} "
 
     class Meta:
         db_table = "production_courrier"

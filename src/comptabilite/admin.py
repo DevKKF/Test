@@ -38,7 +38,7 @@ class ReglementApporteursAdmin(admin.ModelAdmin):
     search_field = ('numero',)
 
 
-admin.site.register(BordereauOrdonnance)
+# admin.site.register(BordereauOrdonnance)
 
 
 #admin.site.register(Reglement)

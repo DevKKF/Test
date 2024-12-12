@@ -3880,6 +3880,35 @@ class businessView(PermissionRequiredMixin,TemplateView):
         }
 
 
+
+@login_required
+def add_business(request):
+    if request.method == 'POST':
+
+        business_created = BusinessUnit.objects.create(
+            libelle = request.POST.get('libelle'),
+            status = request.POST.get('status')
+        )
+
+    response = {
+        'statut': 1,
+        'message': "Enregistrement effectuée avec succès !",
+        'data': {
+            'libelle': business_created.libelle,
+            'status': business_created.status,
+            'created_at': business_created.created_at,
+        }
+    }
+
+    return JsonResponse(response)
+
+
+
+
+
+
+
+
 #------------------------------BANQUE--------------------------------------
 
 class banquesView(PermissionRequiredMixin,TemplateView):

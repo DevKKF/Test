@@ -35,7 +35,6 @@
               <table class="table table-bordered table-striped dataTable dtr-inline" id="table_formules">
                   <thead>
                     <tr>
-                      <th scope="col">{{_('Code')}}</th>
                       <th scope="col">{{_('Designation')}}</th>
                       <th scope="col">{{_('Service')}}</th>
                       <th scope="col">{{_('Statut')}}</th>
@@ -46,7 +45,6 @@
                   <tbody>
                   {% for courrier in courriers %}
                     <tr>
-                        <td>{{ courrier.code|default_if_none:"" }}</td>
                         <td>{{ courrier.designation|default_if_none:"" }} </td>
                         <td>{{ courrier.service|escape}}</td>
                         <td><span class="badge badge-green">{{ courrier.status|default_if_none:""}}</span></td>

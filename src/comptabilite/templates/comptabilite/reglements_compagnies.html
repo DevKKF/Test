@@ -5,13 +5,12 @@
 <div class="col-12 col-md-12 order-2 order-md-1">
   <div class="card">
     <div class="card-header">
-        <h3 class="card-title"><b>{{_('REGLEMENTS_COMPAGNIES') }}</b></h3>
-        <div class="card-tools">
-          <!--a class="btn btn-sm btn-default" data-toggle="modal"  data-target="#modal-client"><i class="fas fa-plus"></i> Nouveau règlement CIE</-->
-        <span id="btnOpenDialogAddReglementCompagnie" class="btn btn-sm btn-default" data-toggle="modal" data-href="{% url 'add_reglement_compagnie' %}"><i class="fas fa-money-bill"></i> {{_('Regler_une_compagnie') }}</span>
-        </div>
+        <h3 class="card-title"><b>{{_('REGLEMENTS COMPAGNIES') }}</b></h3>
     </div>
     <div class="card-body">
+        <div class=" pull-right mb-2">
+        <span id="btnOpenDialogAddReglementCompagnie" class="btn btn-sm btn-primary mb-1" data-toggle="modal" data-href="{% url 'add_reglement_compagnie' %}"><i class="fas fa-money-bill"></i> {{_('Regler une compagnie') }}</span>
+        </div>
       <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
         <div class="row">
           <div class="col-12 col-md-12 col-sm-12">
@@ -19,9 +18,9 @@
                   <thead>
                       <tr>
                         <th scope="col">{{_('Compagnie') }}</th>
-                        <th scope="col">{{_('Total_a_reverser') }}</th>
+                        <th scope="col">{{_('Total a reverser') }}</th>
                         <th scope="col">{{_('Commissions') }}</th>
-                        <th scope="col">{{_('Nbre_lignes') }}</th>
+                        <th scope="col">{{_('Nbre lignes') }}</th>
                       </tr>
                     </thead>
                     <tbody>
