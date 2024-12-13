@@ -1162,4 +1162,4 @@ admin.site.register(GroupeInter, GroupeInterAdmin)
 #admin.site.register(Mouvement) #à réactiver plus tard
 #admin.site.register(Motif, MotifAdmin) #à réactiver plus tard
 
-admin.site.register(BusinessUnit, BusinessUnitAdmin)
+admin.site.register(BusinessUnit)

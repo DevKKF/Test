@@ -3886,21 +3886,23 @@ def add_business(request):
     if request.method == 'POST':
 
         business_created = BusinessUnit.objects.create(
-            libelle = request.POST.get('libelle'),
-            status = request.POST.get('status')
-        )
+                                               libelle=request.POST.get('libelle'),
+                                                status=request.POST.get('status'),
 
-    response = {
-        'statut': 1,
-        'message': "Enregistrement effectuée avec succès !",
-        'data': {
-            'libelle': business_created.libelle,
-            'status': business_created.status,
-            'created_at': business_created.created_at,
+                                               )
+        business_created.save()
+
+        response = {
+            'statut': 1,
+            'message': "Enregistrement effectuée avec succès !",
+            'data': {
+                'id': business_created.pk,
+                'libelle': business_created.libelle,
+                'status': business_created.status,
+            }
         }
-    }
 
-    return JsonResponse(response)
+        return JsonResponse(response)
 
 
 
