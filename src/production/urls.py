@@ -30,11 +30,14 @@ urlpatterns = [
     path("client/<int:client_id>/liste-police", PoliceClientView.as_view(), name='client_polices'),
     path("client/<int:client_id>/polices", views.list_polices, name='client_list_polices'),
     path("client/<int:client_id>/add_police", views.add_police, name='add_police'),
-    path('import-aliments/', views.import_aliments, name='import_aliments'),
+    path('import-excel-aliments/', views.import_excel_aliments, name='import_excel_aliments'),
+    path('import-formulaire-aliments/', views.import_formulaire_aliments, name='import_formulaire_aliments'),
     path('get_garanties_by_produit/', views.get_garanties_by_produit, name='get_garanties_by_produit'),
     path('get_garanties_by_formule/', views.get_garanties_by_formule, name='get_garanties_by_formule'),
     path('supprimer_aliment/<int:index>/', views.supprimer_aliment, name='supprimer_aliment'),
     path('clear_session/', views.clear_session, name='clear_session'),
+    path('get_compagnies/', views.get_compagnies, name='get_compagnies'),
+    path('get_garanties_by_formule_modification/', views.get_garanties_by_formule_modification, name='get_garanties_by_formule_modification'),
 
     path("client/<int:client_id>/liste-contact", ContactClientView.as_view(), name='client_contacts'),
     path("client/<int:client_id>/contact/add", views.add_contact, name='client_add_contact'),
@@ -99,6 +102,7 @@ urlpatterns = [
     path('police/<int:police_id>/add_vehicule', views.add_vehicule, name='add_vehicule'),
     path('police/<int:police_id>/update_vehicule/<int:vehicule_id>', views.update_vehicule, name='update_vehicule'),
     path('police/<int:police_id>/details_vehicule/<int:vehicule_id>', views.details_vehicule, name='details_vehicule'),
+    path('police/<int:vehicule_id>/details_historique_vehicule/<int:historique_id>', views.details_historique_vehicule, name='details_historique_vehicule'),
     path('police/<int:police_id>/import_vehicules', views.import_vehicules, name='import_vehicules'),
     path("police/<int:police_id>/supprimer_vehicule/<int:vehicule_id>", views.supprimer_vehicule, name='supprimer_vehicule'),
     path('police/<int:police_id>/prime_famille', views.prime_famille, name='prime_famille'),
@@ -108,7 +112,6 @@ urlpatterns = [
     path('police/<int:police_id>/<int:aliment_id>/upload_benef_picture', views.upload_benef_picture, name='upload_benef_picture'),
     path('police/<int:police_id>/sinistres', PoliceSinistresView.as_view(), name='police_sinistres'),
     path('police/<int:police_id>/sinistres_datatable', views.police_sinistres_datatable, name='police_sinistres_datatable'),
-
 
     path('formules_universelles', FormulesUniversellesView.as_view(), name='formules_universelles'),
     path('police/<int:police_id>/formules', FormulesView.as_view(), name='police_formules'),

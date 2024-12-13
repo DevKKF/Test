@@ -42,6 +42,6 @@ admin.site.register(BordereauOrdonnance)
 
 
 #admin.site.register(Reglement)
-admin.site.register(ReglementApporteurs)
+#admin.site.register(ReglementApporteurs)
 # admin.site.register(EncaissementCommission)
 #admin.site.register(ExtractionExcel)

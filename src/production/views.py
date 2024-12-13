@@ -48,7 +48,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from configurations.models import Compagnie, MarqueVehicule, Pays, Civilite, QualiteBeneficiaire, Profession, \
     Produit, Formule, GarantieBranche, GarantieFormule, \
     Territorialite, ModeCalcul, Duree, TicketModerateur, TypeCarosserie, User, Fractionnement, ModeReglement, \
-    Regularisation, Bureau, BusinessUnit, \
+    Regularisation, Bureau, BusinessUnit, TypeCompagnie, \
     Devise, Taxe, BureauTaxe, Apporteur, BaseCalcul, TypeQuittance, NatureQuittance, TypeClient, TypePersonne, Langue, \
     Branche, ParamProduitCompagnie, CategorieVehicule, Banque, Carburant, Usage, Carosserie, \
     NatureOperation, TypeTarif, Prestataire, Acte, Rubrique, ReseauSoin, Periodicite, PrescripteurPrestataire, \
@@ -59,7 +59,7 @@ from inov import settings
 from production.forms import ContactForm, FilialeForm, AcompteForm, DocumentForm, PoliceForm, PhotoUploadForm
 from production.helper_production import create_alimet_helper
 from production.models import FormuleRubriquePrefinance, ModePrefinancement, Motif, Mouvement, Aliment, Client, Police, \
-    Acompte, Document, Filiale, AutreRisque, PoliceGarantie, AlimentPolice,  \
+    Acompte, Document, Filiale, AutreRisque, PoliceGarantie, AlimentPolice, HistoriqueVehicule, PoliceAssureur,  \
     Contact, Quittance, SecteurActivite, TypeDocument, AlimentFormule, Statut, FormuleGarantie, MouvementPolice, StatutQuittance, \
     Genre, StatutFamilial, PlacementEtGestion, ModeRenouvellement, CalculTM, ApporteurPolice, TaxePolice, \
     TaxeQuittance, Reglement, OptionYesNo, Carte, TypeMajorationContrat, Vehicule, VehiculePolice, Energie, \
@@ -87,16 +87,6 @@ from django.views.decorators.csrf import csrf_exempt
 # Suppression des espaces entre les mots
 def supprimer_espaces(chaine):
     return ''.join(str(chaine).split())
-
-def _convertir_date_(date_str):
-    formats = ["%d/%m/%Y", "%Y-%m-%d"]  # Formats possibles
-    for fmt in formats:
-        try:
-            date_obj = datetime.strptime(date_str, fmt)
-            return date_obj.strftime("%Y-%m-%d")  # Format souhaité
-        except ValueError:
-            continue
-    raise ValueError(f"Le format de la date '{date_str}' n'est pas reconnu.")
 
 def convertir_date(date_str):
     """
@@ -742,6 +732,7 @@ def modifier_acompte(request, acompte_id):
                       {'acompte': acompte, 'form': form})
 
 
+
 @login_required
 def supprimer_acompte(request):
     if request.method == "POST":
@@ -767,6 +758,7 @@ def supprimer_acompte(request):
         return JsonResponse(response)
 
 
+
 # ajout de police
 @transaction.atomic  # open a transaction
 @login_required
@@ -783,8 +775,13 @@ def add_police(request, client_id):
 
             produit = Produit.objects.get(id=request.POST.get('produit'))
             compagnie = Compagnie.objects.get(id=request.POST.get('compagnie'))
+            typecompagnie_prin = TypeCompagnie.objects.get(id=1)
+            typecompagnie = request.POST.get('typecompagnie')
+            compagnie_id = request.POST.get('compagnie_id')
+            formule_id = request.POST.get('formule')
             numero = request.POST.get('numero')
             apporteur = request.POST.get('apporteur')
+            garantie = request.POST.get('garantie')
             date_debut_effet = request.POST.get('date_debut_effet')
             date_fin_effet = request.POST.get('date_fin_effet')
             preavis_de_resiliation = request.POST.get('preavis_de_resiliation')
@@ -808,8 +805,6 @@ def add_police(request, client_id):
             if taux_com_courtage == "": taux_com_courtage = 0
             taux_com_courtage_terme = request.POST.get('taux_com_courtage_terme').replace(' ', '')
             if taux_com_courtage_terme == "": taux_com_courtage_terme = 0
-            commission_gestion = request.POST.get('commission_gestion').replace(' ', '')
-            if commission_gestion == "": commission_gestion = 0
             commission_courtage = request.POST.get('commission_courtage').replace(' ', '')
             if commission_courtage == "": commission_courtage = 0
             commission_intermediaires = request.POST.get('commission_intermediaire').replace(' ', '')
@@ -822,51 +817,35 @@ def add_police(request, client_id):
             devise_id = request.POST.get('devise')
             ar_libelle = request.POST.get('risque_name')
             ar_description = request.POST.get('risque_description')
+            date_entree = request.POST.get('date_entree')
+            date_sortie = request.POST.get('date_sortie')
+            mis_en_circulation = request.POST.get('mis_en_circulation')
 
             statut_contrat = request.POST.get('statut_contrat')
             statut_contrat = "CONTRAT"
 
-            police_created = Police.objects.create(bureau_id=client.bureau_id,
-                                                   client_id=client_id,
-                                                   compagnie_id=compagnie.id,
-                                                   produit_id=produit.id,
-                                                   numero=numero,
-                                                   apporteur=apporteur,
-                                                   date_souscription=date_debut_effet,
-                                                   date_debut_effet=date_debut_effet,
-                                                   date_fin_effet=date_fin_effet,
-                                                   preavis_de_resiliation=preavis_de_resiliation,
-                                                   mode_renouvellement=mode_renouvellement,
-                                                   fractionnement_id=fractionnement_id,
-                                                   mode_reglement_id=mode_reglement_id,
-                                                   regularisation_id=regularisation_id,
-                                                   date_prochaine_facture=date_prochaine_facture,
-                                                   participation=participation,
-                                                   taux_participation=taux_participation,
-                                                   prime_ht=prime_ht,
-                                                   prime_ttc=prime_ttc,
-                                                   taxe=taxe,
-                                                   autres_taxes=autres_taxes,
-                                                   taux_com_courtage=taux_com_courtage,
-                                                   taux_com_courtage_terme=taux_com_courtage_terme,
-                                                   commission_gestion=commission_gestion,
-                                                   commission_courtage=commission_courtage,
-                                                   commission_intermediaires=commission_intermediaires,
-                                                   cout_police_compagnie=cout_police_compagnie,
-                                                   cout_police_courtier=cout_police_courtier,
-                                                   calcul_tm=calcul_tm,
-                                                   devise_id=devise_id,
-                                                   statut_contrat=statut_contrat,
-                                                   statut=Statut.ACTIF,
-                                                   created_by=request.user
-                                                   )
-
+            police_created = Police(
+                bureau_id=client.bureau_id,
+                client_id=client_id,
+                devise_id=devise_id,
+                created_by=request.user,
+                produit_id=produit.id,
+                numero=numero,
+                date_souscription=datetime.now(),
+                preavis_de_resiliation=preavis_de_resiliation,
+                date_prochaine_facture=date_prochaine_facture,
+                participation=participation,
+                taux_participation=taux_participation,
+                statut_contrat = statut_contrat,
+                statut = Statut.ACTIF,
+            )
             police_created.save()
 
             code_bureau = request.user.bureau.code
             police_created.numero_provisoire = str(code_bureau) + 'P' + str(Date.today().year)[-2:] + str(
                 police_created.pk).zfill(6)
-            if police_created.numero == "": police_created.numero = police_created.numero_provisoire
+            if police_created.numero == "":
+                police_created.numero = police_created.numero_provisoire
 
             police_created.save()
 
@@ -921,34 +900,12 @@ def add_police(request, client_id):
                     # Insérer la ligne
                     # TaxePolice.objects.create(police_id=police.id, taxe_id=taxe_id, montant=taxe_montant).save()
 
-            # créer une ligne de mouvement_police avec le mouvement affaire nouvelle et le motif affaire nouvelle
-            mp = MouvementPolice()
-            mp.police = police
-            mp.mouvement = Mouvement.objects.get(code='AN')
-            mp.motif = Motif.objects.get(code='AN')
-            mp.date_effet = police.date_debut_effet
-            mp.date_fin_periode_garantie = police.date_fin_effet
-            mp.save()
-
             # créer une ligne dans période de couverture
             periode_couverture = PeriodeCouverture.objects.create(
                 police_id=police.id,
                 date_debut_effet=date_debut_effet,
                 date_fin_effet=date_fin_effet,
             ).save()
-
-            # Créer une ligne dans Autre Risque s'il existe.
-            if ar_libelle and ar_description:
-                autre_risque = AutreRisque(
-                    client_id=client_id,
-                    police_id=police.id,
-                    created_by=request.user,
-                    libelle=ar_libelle,
-                    description=ar_description,
-                )
-                autre_risque.save()
-            else:
-                print("Les deux champs sont vides.")
 
             # Initialiser une liste pour les garanties
             garanties = []
@@ -968,196 +925,169 @@ def add_police(request, client_id):
             print("Garantie transmis", garanties)
             # Enregistrer chaque garantie de la police
             for garantie in garanties:
-
-                franchise = garantie['franchise'].replace(' ','')
-                capital = garantie['capital'].replace(' ','')
+                franchise = garantie['franchise'].replace(' ', '')
+                capital = garantie['capital'].replace(' ', '')
 
                 PoliceGarantie.objects.create(
                     client_id=client_id,
                     police_id=police.id,
                     created_by=request.user,
                     garantie_id=garantie['garantie_id'],
+                    formule_id=formule_id,
                     franchise=franchise if franchise else None,
                     capital=capital if capital else None,
                 )
 
+            historique_police_created = HistoriquePolice(
+                police_id=police.id,
+                bureau_id=client.bureau_id,
+                client_id=client_id,
+                produit_id=produit.id,
+                numero=numero,
+                apporteur=apporteur,
+                garantie=garantie,
+                date_souscription=date_debut_effet,
+                date_debut_effet=date_debut_effet,
+                date_fin_effet=date_fin_effet,
+                preavis_de_resiliation=preavis_de_resiliation,
+                mode_renouvellement=mode_renouvellement,
+                fractionnement_id=fractionnement_id,
+                mode_reglement_id=mode_reglement_id,
+                regularisation_id=regularisation_id,
+                date_prochaine_facture=date_prochaine_facture,
+                participation=participation,
+                taux_participation=taux_participation,
+                prime_ht=prime_ht,
+                prime_ttc=prime_ttc,
+                taxe=taxe,
+                autres_taxes=autres_taxes,
+                taux_com_courtage=taux_com_courtage,
+                taux_com_courtage_terme=taux_com_courtage_terme,
+                commission_courtage=commission_courtage,
+                commission_intermediaires=commission_intermediaires,
+                cout_police_compagnie=cout_police_compagnie,
+                cout_police_courtier=cout_police_courtier,
+                calcul_tm=calcul_tm,
+                devise_id=devise_id,
+                statut_contrat=statut_contrat,
+                statut=Statut.ACTIF,
+                date_du_jour=datetime.now(),
+                created_by=request.user
+            )
+            historique_police_created.save()
+
+            dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+            police_assureur = PoliceAssureur(
+                client_id=client_id,
+                historique_police_id=dernier_historique.id,
+                type_compagnie_id=typecompagnie_prin.id,
+                compagnie_id=compagnie.id,
+                date_creation=datetime.now(),
+                created_by=request.user
+            )
+            police_assureur.save()
+
+            #Si type_compagnie est choisi avec une autre compagnie choisie
+            if typecompagnie and compagnie_id:
+                police_assureur_autre = PoliceAssureur(
+                    client_id=client_id,
+                    historique_police_id=dernier_historique.id,
+                    type_compagnie_id=typecompagnie,
+                    compagnie_id=compagnie_id,
+                    date_creation=datetime.now(),
+                    created_by=request.user
+                )
+                police_assureur_autre.save()
+
+            # créer une ligne de mouvement_police avec le mouvement affaire nouvelle et le motif affaire nouvelle
+            mp = MouvementPolice()
+            mp.police = police
+            mp.mouvement = Mouvement.objects.get(code='AN')
+            mp.motif = Motif.objects.get(code='AN')
+            mp.date_effet = dernier_historique.date_debut_effet
+            mp.date_fin_periode_garantie = dernier_historique.date_fin_effet
+            mp.save()
+
+            # TODO MISE EN PLACE DE LA PARTIE ALIMENT DE LA POLICE
             branche_code = Produit.objects.filter(id=request.POST.get('produit')).first()
-            if branche_code.branche.code == "100992":
-                # Vérifier s'il y a des aliments dans la session
-                if aliments:
-                    for aliment in aliments:
 
-                        categorie_vehicule = CategorieVehicule.objects.filter(libelle=aliment.get('T_categorie_id')).first()
-                        carburant = Carburant.objects.filter(code=aliment.get('energie')).first()
-
-                        vehicule_existant = Vehicule.objects.filter(numero_immatriculation=aliment.get('immat')).first()
-
-                        # Conversion des dates
-                        date_entree = convertir_date(aliment.get('date_entree'))
-                        date_sortie = convertir_date(aliment.get('date_sortie'))
-                        mis_en_circulation = convertir_date(aliment.get('mis_en_circulation'))
-
-                        if vehicule_existant:
-                            # Si le véhicule existe, vérifier la date d'entrée
-                            if vehicule_existant.date_sortie and date_entree:
-                                if date_entree <= vehicule_existant.date_sortie:
-                                    print(f"Véhicule {aliment.get('immat')} ignoré (date d'entrée invalide).")
-                                    continue  # Passer au suivant
-
-                        # Créer le véhicule
-                        vehicule_created = Vehicule(
-                            numero_immatriculation=aliment.get('immat'),
-                            numero_immat_provisoire=aliment.get('immat_prov'),
-                            numero_serie=aliment.get('num_serie'),
-                            numero_parc=aliment.get('num_parc'),
-                            proprietaire=aliment.get('proprietaire'),
-                            conducteur=aliment.get('chauffeur'),
-                            marque=aliment.get('marque'),
-                            modele=aliment.get('modele'),
-                            place=aliment.get('place'),
-                            puissance=aliment.get('puissance'),
-                            poids_a_vide=aliment.get('poids_a_vide'),
-                            poids_a_charge=aliment.get('poids_a_charge'),
-                            date_entree=date_entree if date_entree else None,
-                            date_sortie=date_sortie if date_sortie else None,
-                            date_mis_en_circulation=mis_en_circulation if mis_en_circulation else None,
-                            valeur_neuve=aliment.get('valeur_neuve'),
-                            valeur_actuelle=aliment.get('valeur_actuelle'),
-                            categorie_vehicule_id=categorie_vehicule.id if categorie_vehicule else None,
-                            carburant_id=carburant.id if carburant else None,
-                            carosserie_id=aliment.get('T_carosserie_id'),
-                            usage_id=aliment.get('T_usage_id'),
-                            formule_id=aliment.get('T_formule_id'),
-                            commentaire=aliment.get('comment'),
-                        )
-                        vehicule_created.save()
-                        vehicule = Vehicule.objects.get(id=vehicule_created.pk)
-
-                        # Créer la relation police-aliment-vehicule
-                        AlimentPolice.objects.create(
-                            police_id=police.id,
-                            vehicule_id=vehicule.id,
-                            created_by=request.user,
-                            date_debut=police.date_debut_effet,
-                            date_fin=date_sortie if date_sortie else None,
-                            date_liaison=datetime.now(),
-                        )
-
-                    # Supprimer les aliments de la session après l'enregistrement
-                    request.session.pop('aliments', None)
-
-                else:
-                    print("Aucun aliment à enregistrer.")
-
-            elif branche_code.branche.code == "100991":
-
+            if branche_code.branche.code == "100991":
                 vehicule_existant = Vehicule.objects.filter(numero_immatriculation=request.POST.get('immatriculation')).first()
-
                 if vehicule_existant:
-
-                    date_entree = request.POST.get('date_entree')
-                    date_sortie = request.POST.get('date_sortie')
-                    mis_en_circulation = request.POST.get('mis_en_circulation')
-
                     date_entree_conversion = datetime.strptime(date_entree, '%Y-%m-%d').date()
-
                     if vehicule_existant.date_sortie and date_entree_conversion > vehicule_existant.date_sortie:
-
-                        vehicule_created = Vehicule(
-                            numero_immatriculation=request.POST.get('immatriculation'),
-                            numero_immat_provisoire=request.POST.get('immatriculation_provisioire'),
-                            numero_serie=request.POST.get('num_serie'),
+                        aliment_police = AlimentPolice(
+                            vehicule_id = vehicule_existant.id,
+                            usage_id=request.POST.get('usage_id'),
+                            historique_police_id=dernier_historique.id,
+                            police_id=police.id,
+                            created_by=request.user,
                             numero_parc=request.POST.get('num_parc'),
                             proprietaire=request.POST.get('proprietaire'),
                             conducteur=request.POST.get('conducteur'),
-                            marque=request.POST.get('marque'),
-                            modele=request.POST.get('modele'),
-                            place=request.POST.get('places_assises'),
-                            valeur_neuve=supprimer_espaces(request.POST.get('valeur_neuve', '')),
                             valeur_actuelle=supprimer_espaces(request.POST.get('valeur_actuelle', '')),
-                            puissance=request.POST.get('puissance_fiscale'),
-                            poids_a_vide=request.POST.get('poids_a_vide'),
-                            poids_a_charge=request.POST.get('poid_tac'),
+                            date_mis_en_circulation=mis_en_circulation if mis_en_circulation else None,
                             date_entree=date_entree if date_entree else None,
                             date_sortie=date_sortie if date_sortie else None,
-                            date_mis_en_circulation=mis_en_circulation if mis_en_circulation else None,
-                            categorie_vehicule_id=request.POST.get('categorie_id'),
-                            carburant_id=request.POST.get('carburant_id'),
-                            carosserie_id=request.POST.get('carosserie_id'),
-                            usage_id=request.POST.get('usage_id'),
-                            commentaire=request.POST.get('commentaire'),
+                            date_liaison = datetime.now(),
+                            commentaire = request.POST.get('commentaire'),
+                            statut = Statut.ACTIF
                         )
-                        vehicule_created.save()
-                        vehicule = Vehicule.objects.get(id=vehicule_created.pk)
-
-                        # Créer la rélation police-aliment-vehicule
-                        AlimentPolice.objects.create(
-                            police_id=police.id,
-                            vehicule_id=vehicule.id,
-                            created_by=request.user,
-                            date_debut=police.date_debut_effet,
-                            date_fin=vehicule.date_sortie,
-                            date_liaison=datetime.now(),
-                        )
-
+                        aliment_police.save()
                     else:
                         response = {
-                            'statut': 2,
+                            'statut': 0,
                             'message': "Ce véhicule est déjà lié à une police et sa date de sortie n'est pas encore connue à ce jour.",
                             'data': {
                                 'vehicule': vehicule_existant.numero_immatriculation,
                                 'produit': police.produit.nom,
                             }
                         }
-
                         return JsonResponse(response)
                 else:
-
-                    date_entree = request.POST.get('date_entree')
-                    date_sortie = request.POST.get('date_sortie')
-                    mis_en_circulation = request.POST.get('mis_en_circulation')
-
                     vehicule_created = Vehicule(
-                        numero_immatriculation=request.POST.get('immatriculation'),
-                        numero_immat_provisoire=request.POST.get('immatriculation_provisioire'),
-                        numero_serie=request.POST.get('num_serie'),
-                        numero_parc=request.POST.get('num_parc'),
-                        proprietaire=request.POST.get('proprietaire'),
-                        conducteur=request.POST.get('chauffeur'),
-                        marque=request.POST.get('marque'),
-                        modele=request.POST.get('modele'),
-                        place=request.POST.get('place'),
-                        valeur_neuve=supprimer_espaces(request.POST.get('valeur_neuve', '')),
-                        valeur_actuelle=supprimer_espaces(request.POST.get('valeur_actuelle', '')),
-                        puissance=request.POST.get('puissance'),
-                        date_entree=date_entree if date_entree else None,
-                        date_sortie=date_sortie if date_sortie else None,
-                        date_mis_en_circulation=mis_en_circulation if mis_en_circulation else None,
-                        poids_a_vide=request.POST.get('poids_a_vide'),
-                        poids_a_charge=request.POST.get('poid_tac'),
                         categorie_vehicule_id=request.POST.get('categorie_id'),
                         carburant_id=request.POST.get('carburant_id'),
                         carosserie_id=request.POST.get('carosserie_id'),
-                        usage_id=request.POST.get('usage_id'),
-                        commentaire=request.POST.get('commentaire'),
+                        numero_immatriculation=request.POST.get('immatriculation'),
+                        numero_immat_provisoire=request.POST.get('immatriculation_provisioire'),
+                        numero_serie=request.POST.get('num_serie'),
+                        marque=request.POST.get('marque'),
+                        modele=request.POST.get('modele'),
+                        places_assises=request.POST.get('places_assises'),
+                        valeur_neuve=supprimer_espaces(request.POST.get('valeur_neuve', '')),
+                        puissance=request.POST.get('puissance_fiscale'),
+                        poids_a_vide=request.POST.get('poids_a_vide'),
+                        poids_a_charge=request.POST.get('poid_tac')
                     )
                     vehicule_created.save()
+
                     vehicule = Vehicule.objects.get(id=vehicule_created.pk)
 
-                    # Créer la rélation police-aliment-vehicule
-                    AlimentPolice.objects.create(
-                        police_id=police.id,
+                    aliment_police = AlimentPolice(
                         vehicule_id=vehicule.id,
+                        usage_id=request.POST.get('usage_id'),
+                        historique_police_id=dernier_historique.id,
+                        police_id=police.id,
                         created_by=request.user,
-                        date_debut=police.date_debut_effet,
-                        date_fin=vehicule.date_sortie,
+                        numero_parc=request.POST.get('num_parc'),
+                        proprietaire=request.POST.get('proprietaire'),
+                        conducteur=request.POST.get('conducteur'),
+                        valeur_actuelle=supprimer_espaces(request.POST.get('valeur_actuelle', '')),
+                        date_mis_en_circulation=mis_en_circulation if mis_en_circulation else None,
+                        date_entree=date_entree if date_entree else None,
+                        date_sortie=date_sortie if date_sortie else None,
                         date_liaison=datetime.now(),
+                        commentaire=request.POST.get('commentaire'),
+                        statut=Statut.ACTIF
                     )
+                    aliment_police.save()
 
+            elif branche_code.branche.code == "100992":
+                pass
             else:
-                print("Le produit choisi n'est pas concerné.")
-
-            request.session.pop('aliments', None)
+                print("Le produit choisi n'est pas encore concerné par le traitement.")
 
             response = {
                 'statut': 1,
@@ -1166,13 +1096,11 @@ def add_police(request, client_id):
                     'id': police.pk,
                     'numero': police.numero,
                     'produit': police.produit.nom,
-                    'compagnie': police.compagnie.nom,
-                    'prime_ht': police.prime_ht,
-                    'prime_ttc': police.prime_ttc,
-                    'commission_gestion': police.commission_gestion,
-                    'commission_courtage': police.commission_courtage,
-                    'date_debut_effet': police.date_debut_effet,
-                    'date_fin_effet': police.date_fin_effet,
+                    'prime_ht': dernier_historique.prime_ht,
+                    'prime_ttc': dernier_historique.prime_ttc,
+                    'commission_courtage': dernier_historique.commission_courtage,
+                    'date_debut_effet': dernier_historique.date_debut_effet,
+                    'date_fin_effet': dernier_historique.date_fin_effet,
                     'statut': police.statut,
                 }
             }
@@ -1180,7 +1108,6 @@ def add_police(request, client_id):
             return JsonResponse(response)
 
         else:
-
             response = {
                 'statut': 0,
                 'message': "Veuillez renseigner correctement le formulaire",
@@ -1188,6 +1115,13 @@ def add_police(request, client_id):
             }
 
             return JsonResponse(response)
+    else:
+        response = {
+            'statut': 0,
+            'message': "Cette méthode n'est pas reconnue !",
+        }
+
+        return JsonResponse(response)
 
 
 
@@ -1198,12 +1132,14 @@ def modifier_police(request, police_id):
     if request.method == 'POST':
 
         produit = Produit.objects.get(id=request.POST.get('produit'))
-        branche = produit.branche
         compagnie = Compagnie.objects.get(id=request.POST.get('compagnie'))
+        typecompagnie_prin = TypeCompagnie.objects.get(id=1)
+        typecompagnie = request.POST.get('typecompagnie')
+        compagnie_id = request.POST.get('compagnie_id')
+        formule_id = request.POST.get('formule')
         numero = request.POST.get('numero')
         apporteur = request.POST.get('apporteur')
-        programme_international = request.POST.get('programme_international')
-        placement_gestion = request.POST.get('placement_gestion')
+        garantie = request.POST.get('garantie')
         date_debut_effet = request.POST.get('date_debut_effet')
         date_fin_effet = request.POST.get('date_fin_effet')
         preavis_de_resiliation = request.POST.get('preavis_de_resiliation')
@@ -1223,16 +1159,10 @@ def modifier_police(request, police_id):
         if taxe == "": taxe = 0
         autres_taxes = request.POST.get('autres_taxes').replace(' ', '')
         if autres_taxes == "": autres_taxes = 0
-        #taux_com_courtage = compagnie.taux_com_courtage
-        #taux_com_gestion = compagnie.taux_com_gestion
         taux_com_courtage = request.POST.get('taux_com_courtage').replace(' ', '')
         if taux_com_courtage == "": taux_com_courtage = 0
         taux_com_courtage_terme = request.POST.get('taux_com_courtage_terme').replace(' ', '')
         if taux_com_courtage_terme == "": taux_com_courtage_terme = 0
-        taux_com_gestion = request.POST.get('taux_com_gestion').replace(' ', '')
-        if taux_com_gestion == "": taux_com_gestion = 0
-        commission_gestion = request.POST.get('commission_gestion').replace(' ', '')
-        if commission_gestion == "": commission_gestion = 0
         commission_courtage = request.POST.get('commission_courtage').replace(' ', '')
         if commission_courtage == "": commission_courtage = 0
         commission_intermediaires = request.POST.get('commission_intermediaire').replace(' ', '')
@@ -1241,136 +1171,64 @@ def modifier_police(request, police_id):
         if cout_police_compagnie == "": cout_police_compagnie = 0
         cout_police_courtier = request.POST.get('cout_police_courtier').replace(' ', '')
         if cout_police_courtier == "": cout_police_courtier = 0
-        ticket_moderateur_id = request.POST.get('ticket_moderateur')
         calcul_tm = request.POST.get('calcul_tm')
-
-        type_prefinancement_id = request.POST.get('type_prefinancement')
-
-        mode_calcul_id = request.POST.get('mode_calcul')
-        prime_famille = request.POST.get('prime_famille').replace(' ', '')
-        if prime_famille == "": prime_famille = 0
-        nombre_max_enfants_famille = request.POST.get('nombre_max_enfants_famille').replace(' ', '')
-        if nombre_max_enfants_famille == "": nombre_max_enfants_famille = 0
-        nombre_max_personne_famille = request.POST.get('nombre_max_personne_famille').replace(' ', '')
-        if nombre_max_personne_famille == "": nombre_max_personne_famille = 0
-        age_max_enfants = request.POST.get('age_max_enfants').replace(' ', '')
-        if age_max_enfants == "": age_max_enfants = 0
-        age_max_adultes = request.POST.get('age_max_adultes').replace(' ', '')
-        if age_max_adultes == "": age_max_adultes = 0
-        surprime_personne_sup = request.POST.get('surprime_personne_sup').replace(' ', '')
-        if surprime_personne_sup == "": surprime_personne_sup = 0
-        surprime_enfant_sup = request.POST.get('surprime_enfant_sup').replace(' ', '')
-        if surprime_enfant_sup == "": surprime_enfant_sup = 0
-        surprime_age_adulte = request.POST.get('surprime_age_adulte').replace(' ', '')
-        if surprime_age_adulte == "": surprime_age_adulte = 0
-        surprime_ascendant = request.POST.get('surprime_ascendant').replace(' ', '')
-        if surprime_ascendant == "": surprime_ascendant = 0
-        prime_personne = request.POST.get('prime_personne').replace(' ', '')
-        if prime_personne == "": prime_personne = 0
-        prime_adulte = request.POST.get('prime_adulte').replace(' ', '')
-        if prime_adulte == "": prime_adulte = 0
-        prime_enfant = request.POST.get('prime_enfant').replace(' ', '')
-        if prime_enfant == "": prime_enfant = 0
-        taux_cotisation = request.POST.get('taux_cotisation').replace(' ', '')
-        if taux_cotisation == "": taux_cotisation = 0
-        part_employeur = request.POST.get('part_employeur').replace(' ', '')
-        if part_employeur == "": part_employeur = 0
-        cotisation_minimale = request.POST.get('cotisation_minimale').replace(' ', '')
-        if cotisation_minimale == "": cotisation_minimale = 0
-        cotisation_maximale = request.POST.get('cotisation_maximale').replace(' ', '')
-        if cotisation_maximale == "": cotisation_maximale = 0
-        type_majoration = request.POST.get('type_majoration')
-
-        autofinancement = request.POST.get('autofinancement')
         devise_id = request.POST.get('devise')
-        taux_charge = request.POST.get('taux_charge').replace(' ', '')
-        if taux_charge == "": taux_charge = 0
-        coefficient_n = request.POST.get('coefficient_n').replace(' ', '')
-        if coefficient_n == "": coefficient_n = 0
-        coefficient_n1 = request.POST.get('coefficient_n1').replace(' ', '')
-        if coefficient_n1 == "": coefficient_n1 = 0
-        coefficient_n2 = request.POST.get('coefficient_n2').replace(' ', '')
-        if coefficient_n2 == "": coefficient_n2 = 0
-        coefficient_n3 = request.POST.get('coefficient_n3').replace(' ', '')
-        if coefficient_n3 == "": coefficient_n3 = 0
+        ar_libelle = request.POST.get('risque_name')
+        ar_description = request.POST.get('risque_description')
+        date_entree = request.POST.get('date_entree')
+        date_sortie = request.POST.get('date_sortie')
+        mis_en_circulation = request.POST.get('mis_en_circulation')
+
+        statut_contrat = request.POST.get('statut_contrat')
+        statut_contrat = "CONTRAT"
 
         # Récupérer la police à mettre à jour
         police_old = Police.objects.get(id=police_id)
 
+        dernier_historique = HistoriquePolice.objects.filter(police_id=police_old.id).order_by('-date_du_jour').first()
+
         # Créer l'historique avant la mise à jour
-        histtorique_police = HistoriquePolice.objects.create(
+        historique_police = HistoriquePolice.objects.create(
             police=police_old,
-            numero=numero,
+            client_id=police_old.client_id,
+            produit=police_old.produit,
+            bureau=police_old.bureau,
+            devise=police_old.devise,
             created_by=police_old.created_by,
             updated_by=request.user,
-            produit=police_old.produit,
-            type_assurance=police_old.type_assurance,
-            bureau=police_old.bureau,
-            compagnie=police_old.compagnie,
-            client=police_old.client,
-            veos_code_client=police_old.veos_code_client,
-            veos_code_cie=police_old.veos_code_cie,
-            veos_id_npol=police_old.veos_id_npol,
-            veos_id_pol=police_old.veos_id_pol,
-            devise=police_old.devise,
-            apporteur=police_old.apporteur,
-            programme_international=police_old.programme_international,
-            placement_gestion=police_old.placement_gestion,
+            numero=police_old.numero,
+            apporteur=dernier_historique.apporteur,
+            garantie=dernier_historique.garantie,
             date_souscription=police_old.date_souscription,
-            date_debut_effet=police_old.date_debut_effet,
-            date_fin_effet=police_old.date_fin_effet,
-            date_fin_police=police_old.date_fin_police,
+            date_debut_effet=dernier_historique.date_debut_effet,
+            date_fin_effet=dernier_historique.date_fin_effet,
             preavis_de_resiliation=police_old.preavis_de_resiliation,
-            mode_renouvellement=police_old.mode_renouvellement,
-            fractionnement=police_old.fractionnement,
-            mode_reglement=police_old.mode_reglement,
-            regularisation=police_old.regularisation,
+            mode_renouvellement=dernier_historique.mode_renouvellement,
+            fractionnement_id=dernier_historique.fractionnement_id,
+            mode_reglement_id=dernier_historique.mode_reglement_id,
+            regularisation_id=dernier_historique.regularisation_id,
             date_prochaine_facture=police_old.date_prochaine_facture,
-            taux_com_courtage=police_old.taux_com_courtage,
-            taux_com_courtage_terme=police_old.taux_com_courtage_terme,
-            taux_com_gestion=police_old.taux_com_gestion,
             participation=police_old.participation,
             taux_participation=police_old.taux_participation,
-            prime_ht=police_old.prime_ht,
-            prime_ttc=police_old.prime_ttc,
-            commission_gestion=police_old.commission_gestion,
-            commission_courtage=police_old.commission_courtage,
-            commission_intermediaires=police_old.commission_intermediaires,
-            cout_police_compagnie=police_old.cout_police_compagnie,
-            cout_police_courtier=police_old.cout_police_courtier,
-            taxe=police_old.taxe,
-            autres_taxes=police_old.autres_taxes,
-            type_prefinancement=police_old.type_prefinancement,
-            ticket_moderateur=police_old.ticket_moderateur,
-            mode_calcul=police_old.mode_calcul,
-            prime_famille=police_old.prime_famille,
-            nombre_max_personne_famille=police_old.nombre_max_personne_famille,
-            nombre_max_enfants_famille=police_old.nombre_max_enfants_famille,
-            age_max_adultes=police_old.age_max_adultes,
-            age_max_enfants=police_old.age_max_enfants,
-            surprime_personne_sup=police_old.surprime_personne_sup,
-            surprime_enfant_sup=police_old.surprime_enfant_sup,
-            surprime_age_adulte=police_old.surprime_age_adulte,
-            surprime_ascendant=police_old.surprime_ascendant,
-            prime_personne=police_old.prime_personne,
-            prime_adulte=police_old.prime_adulte,
-            prime_enfant=police_old.prime_enfant,
-            taux_cotisation=police_old.taux_cotisation,
-            part_employeur=police_old.part_employeur,
-            cotisation_minimale=police_old.cotisation_minimale,
-            cotisation_maximale=police_old.cotisation_maximale,
-            type_majoration=police_old.type_majoration,
-            autofinancement=police_old.autofinancement,
-            taux_charge=police_old.taux_charge,
-            coefficient_n=police_old.coefficient_n,
-            coefficient_n1=police_old.coefficient_n1,
-            coefficient_n2=police_old.coefficient_n2,
-            coefficient_n3=police_old.coefficient_n3,
+            prime_ht=dernier_historique.prime_ht,
+            prime_ttc=dernier_historique.prime_ttc,
+            taxe=dernier_historique.taxe,
+            autres_taxes=dernier_historique.autres_taxes,
+            taux_com_courtage=dernier_historique.taux_com_courtage,
+            taux_com_courtage_terme=dernier_historique.taux_com_courtage_terme,
+            commission_courtage=dernier_historique.commission_courtage,
+            commission_intermediaires=dernier_historique.commission_intermediaires,
+            cout_police_compagnie=dernier_historique.cout_police_compagnie,
+            cout_police_courtier=dernier_historique.cout_police_courtier,
+            calcul_tm=dernier_historique.calcul_tm,
+            statut_contrat=dernier_historique.statut_contrat,
             statut=police_old.statut,
             created_at=police_old.created_at,
             updated_at=police_old.updated_at,
+            date_du_jour=datetime.now(),
         )
-        # # Historique apporteur police
+
+        # Historique apporteur police
         apporteurs_old = ApporteurPolice.objects.filter(police_id=police_id)
         for apporteur_old in apporteurs_old:
             HistoriqueApporteurPolice.objects.create(
@@ -1378,7 +1236,7 @@ def modifier_police(request, police_id):
                 taux_com_renouvellement=apporteur_old.taux_com_renouvellement,
                 base_calcul=apporteur_old.base_calcul,
                 apporteur=apporteur_old.apporteur,
-                historique_police=histtorique_police,
+                historique_police=historique_police,
                 date_effet=apporteur_old.date_effet,
                 statut_validite=apporteur_old.statut_validite,
                 created_at=apporteur_old.created_at,
@@ -1392,7 +1250,7 @@ def modifier_police(request, police_id):
             HistoriqueTaxePolice.objects.create(
                 montant=taxe.montant,
                 taxe=taxe.taxe,
-                historique_police=histtorique_police,
+                historique_police=historique_police,
                 created_at=taxe.created_at,
                 updated_at=taxe.updated_at,
             )
@@ -1402,7 +1260,7 @@ def modifier_police(request, police_id):
 
         mouvement_police = MouvementPolice.objects.filter(police_id=police_id, historique_police_id__isnull=True).order_by('-id').first()
         if mouvement_police:
-            mouvement_police.historique_police = histtorique_police
+            mouvement_police.historique_police = historique_police
             mouvement_police.save()
 
         # creation du monvement police
@@ -1432,64 +1290,15 @@ def modifier_police(request, police_id):
         # Mise à jour de la police
         police = Police.objects.filter(id=police_id).update(
             produit_id=produit.id,
-            compagnie_id=compagnie.id,
+            devise_id=devise_id,
+            created_by=request.user,
             numero=numero,
-            apporteur=apporteur,
-            programme_international=programme_international,
-            placement_gestion=placement_gestion,
-            date_souscription=date_debut_effet,
-            date_debut_effet=date_debut_effet,
-            date_fin_effet=date_fin_effet,
+            date_souscription=datetime.now(),
             preavis_de_resiliation=preavis_de_resiliation,
-            mode_renouvellement=mode_renouvellement,
-            fractionnement_id=fractionnement_id,
-            mode_reglement_id=mode_reglement_id,
-            regularisation_id=regularisation_id,
             date_prochaine_facture=date_prochaine_facture,
             participation=participation,
             taux_participation=taux_participation,
-            prime_ht=prime_ht,
-            prime_ttc=prime_ttc,
-            taxe=taxe,
-            autres_taxes=autres_taxes,
-            taux_com_courtage=taux_com_courtage,
-            taux_com_courtage_terme=taux_com_courtage_terme,
-            taux_com_gestion=taux_com_gestion,
-            commission_gestion=commission_gestion,
-            commission_courtage=commission_courtage,
-            commission_intermediaires=commission_intermediaires,
-            cout_police_compagnie=cout_police_compagnie,
-            cout_police_courtier=cout_police_courtier,
-            ticket_moderateur_id=ticket_moderateur_id,
-            calcul_tm=calcul_tm,
-            type_prefinancement_id=type_prefinancement_id,
-
-            mode_calcul_id=mode_calcul_id, #champ non présent dans le formulaire de modification
-            prime_famille=prime_famille,
-            nombre_max_enfants_famille=nombre_max_enfants_famille,
-            nombre_max_personne_famille=nombre_max_personne_famille,
-            age_max_enfants=age_max_enfants,
-            age_max_adultes=age_max_adultes,
-            surprime_personne_sup=surprime_personne_sup,
-            surprime_enfant_sup=surprime_enfant_sup,
-            surprime_age_adulte=surprime_age_adulte,
-            surprime_ascendant=surprime_ascendant,
-            prime_personne=prime_personne,
-            prime_adulte=prime_adulte,
-            prime_enfant=prime_enfant,
-            taux_cotisation=taux_cotisation,
-            part_employeur=part_employeur,
-            cotisation_minimale=cotisation_minimale,
-            cotisation_maximale=cotisation_maximale,
-            type_majoration=type_majoration,
-
-            autofinancement=autofinancement,
-            devise_id=devise_id,
-            taux_charge=taux_charge,
-            coefficient_n=coefficient_n,
-            coefficient_n1=coefficient_n1,
-            coefficient_n2=coefficient_n2,
-            coefficient_n3=coefficient_n3,
+            statut_contrat=statut_contrat,
             statut=Statut.ACTIF,
             updated_by=request.user
         )
@@ -1578,6 +1387,64 @@ def modifier_police(request, police_id):
                                                     taux_com_renouvellement=taux_com_renew, ).save()
                 i += 1
 
+        # Initialiser une liste pour les garanties
+        garanties = []
+        # Parcourir les données POST pour trouver les champs de garantie
+        for key, value in request.POST.items():
+            if key.startswith('garantie_'):
+                garantie_id = key.split('_')[1]  # Extraire l'ID de la garantie
+                franchise = request.POST.get(f'franchise_{garantie_id}', '0')  # Obtenir la franchise
+                capital = request.POST.get(f'capital_{garantie_id}', '0')  # Obtenir le capital
+
+                # Ajouter les données extraites à la liste
+                garanties.append({
+                    'garantie_id': garantie_id,
+                    'franchise': franchise,
+                    'capital': capital,
+                })
+        print("Garantie transmis", garanties)
+
+        #Si des garanties sont chargées
+        if len(garanties) > 0:
+
+            # Supprime les anciennes relations si nécessaire
+            PoliceGarantie.objects.filter(police_id=police_old.id).delete()
+
+            # Enregistrer chaque garantie de la police
+            for garantie in garanties:
+                franchise = garantie['franchise'].replace(' ', '')
+                capital = garantie['capital'].replace(' ', '')
+
+                PoliceGarantie.objects.create(
+                    client_id=police.client_id,
+                    police_id=police.id,
+                    created_by=request.user,
+                    garantie_id=garantie['garantie_id'],
+                    formule_id=formule_id,
+                    franchise=franchise if franchise else None,
+                    capital=capital if capital else None,
+                )
+
+        # Mise à jour de police assureur
+        police_assureur_old = PoliceAssureur.objects.filter(type_compagnie_id=typecompagnie_prin.id).first()
+
+        if police_assureur_old:
+            police_assureur_old.type_compagnie_id = typecompagnie_prin.id
+            police_assureur_old.compagnie_id = compagnie.id
+            police_assureur_old.historique_police_id = historique_police.id
+            police_assureur_old.save()
+        else:
+            # Gérer le cas où aucun objet n'est trouvé (facultatif)
+            print("Aucune police assureur trouvée pour ce type de compagnie.")
+
+        # Si type_compagnie est choisi avec une autre compagnie choisie
+        if typecompagnie and compagnie_id:
+            police_assureur_autre_old = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id)
+            if police_assureur_autre_old:
+                police_assureur_autre_old.historique_police_id=historique_police.id
+                police_assureur_autre_old.type_compagnie_id=typecompagnie
+                police_assureur_autre_old.compagnie_id=compagnie_id
+                police_assureur_autre_old.save()
 
         # enregistrer les autres taxes
         taxes = request.POST.get('liste_autres_taxes_modification')
@@ -1599,13 +1466,12 @@ def modifier_police(request, police_id):
             'data': {
                 'id': police.pk,
                 'numero': police.numero,
-                'compagnie': police.compagnie.nom,
-                'prime_ht': police.prime_ht,
-                'prime_ttc': police.prime_ttc,
-                'commission_gestion': police.commission_gestion,
-                'commission_courtage': police.commission_courtage,
-                'date_debut_effet': police.date_debut_effet,
-                'date_fin_effet': police.date_fin_effet,
+                'compagnie': police_assureur_old.compagnie.nom,
+                'prime_ht': historique_police.prime_ht,
+                'prime_ttc': historique_police.prime_ttc,
+                'commission_courtage': historique_police.commission_courtage,
+                'date_debut_effet': historique_police.date_debut_effet,
+                'date_fin_effet': historique_police.date_fin_effet,
                 'statut': police.statut,
             }
         }
@@ -1660,16 +1526,30 @@ def modifier_police(request, police_id):
             else:
                 bt.montant_existant = 0
 
+        dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+        assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id, type_compagnie_id=1).first() if dernier_historique else []
+        autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id).exclude(type_compagnie_id=1).first()
+
+        print('dernier historique : ', dernier_historique.police_id)
+        print('assureur principal : ', assureur_police)
+        print('autre assureur : ', autre_assureur_police)
+
+        typecompagnie = TypeCompagnie.objects.exclude(code="ASSPR").order_by('libelle')
+        formules = Formule.objects.order_by('libelle')
+
+        garanties = PoliceGarantie.objects.filter(police_id=police.id)
+
         return render(request, 'police/modal_police_modification.html',
                       {'police': police, 'periode_couverture':periode_couverture, 'types_documents': types_documents, 'branches': branches, 'produits': produits,
-                       'pays': pays,
+                       'pays': pays, 'dernier_historique': dernier_historique, 'assureur_police': assureur_police, 'autre_assureur_police': autre_assureur_police,
                        'compagnies': compagnies, 'durees': durees, 'placement_gestion': placement_gestion,
                        'mode_renouvellement': mode_renouvellement, 'tickets_moderateurs': tickets_moderateurs,
-                       'calcul_tm': calcul_tm, 'optionYesNo': optionYesNo,
+                       'calcul_tm': calcul_tm, 'optionYesNo': optionYesNo, 'formules': formules,
                        'fractionnements': fractionnements, 'modes_reglements': modes_reglements,
-                       'regularisations': regularisations,
+                       'regularisations': regularisations, 'typecompagnie': typecompagnie,
                        'devises': devises, 'utilisateurs': utilisateurs, 'taxes': taxes,
-                       'bureau_taxes': bureau_taxes,
+                       'bureau_taxes': bureau_taxes, 'garanties': garanties,
                        'apporteurs': apporteurs, 'bases_calculs': bases_calculs, 'modes_calculs': modes_calculs,
                        'apporteurs_police': apporteurs_police, 'type_majoration_contrat': type_majoration_contrat, 'types_prefinancements': types_prefinancements,
                        })
@@ -1682,161 +1562,290 @@ def list_polices(request, client_id):
     return redirect('/production/clien/?client__id__exact=' + str(client_id))
 
 
-# Importer des aliments
+
+def get_garanties_by_formule_modification(request):
+    formule_id = request.GET.get('formule_id')
+    garanties = GarantieFormule.objects.filter(formule_id=formule_id).values('garantie__id', 'garantie__nom')
+    garanties = [{'id': g['garantie__id'], 'nom': g['garantie__nom']} for g in garanties]
+    return JsonResponse({'garanties': list(garanties)})
+
+
+
+# Importer des aliments via le fichier excel
 @login_required
-def import_aliments(request):
+@csrf_exempt
+def _import_excel_aliments_(request):
+    if request.method == "POST":
+        fichier = request.FILES.get("fichier_aliment")
+
+        if not fichier:
+            return JsonResponse({'success': False, 'message': "Aucun fichier joint."}, status=400)
+
+        # Lire le fichier Excel
+        try:
+            data = pd.read_excel(fichier)
+
+            # Ignorer la première ligne (si elle est un en-tête supplémentaire)
+            data = data.iloc[1:]
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f"Erreur de lecture du fichier Excel : {str(e)}"},
+                                status=400)
+
+        # Colonnes obligatoires
+        colonnes_obligatoires = [
+            'immat', 'proprietaire', 'marque', 'energie',
+            'date_entree', 'puissance', 'mis_en_circulation', 'T_categorie_id'
+        ]
+
+        # Vérifier les colonnes obligatoires
+        colonnes_manquantes = [col for col in colonnes_obligatoires if col not in data.columns]
+        if colonnes_manquantes:
+            return JsonResponse({
+                'success': False,
+                'message': f"Les colonnes obligatoires manquantes : {', '.join(colonnes_manquantes)}",
+            }, status=400)
+
+        # Ignorer la première ligne (si elle est un en-tête supplémentaire)
+        data = data.iloc[1:]
+
+        # Remplacer les IDs de catégories par leurs libellés
+        categories = {cat.id: cat.libelle for cat in CategorieVehicule.objects.all()}
+        data['T_categorie_id'] = data['T_categorie_id'].map(categories)
+
+        # Vérifier si des catégories ne sont pas trouvées
+        if data['T_categorie_id'].isnull().any():
+            return JsonResponse({
+                'success': False,
+                'message': 'Certaines catégories dans le fichier ne correspondent pas à la base de données.',
+            }, status=400)
+
+        # Charger les immatriculations existantes de la session
+        immatriculations_existes = [
+            alim['immat'] for alim in request.session.get('aliments', [])
+        ]
+
+        # Filtrer les aliments pour ne garder que ceux avec une immatriculation unique
+        nouveaux_aliments = []
+        for _, row in data.iterrows():
+            immat = row['immat']
+            if immat not in immatriculations_existes:
+                aliment = {
+                    'immat': immat,
+                    'proprietaire': row['proprietaire'],
+                    'chauffeur': row.get('chauffeur', None),
+                    'marque': row['marque'],
+                    'modele': row.get('modele', None),
+                    'energie': row['energie'],
+                    'date_entree': row['date_entree'],
+                    'date_sortie': row.get('date_sortie', None),
+                    'puissance': row['puissance'],
+                    'mis_en_circulation': row['mis_en_circulation'],
+                    'T_categorie_id': row['T_categorie_id'],
+                    'immat_prov': row.get('immat_prov', None),
+                    'num_parc': row.get('num_parc', None),
+                    'place': row.get('place', None),
+                    'valeur_neuve': row.get('valeur_neuve', None),
+                    'valeur_actuelle': row.get('valeur_actuelle', None),
+                    'poids_a_vide': row.get('poids_a_vide', None),
+                    'poids_a_charge': row.get('poids_a_charge', None),
+                    'T_carosserie_id': row.get('T_carosserie_id', None),
+                    'T_usage_id': row.get('T_usage_id', None),
+                    'T_formule_id': row.get('T_formule_id', None),
+                    'comment': row.get('comment', None),
+                }
+                nouveaux_aliments.append(aliment)
+
+        # Charger les aliments existants de la session
+        aliments_existant = request.session.get('aliments', [])
+
+        # Ajouter les nouveaux aliments
+        aliments_existant.extend(nouveaux_aliments)
+        request.session['aliments'] = aliments_existant
+
+        print("Nouveaux aliments : ", nouveaux_aliments)
+        print("Aliments existant : ", aliments_existant)
+
+        return JsonResponse({
+            'success': True,
+            'message': f"Importation des aliments fait avec succès !",
+            'data': nouveaux_aliments
+        }, status=200)
+
+    return JsonResponse({'success': False, 'message': "Requête invalide."}, status=400)
+
+
+
+def import_excel_aliments(request):
+    from django.core.serializers import serialize
+    if request.method == "POST":
+        fichier = request.FILES.get("fichier_aliment")
+
+        if not fichier:
+            return JsonResponse({'success': False, 'message': "Aucun fichier joint."}, status=400)
+
+        # Lire le fichier Excel
+        try:
+            data = pd.read_excel(fichier)
+
+            # Ignorer la première ligne (si elle est un en-tête supplémentaire)
+            data = data.iloc[1:]
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f"Erreur de lecture du fichier Excel : {str(e)}"},
+                                status=400)
+
+        # Colonnes obligatoires
+        colonnes_obligatoires = [
+            'immat', 'proprietaire', 'marque', 'energie',
+            'date_entree', 'puissance', 'mis_en_circulation', 'T_categorie_id'
+        ]
+
+        # Vérifier les colonnes obligatoires
+        colonnes_manquantes = [col for col in colonnes_obligatoires if col not in data.columns]
+        if colonnes_manquantes:
+            return JsonResponse({
+                'success': False,
+                'message': f"Les colonnes obligatoires manquantes : {', '.join(colonnes_manquantes)}",
+            }, status=400)
+
+        # Charger les catégories depuis la base de données
+        categories = {cat.id: cat.libelle for cat in CategorieVehicule.objects.all()}
+        data['T_categorie_id'] = data['T_categorie_id'].map(categories)
+
+        # Vérifier si des catégories ne sont pas trouvées
+        if data['T_categorie_id'].isnull().any():
+            return JsonResponse({
+                'success': False,
+                'message': 'Certaines catégories dans le fichier ne correspondent pas à la base de données.',
+            }, status=400)
+
+        # Charger les immatriculations déjà existantes dans la session
+        immatriculations_existes = [alim['immat'] for alim in request.session.get('aliments', [])]
+
+        print("Immatriculations existantes : ", immatriculations_existes)
+
+        # Filtrer les aliments pour ne garder que ceux avec une immatriculation unique
+        nouveaux_aliments = []
+        for _, row in data.iterrows():
+            immat = row['immat']
+            if immat not in immatriculations_existes:
+                # Créer un aliment avec les colonnes obligatoires et facultatives
+                aliment = {
+                    'immat': immat,
+                    'proprietaire': row['proprietaire'],
+                    'chauffeur': row.get('chauffeur', None),  # Facultatif
+                    'marque': row['marque'],
+                    'modele': row.get('modele', None),  # Facultatif
+                    'energie': row['energie'],
+                    'date_entree': row['date_entree'],
+                    'date_sortie': row.get('date_sortie', None),  # Facultatif
+                    'puissance': row['puissance'],
+                    'mis_en_circulation': row['mis_en_circulation'],
+                    'T_categorie_id': row['T_categorie_id'],
+                    'immat_prov': row.get('immat_prov', None),  # Facultatif
+                    'num_parc': row.get('num_parc', None),  # Facultatif
+                    'num_serie': row.get('num_serie', None),  # Facultatif
+                    'place': row.get('place', None),  # Facultatif
+                    'valeur_neuve': row.get('valeur_neuve', None),  # Facultatif
+                    'valeur_actuelle': row.get('valeur_actuelle', None),  # Facultatif
+                    'poids_a_vide': row.get('poids_a_vide', None),  # Facultatif
+                    'poids_a_charge': row.get('poids_a_charge', None),  # Facultatif
+                    'T_carosserie_id': row.get('T_carosserie_id', None),  # Facultatif
+                    'T_usage_id': row.get('T_usage_id', None),  # Facultatif
+                    'T_formule_id': row.get('T_formule_id', None),  # Facultatif
+                    'comment': row.get('comment', None),  # Facultatif
+                }
+                nouveaux_aliments.append(aliment)
+
+        # Charger les aliments existants de la session
+        aliments_existant = request.session.get('aliments', [])
+
+        print("Nouveaux aliments ajoutés : ", nouveaux_aliments)
+
+        # Ajouter les nouveaux aliments aux anciens
+        aliments_existant.extend(nouveaux_aliments)
+
+        # Mettre à jour la session avec les aliments existants et les nouveaux
+        request.session['aliments'] = aliments_existant
+
+        # Vérifier le contenu des aliments existants avant de les renvoyer
+        print("Aliments existants avant renvoi : ", aliments_existant)
+
+        # Sérialiser les aliments existants si nécessaire
+        # Cela est nécessaire uniquement si vous avez des objets Django non sérialisables
+        serialized_aliments = serialize('json', aliments_existant)
+
+        return JsonResponse({'success': True, 'message': 'Importation réussie !', 'data': serialized_aliments},
+                             status=200)
+
+    return JsonResponse({'success': False, 'message': "Requête invalide."}, status=400)
+
+
+# Importer des aliments via le formulaire
+@login_required
+@csrf_exempt
+def import_formulaire_aliments(request):
     if request.method == 'POST':
-        # Si un fichier est importé
-        if request.FILES.get('aliments'):
+        try:
+            # Vérification de l'immatriculation
+            immat = request.POST.get('immatriculation')
+            if not immat:
+                return JsonResponse({'success': False, 'message': 'Immatriculation manquante.'}, status=400)
 
-            fichier = request.FILES['aliments']
+            # Charger les immatriculations existantes de la session
+            aliments_existant = request.session.get('aliments', [])
+            immatriculations_existes = [alim['immat'] for alim in aliments_existant]
 
-            try:
-                # Lire le fichier Excel
-                data = pd.read_excel(fichier)
+            # Si l'immatriculation existe déjà, on ne l'ajoute pas
+            if immat in immatriculations_existes:
+                return JsonResponse({'success': False, 'message': f"L'immatriculation {immat} existe déjà en session."},
+                                    status=400)
 
-                # Colonnes obligatoires
-                colonnes_obligatoires = [
-                    'immat', 'proprietaire', 'marque', 'energie',
-                    'date_entree', 'puissance', 'mis_en_circulation', 'T_categorie_id'
-                ]
+            # Vérification de la catégorie
+            categorie_id = request.POST.get('categorie_id')
+            categorie = CategorieVehicule.objects.filter(id=categorie_id).first()
 
-                # Vérifier si toutes les colonnes obligatoires sont présentes
-                if not all(col in data.columns for col in colonnes_obligatoires):
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'Les colonnes obligatoires manquantes : ' + ', '.join(colonnes_obligatoires),
-                    }, status=400)
+            if not categorie:
+                return JsonResponse({'success': False, 'message': 'Catégorie non trouvée.'}, status=400)
 
-                # Prendre les données à partir de la ligne 2 (ignorer la première ligne si en-tête présent)
-                data = data.iloc[1:]
+            # Création du nouvel aliment
+            nouvel_aliment = {
+                'immat': immat,
+                'immat_prov': request.POST.get('immatriculation_provisioire'),
+                'num_serie': request.POST.get('num_serie'),
+                'proprietaire': request.POST.get('proprietaire'),
+                'chauffeur': request.POST.get('conducteur'),
+                'marque': request.POST.get('marque'),
+                'modele': request.POST.get('modele'),
+                'place': request.POST.get('places_assises'),
+                'energie': request.POST.get('carburant_id'),
+                'valeur_neuve': request.POST.get('valeur_a_neuf'),
+                'valeur_actuelle': request.POST.get('valeur_actuelle'),
+                'date_entree': request.POST.get('date_entree'),
+                'date_sortie': request.POST.get('date_sortie'),
+                'mis_en_circulation': request.POST.get('date_mise_circulation'),
+                'puissance': request.POST.get('puissance_fiscale'),
+                'poids_a_vide': request.POST.get('poid_vide'),
+                'poids_a_charge': request.POST.get('poid_tac'),
+                'T_carosserie_id': request.POST.get('carosserie_id'),
+                'T_categorie_id': categorie.libelle,
+                'T_usage_id': request.POST.get('usage_id'),
+                'comment': request.POST.get('commentaire')
+            }
 
-                # Remplacer les IDs de catégories par leurs libellés
-                categories = {cat.id: cat.libelle for cat in CategorieVehicule.objects.all()}
-                data['T_categorie_id'] = data['T_categorie_id'].map(categories)
+            # Ajouter le nouvel aliment aux aliments existants
+            aliments_existant.append(nouvel_aliment)
 
-                # Vérifier si des catégories ne sont pas trouvées
-                if data['T_categorie_id'].isnull().any():
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'Certaines catégories dans le fichier ne correspondent pas à la base de données.',
-                    }, status=400)
+            # Mettre à jour la session
+            request.session['aliments'] = aliments_existant
+            print("Nouveau aliment", nouvel_aliment)
+            return JsonResponse({'success': True, 'message': "Ajout de l'aliment fait avec succès !", 'data': aliments_existant}, status=200)
 
-                # Charger les immatriculations existantes de la session
-                immatriculations_existes = [alim['immat'] for alim in request.session.get('aliments', [])]
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f"Erreur lors de l'enregistrement : {str(e)}"}, status=500)
 
-                # Filtrer les aliments pour ne garder que ceux avec une immatriculation unique
-                nouveaux_aliments = []
-                for _, row in data.iterrows():
-                    immat = row['immat']
-                    if immat not in immatriculations_existes:
-                        # Créer un aliment avec les colonnes obligatoires et facultatives
-                        aliment = {
-                            'immat': immat,
-                            'proprietaire': row['proprietaire'],
-                            'chauffeur': row.get('chauffeur', None),  # Facultatif
-                            'marque': row['marque'],
-                            'modele': row.get('modele', None),  # Facultatif
-                            'energie': row['energie'],
-                            'date_entree': row['date_entree'],
-                            'date_sortie': row.get('date_sortie', None),  # Facultatif
-                            'puissance': row['puissance'],
-                            'mis_en_circulation': row['mis_en_circulation'],
-                            'T_categorie_id': row['T_categorie_id'],
-                            'immat_prov': row.get('immat_prov', None),  # Facultatif
-                            'num_parc': row.get('num_parc', None),  # Facultatif
-                            'num_serie': row.get('num_serie', None),  # Facultatif
-                            'place': row.get('place', None),  # Facultatif
-                            'valeur_neuve': row.get('valeur_neuve', None),  # Facultatif
-                            'valeur_actuelle': row.get('valeur_actuelle', None),  # Facultatif
-                            'poids_a_vide': row.get('poids_a_vide', None),  # Facultatif
-                            'poids_a_charge': row.get('poids_a_charge', None),  # Facultatif
-                            'T_carosserie_id': row.get('T_carosserie_id', None),  # Facultatif
-                            'T_usage_id': row.get('T_usage_id', None),  # Facultatif
-                            'T_formule_id': row.get('T_formule_id', None),  # Facultatif
-                            'comment': row.get('comment', None),  # Facultatif
-                        }
-                        nouveaux_aliments.append(aliment)
-
-                # Charger les aliments existants de la session
-                aliments_existant = request.session.get('aliments', [])
-
-                # Ajouter les nouveaux aliments aux anciens
-                aliments_existant.extend(nouveaux_aliments)
-
-                # Mettre à jour la session avec les nouveaux aliments
-                request.session['aliments'] = aliments_existant
-
-                return JsonResponse({'success': True, 'message': 'Importation réussie !', 'data': nouveaux_aliments}, status=200)
-
-            except Exception as e:
-                return JsonResponse({'success': False, 'message': f"Erreur lors de l'enregistrement : {str(e)}"}, status=500)
-
-        # Sinon, enregistrer les données saisies dans le formulaire
-        else:
-            try:
-
-                # Vérification de l'immatriculation
-                immat = request.POST.get('immatriculation')
-                if not immat:
-                    return JsonResponse({'success': False, 'message': 'Immatriculation manquante.'}, status=400)
-
-                # Charger les immatriculations existantes de la session
-                immatriculations_existes = [alim['immat'] for alim in request.session.get('aliments', [])]
-
-                # Si l'immatriculation existe déjà, on ne l'ajoute pas
-                if immat in immatriculations_existes:
-                    return JsonResponse({'success': False, 'message': f"L'immatriculation {immat} existe déjà en session."}, status=400)
-
-                categorie_id = request.POST.get('categorie_id')
-                categorie = CategorieVehicule.objects.filter(id=categorie_id).first()
-                print(categorie)
-                # Récupérer les données saisies dans le formulaire
-                nouveaux_aliments = []
-                if categorie:
-                    aliment = {
-                        'immat': request.POST.get('immatriculation'),
-                        'immat_prov': request.POST.get('immatriculation_provisioire'),
-                        'num_serie': request.POST.get('num_serie'),
-                        'proprietaire': request.POST.get('proprietaire'),
-                        'chauffeur': request.POST.get('conducteur'),
-                        'marque': request.POST.get('marque'),
-                        'modele': request.POST.get('modele'),
-                        'place': request.POST.get('places_assises'),
-                        'energie': request.POST.get('carburant_id'),
-                        'valeur_neuve': request.POST.get('valeur_a_neuf'),
-                        'valeur_actuelle': request.POST.get('valeur_actuelle'),
-                        'date_entree': request.POST.get('date_entree'),
-                        'date_sortie': request.POST.get('date_sortie'),
-                        'mis_en_circulation': request.POST.get('date_mise_circulation'),
-                        'puissance': request.POST.get('puissance_fiscale'),
-                        'poids_a_vide': request.POST.get('poid_vide'),
-                        'poids_a_charge': request.POST.get('poid_tac'),
-                        'T_carosserie_id': request.POST.get('carosserie_id'),
-                        'T_categorie_id': categorie.libelle,
-                        'T_usage_id': request.POST.get('usage_id'),
-                        'comment': request.POST.get('commentaire')
-                    }
-                    nouveaux_aliments.append(aliment)
-
-                    # Charger les aliments existants de la session
-                    aliments_existant = request.session.get('aliments', [])
-
-                    # Ajouter les nouveaux aliments aux anciens
-                    aliments_existant.extend(nouveaux_aliments)
-
-                    # Mettre à jour la session avec les nouveaux aliments
-                    request.session['aliments'] = aliments_existant
-
-                    return JsonResponse({'success': True, 'message': 'Importation réussie !', 'data': nouveaux_aliments}, status=200)
-
-                else:
-                    return JsonResponse({'success': False, 'message': 'Catégorie non trouvée.'}, status=400)
-
-            except Exception as e:
-                return JsonResponse({'success': False, 'message': f"Erreur lors de l'enregistrement : {str(e)}"}, status=500)
-
-    return JsonResponse({'success': False, 'message': 'Requête invalide ou données manquantes.',}, status=400)
+    return JsonResponse({'success': False, 'message': 'Requête invalide ou données manquantes.'}, status=400)
 
 
 @csrf_exempt
@@ -2137,6 +2146,7 @@ def imprimer_carte(request, police_id, aliment_id):
     else:
         return HttpResponse(404)
 
+
 # TODO FIX GENERATION CARTE
 @login_required
 def imprimer_cartes(request, police_id):
@@ -2414,23 +2424,25 @@ class DetailsPoliceView(TemplateView):
             #dd(police)
             reseaux_soins = ReseauSoin.objects.filter(bureau=police.bureau)
 
-            # duree_police = police.date_fin_effet - police.date_debut_effet
+            dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+            # duree_police = dernier_historique.date_fin_effet - dernier_historique.date_debut_effet
             # duree_police_en_jours = duree_police.days
 
-            if police.date_debut_effet and police.date_fin_effet:
+            if dernier_historique.date_debut_effet and dernier_historique.date_fin_effet:
 
                 # Calculer la différence en mois
-                '''duree_police_en_mois = (police.date_fin_effet.year - police.date_debut_effet.year) * 12 + (
-                        police.date_fin_effet.month - police.date_debut_effet.month)
+                '''duree_police_en_mois = (dernier_historique.date_fin_effet.year - dernier_historique.date_debut_effet.year) * 12 + (
+                        dernier_historique.date_fin_effet.month - dernier_historique.date_debut_effet.month)
 
                 duree = str(duree_police_en_mois) + ' mois'
 
                 if duree_police_en_mois == 0:
-                    duree = str((police.date_fin_effet - police.date_debut_effet).days) + ' jours'
+                    duree = str((dernier_historique.date_fin_effet - dernier_historique.date_debut_effet).days) + ' jours'
                 '''
 
                 #nouveau
-                duree_police_en_mois = Police.objects.filter(id=police.id).annotate(
+                duree_police_en_mois = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').annotate(
                     duree_police_en_mois=ExpressionWrapper(
                         F('date_fin_effet') - F('date_debut_effet'),
                         output_field=DurationField()
@@ -2451,8 +2463,12 @@ class DetailsPoliceView(TemplateView):
 
             apporteurs_police = ApporteurPolice.objects.filter(police_id=police_id, statut_validite=StatutValidite.VALIDE)
 
+            assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id, type_compagnie_id=1).first()
+            autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id).exclude(type_compagnie_id=1).first()
+
+            print("dernière historisation : ", dernier_historique)
             context_perso = {'police': police, 'etat_police': etat_police, 'duree_police': duree,
-                             'mouvement_police': mouvement_police,
+                             'mouvement_police': mouvement_police, 'dernier_historique': dernier_historique, 'assureur_police': assureur_police, 'autre_assureur_police': autre_assureur_police,
                              'apporteurs_police': apporteurs_police, 'reseaux_soins': reseaux_soins, }
             context = {**context_original, **context_perso}
 
@@ -4861,23 +4877,12 @@ def add_beneficiaire(request, police_id):
                         'polices_du_bureau_actif': polices_du_bureau_actif,'today': today})
 
 
-def getVehicules(police_id):
-    print(police_id)
-    vehicules = []
-    vehicule_police = VehiculePolice.objects.filter(police_id=police_id, statut=Statut.ACTIF).order_by('-id')
-
-    for vp in vehicule_police:
-        if vp.vehicule.statut == Statut.ACTIF:
-            vehicules.append(vp.vehicule)
-
-    return vehicules
-
 
 @never_cache
 def police_vehicules(request, police_id):
     police = Police.objects.get(id=police_id)
 
-    vehicules = getVehicules(police_id)
+    vehicules = AlimentPolice.objects.filter(police_id=police.id)
 
     catgories = CategorieVehicule.objects.all().order_by('libelle')
     carburants = Carburant.objects.all().order_by('libelle')
@@ -4897,147 +4902,471 @@ def add_vehicule(request, police_id):
     police = Police.objects.get(id=police_id)
 
     if request.method == 'POST':
-        # x = 3
-        formule_id = request.POST.get('formule_id')
 
+        immatriculation = request.POST.get('immatriculation')
         date_entree = request.POST.get('date_entree')
         date_sortie = request.POST.get('date_sortie')
-        mis_en_circulation = request.POST.get('mis_en_circulation')
+        mis_en_circulation = request.POST.get('date_mise_circulation')
 
-        vehicule = Vehicule.objects.create(
-            numero_immatriculation=request.POST.get('immatriculation'),
-            numero_immat_provisoire=request.POST.get('immatriculation_provisioire'),
-            numero_serie=request.POST.get('num_serie'),
-            numero_parc=request.POST.get('num_parc'),
-            proprietaire=request.POST.get('proprietaire'),
-            conducteur=request.POST.get('chauffeur'),
-            marque=request.POST.get('marque'),
-            modele=request.POST.get('modele'),
-            place=request.POST.get('place'),
-            valeur_neuve=supprimer_espaces(request.POST.get('valeur_neuve', '')),
-            valeur_actuelle=supprimer_espaces(request.POST.get('valeur_actuelle', '')),
-            puissance=request.POST.get('puissance'),
-            date_entree=date_entree if date_entree else None,
-            date_sortie=date_sortie if date_sortie else None,
-            date_mis_en_circulation=mis_en_circulation if mis_en_circulation else None,
-            poids_a_vide=request.POST.get('poids_a_vide'),
-            poids_a_charge=request.POST.get('poid_tac'),
-            categorie_vehicule_id=request.POST.get('categorie_id'),
-            carburant_id=request.POST.get('carburant_id'),
-            carosserie_id=request.POST.get('carosserie_id'),
-            usage_id=request.POST.get('usage_id'),
-            commentaire=request.POST.get('commentaire'),
+        immatriculation_existante = Vehicule.objects.filter(numero_immatriculation=immatriculation).first()
 
-        )
-        vehicule.save()
+        date_entree_conversion = datetime.strptime(date_entree, '%Y-%m-%d').date()
+        if date_sortie:
+            date_sortie_conversion = datetime.strptime(date_sortie, '%Y-%m-%d').date()
+        else:
+            date_sortie_conversion = None
 
-        vehicule_police = VehiculePolice.objects.create(
-            motif="vehicule",
-            date_mouvement=datetime.now(),
-            statut=Statut.ACTIF,
-            formule_id=formule_id if formule_id else None,
-            police_id=police_id,
-            vehicule_id=vehicule.id,
-        )
+        if date_sortie_conversion:
+            if date_entree_conversion > date_sortie_conversion:
 
-        vehicule_police.save()
+                response = {
+                    'statut': 2,
+                    'message': "La date de sortie ne doit pas être inférieure à la date d'entrée",
+                }
+                return JsonResponse(response)
 
+            else:
+                if immatriculation_existante:
+                    response = {
+                        'statut': 2,
+                        'message': f"Ce véhicule d'immatriculation : {immatriculation_existante.numero_immatriculation} existe déjà dans le système",
+                    }
+                    return JsonResponse(response)
+                else:
+                    # Créer une table véhicule
+                    vehicule_created = Vehicule.objects.create(
+                        numero_immatriculation=request.POST.get('immatriculation'),
+                        numero_immat_provisoire=request.POST.get('immatriculation_provisioire'),
+                        numero_serie=request.POST.get('num_serie'),
+                        numero_parc=request.POST.get('num_parc'),
+                        proprietaire=request.POST.get('proprietaire'),
+                        conducteur=request.POST.get('conducteur'),
+                        marque=request.POST.get('marque'),
+                        modele=request.POST.get('modele'),
+                        places_assises=request.POST.get('places_assises'),
+                        valeur_neuve=supprimer_espaces(request.POST.get('valeur_neuve', '')),
+                        valeur_actuelle=supprimer_espaces(request.POST.get('valeur_actuelle', '')),
+                        puissance=request.POST.get('puissance_fiscale'),
+                        date_entree=date_entree if date_entree else None,
+                        date_sortie=date_sortie if date_sortie else None,
+                        date_mis_en_circulation=mis_en_circulation if mis_en_circulation else None,
+                        poids_a_vide=request.POST.get('poids_a_vide'),
+                        poids_a_charge=request.POST.get('poid_tac'),
+                        categorie_vehicule_id=request.POST.get('categorie_id'),
+                        carburant_id=request.POST.get('carburant_id'),
+                        carosserie_id=request.POST.get('carosserie_id'),
+                        usage_id=request.POST.get('usage_id'),
+                        commentaire=request.POST.get('commentaire'),
+                        created_by_id=request.user.id,
+                    )
+                    vehicule_created.save()
+                    vehicule = Vehicule.objects.get(id=vehicule_created.pk)
+
+                    # Créer la relation police-aliment-vehicule
+                    AlimentPolice.objects.create(
+                        police_id=police.id,
+                        vehicule_id=vehicule.id,
+                        created_by=request.user,
+                        date_debut=police.date_debut_effet,
+                        date_fin=date_sortie if date_sortie else None,
+                        date_liaison=datetime.now(),
+                    )
+
+                    # Créer une ligne d'historique
+                    historique_vehicule = HistoriqueVehicule(
+                        vehicule_id=vehicule.id,
+                        numero_immatriculation=vehicule.numero_immatriculation,
+                        numero_immat_provisoire=vehicule.numero_immat_provisoire,
+                        numero_serie=vehicule.numero_serie,
+                        numero_parc=vehicule.numero_parc,
+                        proprietaire=vehicule.proprietaire,
+                        conducteur=vehicule.conducteur,
+                        marque=vehicule.marque,
+                        modele=vehicule.modele,
+                        places_assises=vehicule.places_assises,
+                        valeur_neuve=vehicule.valeur_neuve,
+                        valeur_actuelle=vehicule.valeur_actuelle,
+                        puissance=vehicule.puissance,
+                        date_entree=vehicule.date_entree,
+                        date_sortie=vehicule.date_sortie,
+                        date_mis_en_circulation=vehicule.date_mis_en_circulation,
+                        poids_a_vide=vehicule.poids_a_vide,
+                        poids_a_charge=vehicule.poids_a_charge,
+                        categorie_vehicule_id=vehicule.categorie_vehicule_id,
+                        carburant_id=vehicule.carburant_id,
+                        carosserie_id=vehicule.carosserie_id,
+                        usage_id=vehicule.usage_id,
+                        commentaire=vehicule.commentaire,
+                        statut=vehicule.statut,
+                        created_by_id=request.user.id,
+                    )
+                    historique_vehicule.save()
+
+                    response = {
+                        'statut': 1,
+                        'message': "Véhicule ajouté avec succès !",
+                        'data': {
+                            'id': vehicule.pk,
+                            'numero_immat_provisoire': vehicule.pk,
+                            'numero_immatriculation': vehicule.pk,
+                            'numero_serie': vehicule.pk,
+                            'modele': vehicule.pk,
+                            'conducteur': vehicule.pk,
+                            'places_assises': vehicule.places_assises,
+                            'carburant_id': vehicule.carburant_id,
+                            'valeur_neuve': vehicule.valeur_neuve,
+                            'valeur_actuelle': vehicule.pk,
+                            'puissance': vehicule.pk,
+                            'poids_a_vide': vehicule.pk,
+                            'poids_a_charge': vehicule.pk,
+                            'date_mis_en_circulation': vehicule.pk,
+                            'categorie_vehicule_id': vehicule.categorie_vehicule_id,
+                            'marque': vehicule.pk,
+                            'carosserie_id': vehicule.pk,
+                            'vehicule.id': vehicule.id,
+                        }
+                    }
+
+                    return JsonResponse(response)
+        else:
+            if immatriculation_existante:
+                response = {
+                    'statut': 2,
+                    'message': f"Ce véhicule d'immatriculation : {immatriculation_existante.numero_immatriculation} existe déjà dans le système",
+                }
+                return JsonResponse(response)
+            else:
+                # Créer une table véhicule
+                vehicule_created = Vehicule.objects.create(
+                    numero_immatriculation=request.POST.get('immatriculation'),
+                    numero_immat_provisoire=request.POST.get('immatriculation_provisioire'),
+                    numero_serie=request.POST.get('num_serie'),
+                    numero_parc=request.POST.get('num_parc'),
+                    proprietaire=request.POST.get('proprietaire'),
+                    conducteur=request.POST.get('conducteur'),
+                    marque=request.POST.get('marque'),
+                    modele=request.POST.get('modele'),
+                    places_assises=request.POST.get('places_assises'),
+                    valeur_neuve=supprimer_espaces(request.POST.get('valeur_neuve', '')),
+                    valeur_actuelle=supprimer_espaces(request.POST.get('valeur_actuelle', '')),
+                    puissance=request.POST.get('puissance_fiscale'),
+                    date_entree=date_entree if date_entree else None,
+                    date_sortie=date_sortie if date_sortie else None,
+                    date_mis_en_circulation=mis_en_circulation if mis_en_circulation else None,
+                    poids_a_vide=request.POST.get('poids_a_vide'),
+                    poids_a_charge=request.POST.get('poid_tac'),
+                    categorie_vehicule_id=request.POST.get('categorie_id'),
+                    carburant_id=request.POST.get('carburant_id'),
+                    carosserie_id=request.POST.get('carosserie_id'),
+                    usage_id=request.POST.get('usage_id'),
+                    commentaire=request.POST.get('commentaire'),
+                    created_by_id=request.user.id,
+                )
+                vehicule_created.save()
+                vehicule = Vehicule.objects.get(id=vehicule_created.pk)
+
+                # Créer la relation police-aliment-vehicule
+                AlimentPolice.objects.create(
+                    police_id=police.id,
+                    vehicule_id=vehicule.id,
+                    created_by=request.user,
+                    date_debut=police.date_debut_effet,
+                    date_fin=date_sortie if date_sortie else None,
+                    date_liaison=datetime.now(),
+                )
+
+                # Créer une ligne d'historique
+                historique_vehicule = HistoriqueVehicule(
+                    vehicule_id=vehicule.id,
+                    numero_immatriculation=vehicule.numero_immatriculation,
+                    numero_immat_provisoire=vehicule.numero_immat_provisoire,
+                    numero_serie=vehicule.numero_serie,
+                    numero_parc=vehicule.numero_parc,
+                    proprietaire=vehicule.proprietaire,
+                    conducteur=vehicule.conducteur,
+                    marque=vehicule.marque,
+                    modele=vehicule.modele,
+                    places_assises=vehicule.places_assises,
+                    valeur_neuve=vehicule.valeur_neuve,
+                    valeur_actuelle=vehicule.valeur_actuelle,
+                    puissance=vehicule.puissance,
+                    date_entree=vehicule.date_entree,
+                    date_sortie=vehicule.date_sortie,
+                    date_mis_en_circulation=vehicule.date_mis_en_circulation,
+                    poids_a_vide=vehicule.poids_a_vide,
+                    poids_a_charge=vehicule.poids_a_charge,
+                    categorie_vehicule_id=vehicule.categorie_vehicule_id,
+                    carburant_id=vehicule.carburant_id,
+                    carosserie_id=vehicule.carosserie_id,
+                    usage_id=vehicule.usage_id,
+                    commentaire=vehicule.commentaire,
+                    statut=vehicule.statut,
+                    created_by_id=request.user.id,
+                )
+                historique_vehicule.save()
+
+                response = {
+                    'statut': 1,
+                    'message': "Véhicule ajouté avec succès !",
+                    'data': {
+                        'id': "",
+                    }
+                }
+                return JsonResponse(response)
+
+    else:
         response = {
-            'statut': 1,
-            'message': "Véhicule ajouté avec succès !",
-            'data': {
-                'id': "",
-            }
+            'statut': 2,
+            'message': "Cette methode n'est pas reconnue !",
         }
-    return JsonResponse(response)
+        return JsonResponse(response)
 
 
 def update_vehicule(request, police_id, vehicule_id):
     police = Police.objects.get(id=police_id)
     vehicule = Vehicule.objects.get(id=vehicule_id)
+    alimentpolice = AlimentPolice.objects.filter(vehicule_id=vehicule.id)
 
-    energies = Energie.choices
-
-    types_carroserie = TypeCarosserie.objects.all().order_by('libelle')
-    categories_vehicule = CategorieVehicule.objects.all().order_by('libelle')
-
-    marques = MarqueVehicule.objects.all().order_by('libelle')
+    catgories = CategorieVehicule.objects.all().order_by('libelle')
+    carburants = Carburant.objects.all().order_by('libelle')
+    usages = Usage.objects.all().order_by('libelle')
+    carosseries = Carosserie.objects.all().order_by('libelle')
+    formules = Formule.objects.filter(status=True).order_by('libelle')
 
     if request.method == 'POST':
 
-        Vehicule.objects.filter(id=vehicule_id).update(
-            numero_immatriculation=request.POST.get('numero_immatriculation'),
-            numero_immat_provisoire=request.POST.get('numero_immat_provisoire'),
-            numero_serie=request.POST.get('numero_serie'),
-            modele=request.POST.get('modele'),
-            conducteur=request.POST.get('conducteur'),
-            place=request.POST.get('place'),
-            energie=request.POST.get('energie'),
-            valeur_neuve=request.POST.get('valeur_neuve'),
-            valeur_actuelle=request.POST.get('valeur_actuelle'),
-            puissance=request.POST.get('puissance'),
-            poids_a_vide=request.POST.get('poids_a_vide'),
-            poids_a_charge=request.POST.get('poids_a_charge'),
-            date_mis_en_circulation=request.POST.get('date_mis_en_circulation'),
-            categorie_vehicule_id=request.POST.get('categorie_vehicule_id'),
-            marque_id=request.POST.get('marque_id'),
-            type_carosserie_id=request.POST.get('type_carosserie_id'),
-        )
+        date_entree = request.POST.get('date_entree')
+        date_sortie = request.POST.get('date_sortie')
+        mis_en_circulation = request.POST.get('date_mise_circulation')
 
-        # aliment.save()
+        date_entree_conversion = datetime.strptime(date_entree, '%Y-%m-%d').date()
+        if date_sortie:
+            date_sortie_conversion = datetime.strptime(date_sortie, '%Y-%m-%d').date()
+        else:
+            date_sortie_conversion = None
 
-        vehicule = Vehicule.objects.get(id=vehicule_id)
+        if date_sortie_conversion:
+            if date_entree_conversion > date_sortie_conversion:
+                response = {
+                    'statut': 2,
+                    'message': "La date de sortie ne doit pas être inférieure à la date d'entrée",
+                    'data': {
+                        'vehicule': vehicule.numero_immatriculation,
+                        'produit': police.produit.nom,
+                    }
+                }
+                return JsonResponse(response)
+            else:
+                # Mise à jour de la table véhicule
+                vehicule.numero_immatriculation = request.POST.get('immatriculation')
+                vehicule.numero_immat_provisoire = request.POST.get('immatriculation_provisioire')
+                vehicule.numero_serie = request.POST.get('num_serie')
+                vehicule.numero_parc = request.POST.get('num_parc')
+                vehicule.proprietaire = request.POST.get('proprietaire')
+                vehicule.conducteur = request.POST.get('conducteur')
+                vehicule.marque = request.POST.get('marque')
+                vehicule.modele = request.POST.get('modele')
+                vehicule.places_assises = request.POST.get('places_assises')
+                vehicule.valeur_neuve = supprimer_espaces(request.POST.get('valeur_neuve', ''))
+                vehicule.valeur_actuelle = supprimer_espaces(request.POST.get('valeur_actuelle', ''))
+                vehicule.puissance = request.POST.get('puissance_fiscale')
+                vehicule.date_entree = date_entree if date_entree else None
+                vehicule.date_sortie = date_sortie if date_sortie else None
+                vehicule.date_mis_en_circulation = mis_en_circulation if mis_en_circulation else None
+                vehicule.poids_a_vide = request.POST.get('poids_a_vide')
+                vehicule.poids_a_charge = request.POST.get('poid_tac')
+                vehicule.categorie_vehicule_id = request.POST.get('categorie_id')
+                vehicule.carburant_id = request.POST.get('carburant_id')
+                vehicule.carosserie_id = request.POST.get('carosserie_id')
+                vehicule.usage_id = request.POST.get('usage_id')
+                vehicule.commentaire = request.POST.get('commentaire')
+                vehicule.updated_by_id = request.user.id
+                vehicule.save()
 
-        response = {
-            'statut': 1,
-            'message': "Modification effectuée avec succès !",
-            'data': {
-                'id': vehicule.pk,
-                'numero_immat_provisoire': vehicule.pk,
-                'numero_immatriculation': vehicule.pk,
-                'numero_serie': vehicule.pk,
-                'modele': vehicule.pk,
-                'conducteur': vehicule.pk,
-                'place': vehicule.place,
-                'energie': vehicule.energie,
-                'valeur_neuve': vehicule.valeur_neuve,
-                'valeur_actuelle': vehicule.pk,
-                'puissance': vehicule.pk,
-                'poids_a_vide': vehicule.pk,
-                'poids_a_charge': vehicule.pk,
-                'date_mis_en_circulation': vehicule.pk,
-                'categorie_vehicule_id': vehicule.categorie_vehicule_id,
-                'marque_id': vehicule.pk,
-                'type_carosserie_id': vehicule.pk,
-                'date_mis_en_circulation': vehicule.pk,
-                'vehicule.id': vehicule.id,
+                # Récupérer l'id de la ligne de voiture modifiée
+                vehicule_modifier = Vehicule.objects.get(id=vehicule.pk)
+
+                # Mise à jour de police-aliment-vehicule
+                if alimentpolice and date_sortie:
+                    AlimentPolice.objects.filter(vehicule_id=vehicule_modifier.id).update(
+                        police_id=police.id,
+                        vehicule_id=vehicule_modifier.id,
+                        updated_by_id=request.user.id,
+                        date_fin=date_sortie if date_sortie else None,
+                    )
+
+                # Créer une nouvelle ligne d'historique
+                historique_vehicule = HistoriqueVehicule(
+                    vehicule_id=vehicule_modifier.id,
+                    numero_immatriculation=vehicule_modifier.numero_immatriculation,
+                    numero_immat_provisoire=vehicule_modifier.numero_immat_provisoire,
+                    numero_serie=vehicule_modifier.numero_serie,
+                    numero_parc=vehicule_modifier.numero_parc,
+                    proprietaire=vehicule_modifier.proprietaire,
+                    conducteur=vehicule_modifier.conducteur,
+                    marque=vehicule_modifier.marque,
+                    modele=vehicule_modifier.modele,
+                    places_assises=vehicule_modifier.places_assises,
+                    valeur_neuve=vehicule_modifier.valeur_neuve,
+                    valeur_actuelle=vehicule_modifier.valeur_actuelle,
+                    puissance=vehicule_modifier.puissance,
+                    date_entree=vehicule_modifier.date_entree,
+                    date_sortie=vehicule_modifier.date_sortie,
+                    date_mis_en_circulation=vehicule_modifier.date_mis_en_circulation,
+                    poids_a_vide=vehicule_modifier.poids_a_vide,
+                    poids_a_charge=vehicule_modifier.poids_a_charge,
+                    categorie_vehicule_id=vehicule_modifier.categorie_vehicule_id,
+                    carburant_id=vehicule_modifier.carburant_id,
+                    carosserie_id=vehicule_modifier.carosserie_id,
+                    usage_id=vehicule_modifier.usage_id,
+                    commentaire=vehicule_modifier.commentaire,
+                    statut=vehicule_modifier.statut,
+                    updated_by_id=request.user.id,
+                )
+                historique_vehicule.save()
+
+                response = {
+                    'statut': 1,
+                    'message': "Modification effectuée avec succès !",
+                    'data': {
+                        'id': vehicule.pk,
+                        'numero_immat_provisoire': vehicule.pk,
+                        'numero_immatriculation': vehicule.pk,
+                        'numero_serie': vehicule.pk,
+                        'modele': vehicule.pk,
+                        'conducteur': vehicule.pk,
+                        'places_assises': vehicule.places_assises,
+                        'carburant_id': vehicule.carburant_id,
+                        'valeur_neuve': vehicule.valeur_neuve,
+                        'valeur_actuelle': vehicule.pk,
+                        'puissance': vehicule.pk,
+                        'poids_a_vide': vehicule.pk,
+                        'poids_a_charge': vehicule.pk,
+                        'date_mis_en_circulation': vehicule.pk,
+                        'categorie_vehicule_id': vehicule.categorie_vehicule_id,
+                        'marque': vehicule.pk,
+                        'carosserie_id': vehicule.pk,
+                        'vehicule.id': vehicule.id,
+                    }
+                }
+
+                return JsonResponse(response)
+
+        else:
+
+            # Mise à jour de la table véhicule
+            vehicule.numero_immatriculation=request.POST.get('immatriculation')
+            vehicule.numero_immat_provisoire=request.POST.get('immatriculation_provisioire')
+            vehicule.numero_serie=request.POST.get('num_serie')
+            vehicule.numero_parc=request.POST.get('num_parc')
+            vehicule.proprietaire=request.POST.get('proprietaire')
+            vehicule.conducteur=request.POST.get('conducteur')
+            vehicule.marque=request.POST.get('marque')
+            vehicule.modele=request.POST.get('modele')
+            vehicule.places_assises=request.POST.get('places_assises')
+            vehicule.valeur_neuve=supprimer_espaces(request.POST.get('valeur_neuve', ''))
+            vehicule.valeur_actuelle=supprimer_espaces(request.POST.get('valeur_actuelle', ''))
+            vehicule.puissance=request.POST.get('puissance_fiscale')
+            vehicule.date_entree=date_entree if date_entree else None
+            vehicule.date_sortie=date_sortie if date_sortie else None
+            vehicule.date_mis_en_circulation=mis_en_circulation if mis_en_circulation else None
+            vehicule.poids_a_vide=request.POST.get('poids_a_vide')
+            vehicule.poids_a_charge=request.POST.get('poid_tac')
+            vehicule.categorie_vehicule_id=request.POST.get('categorie_id')
+            vehicule.carburant_id=request.POST.get('carburant_id')
+            vehicule.carosserie_id=request.POST.get('carosserie_id')
+            vehicule.usage_id=request.POST.get('usage_id')
+            vehicule.commentaire=request.POST.get('commentaire')
+            vehicule.updated_by_id=request.user.id
+            vehicule.save()
+
+            # Récupérer l'id de la ligne de voiture modifiée
+            vehicule_modifier = Vehicule.objects.get(id=vehicule.pk)
+
+            # Créer une nouvelle ligne d'historique
+            historique_vehicule = HistoriqueVehicule(
+                vehicule_id=vehicule_modifier.id,
+                numero_immatriculation=vehicule_modifier.numero_immatriculation,
+                numero_immat_provisoire=vehicule_modifier.numero_immat_provisoire,
+                numero_serie=vehicule_modifier.numero_serie,
+                numero_parc=vehicule_modifier.numero_parc,
+                proprietaire=vehicule_modifier.proprietaire,
+                conducteur=vehicule_modifier.conducteur,
+                marque=vehicule_modifier.marque,
+                modele=vehicule_modifier.modele,
+                places_assises=vehicule_modifier.places_assises,
+                valeur_neuve=vehicule_modifier.valeur_neuve,
+                valeur_actuelle=vehicule_modifier.valeur_actuelle,
+                puissance=vehicule_modifier.puissance,
+                date_entree=vehicule_modifier.date_entree,
+                date_sortie=vehicule_modifier.date_sortie,
+                date_mis_en_circulation=vehicule_modifier.date_mis_en_circulation,
+                poids_a_vide=vehicule_modifier.poids_a_vide,
+                poids_a_charge=vehicule_modifier.poids_a_charge,
+                categorie_vehicule_id=vehicule_modifier.categorie_vehicule_id,
+                carburant_id=vehicule_modifier.carburant_id,
+                carosserie_id=vehicule_modifier.carosserie_id,
+                usage_id=vehicule_modifier.usage_id,
+                commentaire=vehicule_modifier.commentaire,
+                statut=vehicule_modifier.statut,
+                updated_by_id=request.user.id,
+            )
+            historique_vehicule.save()
+
+            response = {
+                'statut': 1,
+                'message': "Modification effectuée avec succès !",
+                'data': {
+                    'id': vehicule.pk,
+                    'numero_immat_provisoire': vehicule.pk,
+                    'numero_immatriculation': vehicule.pk,
+                    'numero_serie': vehicule.pk,
+                    'modele': vehicule.pk,
+                    'conducteur': vehicule.pk,
+                    'places_assises': vehicule.places_assises,
+                    'carburant_id': vehicule.carburant_id,
+                    'valeur_neuve': vehicule.valeur_neuve,
+                    'valeur_actuelle': vehicule.pk,
+                    'puissance': vehicule.pk,
+                    'poids_a_vide': vehicule.pk,
+                    'poids_a_charge': vehicule.pk,
+                    'date_mis_en_circulation': vehicule.pk,
+                    'categorie_vehicule_id': vehicule.categorie_vehicule_id,
+                    'marque': vehicule.pk,
+                    'carosserie_id': vehicule.pk,
+                    'vehicule.id': vehicule.id,
+                }
             }
-        }
 
-        return JsonResponse(response)
+            return JsonResponse(response)
 
     else:
 
-        return render(request, 'police/modal_vehicule_modification.html', {
+        context ={
             'vehicule': vehicule,
             'police': police,
-            'energies': energies,
-            'types_carroserie': types_carroserie,
-            'categories_vehicule': categories_vehicule,
-            'marques': marques,
+            'catgories': catgories,
+            'carosseries': carosseries,
+            'carburants': carburants,
+            'usages': usages,
+            'formules': formules
         }
-                      )
+
+        return render(request, 'police/modal_vehicule_modification.html', context)
 
 
 # Afficher les details d'un vehicule
 def details_vehicule(request, police_id, vehicule_id):
     police = Police.objects.get(id=police_id)
     vehicule = Vehicule.objects.get(id=vehicule_id)
-    energies = Energie.choices
+    energies = Carburant.objects.all().order_by('libelle')
 
     sinistres = []
 
     tarifs = []
+
+    historiques = HistoriqueVehicule.objects.filter(vehicule_id=vehicule.id)
+    print(historiques)
 
     return render(
         request,
@@ -5047,7 +5376,23 @@ def details_vehicule(request, police_id, vehicule_id):
             'vehicule': vehicule,
             'tarifs': tarifs,
             'sinistres': sinistres,
-            'energies': energies
+            'energies': energies,
+            'historiques': historiques,
+        }
+    )
+
+
+# Afficher l'historique du véhicule
+def details_historique_vehicule(request, vehicule_id, historique_id):
+    vehicule = Vehicule.objects.get(id=vehicule_id)
+    historique = HistoriqueVehicule.objects.get(id=historique_id)
+
+    return render(
+        request,
+        'police/modal_historique_vehicule.html',
+        {
+            'vehicule': vehicule,
+            'historique': historique,
         }
     )
 
@@ -5066,7 +5411,7 @@ def supprimer_vehicule(request, police_id, vehicule_id):
         if vehicule.pk is not None:
             # vehicule.delete()
 
-            Vehicule.objects.filter(id=vehicule_id).update(statut=Statut.INACTIF)
+            #Vehicule.objects.filter(id=vehicule_id).update(statut=Statut.INACTIF)
 
             response = {
                 'statut': 1,
@@ -6110,6 +6455,8 @@ def del_tarif_specifique(request):
 
         return JsonResponse(response)
 
+
+
 @method_decorator(login_required, name='dispatch')
 class PhotosBeneficiairesView(TemplateView):
     permission_required = "production.view_clients"
@@ -6277,6 +6624,7 @@ def generate_client_code():
     new_code = f"{str(new_number).zfill(4)}-CL{current_year}"
 
     return new_code
+
 
 @method_decorator(login_required, name='dispatch')
 class ClientsView(TemplateView):
@@ -6667,6 +7015,7 @@ class PoliceClientView(TemplateView):
             usages = Usage.objects.all().order_by('libelle')
             carosseries = Carosserie.objects.all().order_by('libelle')
             formules = Formule.objects.filter(status=True).order_by('libelle')
+            typecompagnie = TypeCompagnie.objects.exclude(code="ASSPR").order_by('libelle')
 
             placement_gestion = PlacementEtGestion
             mode_renouvellement = ModeRenouvellement
@@ -6682,8 +7031,22 @@ class PoliceClientView(TemplateView):
 
             print("Aliment transmis :", aliments)
 
+            polices_data = []
+            for contrat in polices:
+                # Récupérer la dernière historique
+                dernier_historique = HistoriquePolice.objects.filter(police_id=contrat.id).order_by('-date_du_jour').first()
+
+                # Récupérer les assureurs associés à l'historique
+                assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id, type_compagnie_id=1) .first() if dernier_historique else []
+                print("Police assureur : ", assureur_police)
+                polices_data.append({
+                    'police': contrat,
+                    'dernier_historique': dernier_historique,
+                    'assureur_police': assureur_police,
+                })
+
             context_perso = {'client': client, 'contacts': contacts, 'polices': polices, 'quittances': quittances,
-                             'acomptes': acomptes,
+                             'acomptes': acomptes, 'typecompagnie': typecompagnie,
                              'filiales': filiales, 'documents': documents, 'types_documents': types_documents,
                              'branches': branches, 'produits': produits, 'pays': pays,
                              'compagnies': compagnies, 'durees': durees, 'placement_gestion': placement_gestion,
@@ -6704,6 +7067,7 @@ class PoliceClientView(TemplateView):
                              'usages': usages,
                              'carosseries':carosseries,
                              'formules':formules,
+                             'polices_data':polices_data,
                              }
 
             context = {**context_original, **context_perso}
@@ -6725,6 +7089,30 @@ class PoliceClientView(TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
+
+
+def get_compagnies(request):
+    # Récupérer les paramètres de la requête
+    type_id = request.GET.get('type_id')
+    exclude_compagnie_id = request.GET.get('exclude_compagnie_id')
+    print("Compagnie choisie : ", exclude_compagnie_id)
+    print("Type de compagnie : ", type_id)
+    # Vérifiez que le type_id est fourni
+    if not type_id:
+        return JsonResponse({'error': 'Type ID is required.'}, status=400)
+
+    try:
+        # Filtrez les compagnies par type_id, en excluant celle spécifiée
+        compagnies = Compagnie.objects.exclude(id=exclude_compagnie_id)
+
+        # Créez la réponse JSON
+        compagnies_data = [
+            {'id': compagnie.id, 'nom': compagnie.nom}
+            for compagnie in compagnies
+        ]
+        return JsonResponse({'compagnies': compagnies_data}, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 #Liste des contacts du client
@@ -7144,7 +7532,7 @@ class FormulesView(TemplateView):
             rubriques = Rubrique.objects.filter(status=True).order_by('libelle')
             mode_prefinancements = ModePrefinancement.objects.all().order_by('libelle')
 
-            today = timezone.now().date()
+            today = datetime.now(tz=timezone.utc)
 
             context_perso = {'police': police, 'formules': formules, 'types_tarifs': types_tarifs,
                              'territorialites': territorialites, 'reseaux_soins': reseaux_soins, 'rubriques': rubriques, 'mode_prefinancements':mode_prefinancements, 'today': today}
@@ -7421,6 +7809,7 @@ def modifier_formule(request, formule_id):
         return render(request, template, {'formule': formule, 'types_tarifs': types_tarifs,
                                                                     'territorialites': territorialites, 'reseaux_soins': reseaux_soins, 'rubriques': rubriques, 'mode_prefinancements':mode_prefinancements, 'formule_rubriques':formule_rubriques, 'today': today, 'police': police})
 
+
 # update formule
 def desactivate_formule(request):
     if request.method == 'POST':
@@ -7493,7 +7882,7 @@ class DetailsFormuleView(PermissionRequiredMixin, TemplateView):
         rubriques_prefinancees = FormuleRubriquePrefinance.objects.filter(formulegarantie=formule, statut_validite=StatutValidite.VALIDE)
 
         date_debut_effet_police = formule.police.date_debut_effet if formule.police else None
-        today = timezone.now().date()
+        today = datetime.now(tz=timezone.utc)
 
         police = formule.police
         client = police.client if formule.police else None
@@ -7702,6 +8091,7 @@ def del_bareme(request):
 
         return JsonResponse(response)
 
+
 def generate_qrcode(request):
 
     cartes = Carte.objects.filter(Q(qrcode_file__isnull=True) | Q(qrcode_file=""))[:5000] #Q(qrcode_file__isnull=True) | Q(qrcode_file__isnull=""))[:5000] #generate-qrcode-carte
@@ -7734,6 +8124,7 @@ def beneficiaire_carte_pdf(request):
     aliments = [1,2,3,4,5]
     pdf = render_pdf('police/courriers/cartes-model.html', {"logo": logo, "aliments": aliments})
     return HttpResponse(File(pdf), content_type='application/pdf')
+
 
 def beneficiaire_carte_html(request):
     return render(request, 'police/courriers/cartes.html', {})
@@ -8091,6 +8482,7 @@ def export_sinistres_police(request, police_id):
             "message": "Bénéficiaire non trouvé"
         }, status=404)
 
+
 #new code
 @login_required()
 def export_prospect(request):
@@ -8144,6 +8536,8 @@ def export_prospect(request):
     workbook.save(response)
 
     return response
+
+
 @method_decorator(login_required, name='dispatch')
 class ProspectsGrhView(TemplateView):
     template_name = 'grh/liste_prospect.html'
@@ -8200,6 +8594,7 @@ class ProspectsGrhView(TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
+
 
 def prospect_grh_datatable(request):
     items_per_page = 10

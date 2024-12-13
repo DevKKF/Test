@@ -59,7 +59,9 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_('Assureur')}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control">{{ police.compagnie|default_if_none:"" }}</span>
+                                    <span class="form-control">
+                                        {{ assureur_police.compagnie.nom|default_if_none:"" }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -81,6 +83,14 @@
                                 <label class="col-sm-6 col-form-label">{{_("Type de prefinancement")}}</label>
                                 <div class="col-sm-6">
                                 <span class="form-control">{{ police.type_prefinancement|default_if_none:"" }}</span>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-6 col-form-label">{{_('Autre Assureur')}}</label>
+                                <div class="col-sm-6">
+                                    <span class="form-control">
+                                        {{ autre_assureur_police.compagnie.nom|default_if_none:"" }} - {{ autre_assureur_police.type_compagnie.libelle|default_if_none:"" }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -145,7 +155,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_('Fractionnement')}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control">{{police.fractionnement|default_if_none:""}}</span>
+                                <span class="form-control">{{dernier_historique.fractionnement.libelle|default_if_none:""}}</span>
                                 </div>
                             </div>
                         </div>
@@ -154,7 +164,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_("Mode de règlement")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control">{{police.mode_reglement|default_if_none:""}}</span>
+                                <span class="form-control">{{dernier_historique.mode_reglement.libelle|default_if_none:""}}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -173,19 +183,19 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_("Prime HT")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control money_field">{{police.prime_ht}}</span>
+                                <span class="form-control money_field">{{dernier_historique.prime_ht}}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_('Taxe')}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control money_field">{{police.taxe}}</span>
+                                <span class="form-control money_field">{{dernier_historique.taxe}}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_("Coût police cie")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control money_field">{{police.cout_police_compagnie}}</span>
+                                <span class="form-control money_field">{{dernier_historique.cout_police_compagnie}}</span>
                                 </div>
                             </div>
                         </div>
@@ -194,19 +204,19 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_("Coût police courtier")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control money_field">{{police.cout_police_courtier}}</span>
+                                <span class="form-control money_field">{{dernier_historique.cout_police_courtier}}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_("Autres taxes")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control money_field">{{police.autres_taxes}}</span>
+                                <span class="form-control money_field">{{dernier_historique.autres_taxes}}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_("Prime TTC")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control money_field"> {{police.prime_ttc}}</span>
+                                <span class="form-control money_field"> {{dernier_historique.prime_ttc}}</span>
                                 </div>
                             </div>
                         </div>
@@ -219,19 +229,13 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_("Taux Com Courtage")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control text-right">{{police.taux_com_courtage|default_if_none:''}} %</span>
-                                </div>
-                            </div>
-                            <div class="form-group row d-none">
-                                <label class="col-sm-6 col-form-label">{{_("Taux Com Gestion")}}</label>
-                                <div class="col-sm-6">
-                                <span class="form-control text-right">{{police.taux_com_gestion|default_if_none:''}} %</span>
+                                <span class="form-control text-right">{{dernier_historique.taux_com_courtage|default_if_none:''}} %</span>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-6 col-form-label">{{_("Taux Participation")}}</label>
+                                <label class="col-sm-6 col-form-label">{{_("Participation Bénéf.")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control text-right">{{police.taux_participation|default_if_none:''}} %</span>
+                                <span class="form-control ">{{dernier_historique.participation}}</span>
                                 </div>
                             </div>
                         </div>
@@ -240,13 +244,13 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_("Com de Courtage")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control money_field">{{police.commission_courtage}}</span>
+                                <span class="form-control money_field">{{dernier_historique.commission_courtage}}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-6 col-form-label">{{_("Participation Bénéf.")}}</label>
+                                <label class="col-sm-6 col-form-label">{{_("Taux Participation")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control ">{{police.participation}}</span>
+                                <span class="form-control text-right">{{dernier_historique.taux_participation|default_if_none:''}} %</span>
                                 </div>
                             </div>
                         </div>
@@ -293,7 +297,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_("Retro Apporteurs")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control money_field" style="background: #f0dcc8; border: #f0dcc8">{{police.commission_intermediaires|default_if_none:"0" }}</span>
+                                <span class="form-control money_field" style="background: #f0dcc8; border: #f0dcc8">{{dernier_historique.commission_intermediaires|default_if_none:"0" }}</span>
                                 </div>
                             </div>
                         </div>
@@ -316,7 +320,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_('Apporteur')}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control">{{ police.apporteur|default_if_none:"" }}</span>
+                                    <span class="form-control">{{ dernier_historique.apporteur|default_if_none:"" }}</span>
                                 </div>
                             </div>
                         </div>
@@ -352,7 +356,7 @@
                                 <label class="col-sm-6 col-form-label">{{_("Logo du partenaire")}}</label>
                                 <div class="col-sm-6">
                                     {% if police.logo_partenaire %}
-                                    <img style="width:50px;" src="{{request.scheme}}://{{request.META.HTTP_HOST}}{{police.logo_partenaire.url}}" alt="" srcset="" class="logo-partenaire">
+                                        <a href="{{request.scheme}}://{{request.META.HTTP_HOST}}{{police.logo_partenaire.url}}" target="_blank"><img style="width:50px;" src="{{request.scheme}}://{{request.META.HTTP_HOST}}{{police.logo_partenaire.url}}" alt="" srcset="" class="logo-partenaire"></a>
                                     {% endif %}
                                 </div>
                             </div>

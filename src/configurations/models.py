@@ -427,6 +427,7 @@ class Secteur(models.Model):
         verbose_name = 'Secteur'
         verbose_name_plural = "Secteurs"
 
+
 class TypeEtablissement(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
     code = models.CharField(max_length=50, blank=True, null=True)
@@ -491,11 +492,11 @@ class Pays(models.Model):
 
 
 
-
 def upload_location_bureau(instance, filename):
     filebase, extension = filename.rsplit('.', 1)
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     return 'bureaux/tarifs/%s.%s' % (file_name, extension)
+
 
 class Bureau(models.Model):
     CA_TYPE = (
@@ -587,6 +588,21 @@ class TypeGarant(models.Model):
         verbose_name_plural = "Types de garant"
 
 
+class TypeCompagnie(models.Model):
+    libelle = models.CharField(max_length=50, blank=True, null=True)
+    code = models.CharField(max_length=50, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.libelle
+
+    class Meta:
+        db_table = 'type_compagnies'
+        verbose_name = 'Type de compagnie'
+        verbose_name_plural = "Types de compagnie"
+
+
 class GroupeCompagnie(models.Model):
     code = models.CharField(max_length=255, blank=True, default=None, null=True)
     nom = models.CharField(max_length=255)
@@ -601,6 +617,7 @@ class GroupeCompagnie(models.Model):
         db_table = 'groupe_compagnie'
         verbose_name = 'Groupe compagnie'
         verbose_name_plural = 'Groupes de compagnies'
+
 
 
 class Compagnie(models.Model):
@@ -846,8 +863,6 @@ class Prescripteur(models.Model):
         verbose_name_plural = 'Prescripteurs'
 
 
-
-
 class PrescripteurVeos(models.Model):
     id_per = models.CharField(max_length=200, blank=True, null=True)
     numero = models.CharField(max_length=200, blank=True, null=True)
@@ -923,7 +938,6 @@ class QuittanceVeos(models.Model):
         db_table = 'quittances_veos'
         verbose_name = 'Quittance Veos'
         verbose_name_plural = 'Quittances VEOS'
-
 
 
 class Stock(models.Model):
@@ -1018,7 +1032,6 @@ class SousRubrique(models.Model):
         verbose_name_plural = 'Sous-rubriques'
 
 
-
 class TypeActe(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
     code = models.CharField(max_length=50, blank=True, null=True)
@@ -1032,7 +1045,6 @@ class TypeActe(models.Model):
         db_table = 'type_actes'
         verbose_name = "Type d'acte"
         verbose_name_plural = "Types d'acte"
-
 
 
 class RegroupementActe(models.Model):
@@ -1581,7 +1593,6 @@ class TypeUtilisateur(models.Model):
         verbose_name_plural = 'Types utilisateurs'
 
 
-
 class User(AbstractUser):
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     type_utilisateur = models.ForeignKey(TypeUtilisateur, null=True, on_delete=models.RESTRICT)
@@ -1788,7 +1799,6 @@ class Apporteur(models.Model):
         db_table = 'apporteurs'
         verbose_name = 'Apporteur'
         verbose_name_plural = 'Apporteurs'
-
 
 
 class GroupeInter(models.Model):
@@ -2044,6 +2054,7 @@ class TypeCarosserie(models.Model):
         verbose_name = 'Type de carosserie'
         verbose_name_plural = "Types de carosserie"
 
+
 class Carosserie(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -2071,6 +2082,7 @@ class Carburant(models.Model):
         db_table = 'carburant'
         verbose_name = 'Carburants'
         verbose_name_plural = "Carburants"
+
 
 class Usage(models.Model):
     libelle = models.CharField(max_length=50, blank=True, null=True)
@@ -2527,6 +2539,7 @@ class ComptePrestataireVeos(models.Model):
         db_table = 'compte_prestataire_veos'
         verbose_name = 'Compte Prestataire VEOS'
         verbose_name_plural = 'Comptes Prestataires VEOS'
+
 
 class BusinessUnit(models.Model):
     libelle = models.CharField(max_length=100, blank=True, null=True, unique=True)

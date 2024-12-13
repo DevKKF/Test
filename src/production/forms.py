@@ -25,7 +25,7 @@ class ClientForm(forms.ModelForm):
 class PoliceForm(forms.ModelForm):
     class Meta:
         model = Police
-        fields = ['compagnie', ]
+        fields = ['produit', ]
 
 
     def __init__(self, *args, **kwargs):

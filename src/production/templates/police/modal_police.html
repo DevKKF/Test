@@ -4,7 +4,7 @@
 			<form enctype="multipart/form-data" id="form_add_police" action="{% url 'add_police' client.id %}" method="post">
 			{% csrf_token %}
 			<div class="modal-header">
-				<h4 class="modal-title">{{_("CREATION D'UNE POLICE DU CLIENT")}} <b>{{ client.nom }}</b> <span style="color:white">- by EMI</span></h4>
+				<h4 class="modal-title">{{_("CREATION D'UNE POLICE DU CLIENT")}} <b>{{ client.nom }}</b> <span class="text-white">- by EMI</span></h4>
 				<button type="button"class="close"data-dismiss="modal"aria-label="Close">
 					<span aria-hidden="true">×</span>
 				</button>
@@ -110,19 +110,6 @@
 											</select>
 										</div>
 									</div>
-									<div class="form-group row d-none">
-										<label class="col-sm-5 col-form-label">{{_("Programme international")}}<span class="required"></span></label>
-										<div class="col-sm-7">
-											<div class="icheck-danger d-inline">
-											  <input type="radio" name="programme_international" value="OUI" id="yes_programme_international"/>
-											  <label for="yes_programme_international"> {{_('OUI')}} </label>
-											</div>
-											<div class="icheck-danger d-inline" style="margin-left:50px;">
-											  <input type="radio" name="programme_international" value="NON" id="no_programme_international" checked/>
-											  <label for="no_programme_international">{{_('NON')}} </label>
-											</div>
-										</div>
-									</div>
 
 									<!--div class="form-group row">
 										<label class="col-sm-5 col-form-label">Devise <span class="required">*</span></label>
@@ -136,6 +123,26 @@
 										</div>
 									</div-->
 
+									<div class="form-group row">
+										<label class="col-sm-6 col-form-label">{{_("Autre assureur")}}</label>
+										<div class="col-sm-6">
+											{% for type in typecompagnie %}
+												<div class="icheck-danger d-inline mr-3">
+												  <input type="radio" name="typecompagnie" value="{{ type.id }}" class="typecompagnie" id="typecompagnie"/>
+												  <label for="typecompagnie">{{ type.libelle }}</label>
+												</div>
+											{% endfor %}
+										</div>
+									</div>
+									<div class="form-group row" id="box_compagnie" style="display:none;">
+										<label class="col-sm-5 col-form-label">{{_("Choisir l'assureur")}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<select class="form-control tags-multiple" name="compagnie_id" id="compagnie_id" autocomplete="off" required>
+												<option value="">{{_('Choisir')}}</option>
+											</select>
+										</div>
+									</div>
+
 									<div class="form-group row  ">
 										<label class="col-sm-6 col-form-label">{{_("Logo du partenaire")}}<span class="required"></span></label>
 										<div class="col-sm-6">
@@ -143,75 +150,6 @@
 										</div>
 									</div>
 
-								</div>
-							</div>
-						</div>
-
-						<div class="tab-pane fade mt-3" id="garantie" role="tabpanel" aria-labelledby="garantie-tab">
-							<div class="row">
-								<div class="col-md-6">
-									<div class="form-group row">
-										<label class="col-sm-6 col-form-label">{{_('Garantie')}} <span class="required"></span></label>
-										<div class="col-sm-6">
-											<div class="icheck-danger d-inline">
-											  <input type="radio" name="garantie" value="OUI" id="yes_garantie"/>
-											  <label for="yes_garantie"> {{_('OUI')}} </label>
-											</div>
-											<div class="icheck-danger d-inline" style="margin-left:50px;">
-											  <input type="radio" name="garantie" value="NON" id="no_garantie" checked/>
-											  <label for="no_garantie">{{_('NON')}} </label>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div class="vl"></div>
-								<div class="col-md-5">
-									<div class="form-group row" id="formule_block">
-										<label class="col-sm-6 col-form-label">{{_('Formule')}}</label>
-										<div class="col-sm-6">
-											<select class="form-control " name="formule" id="formule" autocomplete="off">
-												<option value="">{{_('Choisir')}}</option>
-												{% for formule in formules %}
-												<option value="{{ formule.id }}" data-formule_id="{{ formule.id }}">{{ formule.libelle }}</option>
-												{% endfor %}
-											</select>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-12" id="test_garantie">
-									<hr>
-									<div class="text-danger mb-2" id="garantie-message-error"></div>
-									<div class="text-warning mb-2" id="garantie-message-warning"></div>
-									<table id="table_garantie_police" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
-											<thead>
-												<tr>
-													<th style="width:5%">##</th>
-													<th>{{_("Garantie")}}</th>
-													<th class="text-center" style="width:20%">{{_("Franchise")}} (F CFA)</th>
-													<th class="text-center" style="width:20%;">{{_("Capital")}} (F CFA)</th>
-												</tr>
-											</thead>
-											<tbody>
-
-											</tbody>
-										</table>
-								</div>
-							</div>
-						</div>
-
-						<div class="tab-pane fade mt-3" id="risque" role="tabpanel" aria-labelledby="risque-tab">
-							<div class="row">
-								<div class="col-md-12">
-									<div class="form-group">
-										<label class="form-label">{{_('Risque')}}</label>
-									  	<input type="text" class="form-control" name="risque_name" value="" id="risque_name">
-									</div>
-								</div>
-								<div class="col-md-12">
-									<div class="form-group">
-										<label class="form-label">{{_('Description')}}</label>
-										<textarea class="form-control" name="risque_description" id="risque_description" cols="30" rows="5"></textarea>
-									</div>
 								</div>
 							</div>
 						</div>
@@ -275,9 +213,78 @@
 											</tr>
 										</tbody>
 										<tfoot style="display:none;">
-											<tr class="add-row"><td colspan="5"><span id="btnAddLigneApporteur" style="cursor:pointer;" class="btn btn-sm btn-default float-right"><i class="fa fa-plus" style="font-size:12px;"></i> {{_('Ajouter_une_ligne')}}</span></td></tr>
+											<tr class="add-row"><td colspan="5"><span id="btnAddLigneApporteur" style="cursor:pointer;" class="btn btn-sm btn-default float-right"><i class="fa fa-plus" style="font-size:12px;"></i> {{_("Ajouter une ligne")}}</span></td></tr>
 										</tfoot>
 									</table>
+								</div>
+							</div>
+						</div>
+
+						<div class="tab-pane fade mt-3" id="garantie" role="tabpanel" aria-labelledby="garantie-tab">
+							<div class="row" style="max-height:500px;">
+								<div class="col-md-6">
+									<div class="form-group row">
+										<label class="col-sm-6 col-form-label">{{_('Garantie')}} <span class="required"></span></label>
+										<div class="col-sm-6">
+											<div class="icheck-danger d-inline">
+											  <input type="radio" name="garantie" value="OUI" id="yes_garantie"/>
+											  <label for="yes_garantie"> {{_('OUI')}} </label>
+											</div>
+											<div class="icheck-danger d-inline" style="margin-left:50px;">
+											  <input type="radio" name="garantie" value="NON" id="no_garantie" checked/>
+											  <label for="no_garantie">{{_('NON')}} </label>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="vl"></div>
+								<div class="col-md-5">
+									<div class="form-group row" id="formule_block">
+										<label class="col-sm-6 col-form-label">{{_('Formule')}}</label>
+										<div class="col-sm-6">
+											<select class="form-control " name="formule" id="formule" autocomplete="off">
+												<option value="">{{_('Choisir')}}</option>
+												{% for formule in formules %}
+												<option value="{{ formule.id }}" data-formule_id="{{ formule.id }}">{{ formule.libelle }}</option>
+												{% endfor %}
+											</select>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-12" id="test_garantie">
+									<hr>
+									<div class="text-danger mb-2" id="garantie-message-error"></div>
+									<div class="text-warning mb-2" id="garantie-message-warning"></div>
+									<table id="table_garantie_police" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
+										<thead>
+											<tr>
+												<th style="width:5%">##</th>
+												<th>{{_("Garantie")}}</th>
+												<th class="text-center" style="width:20%">{{_("Franchise")}} (F CFA)</th>
+												<th class="text-center" style="width:20%;">{{_("Capital")}} (F CFA)</th>
+											</tr>
+										</thead>
+										<tbody>
+
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+
+						<div class="tab-pane fade mt-3" id="risque" role="tabpanel" aria-labelledby="risque-tab">
+							<div class="row">
+								<div class="col-md-12">
+									<div class="form-group">
+										<label class="form-label">{{_('Risque')}}</label>
+									  	<input type="text" class="form-control" name="risque_name" value="" id="risque_name">
+									</div>
+								</div>
+								<div class="col-md-12">
+									<div class="form-group">
+										<label class="form-label">{{_('Description')}}</label>
+										<textarea class="form-control" name="risque_description" id="risque_description" cols="30" rows="5"></textarea>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -289,7 +296,7 @@
 								</div>
 								<div class="vl"></div>
 								<div class="col-md-5 d-flex">
-									<input type="file" class="form-control mr-3" name="aliments" id="fichier_aliment" style="width:300px">
+									<input type="file" accept=".xlsx" class="form-control mr-3" name="fichier_aliment" id="fichier_aliment" style="width:300px">
 									<button type="button" id="importation_aliment" class="btn btn-warning"><i class="fa fa-download"></i> {{_("Importation")}}</button>
 								</div>
 								<div class="vl"></div>
@@ -302,25 +309,25 @@
 							<div id="message-success" class="alert alert-success" style="display:none;"></div>
 							<div id="message-warning" class="alert alert-warning" style="display:none;"></div>
 							<div id="message-error" class="alert alert-danger" style="display:none;"></div>
-							<div class="row">
+							<div class="row" style="max-height:500px;">
 								<div class="col-md-12">
-									<table id="table_liste_aliment" class="table table-bordered table-striped dataTable_ dtr-inline">
-											  <thead>
-												  <tr>
-														<th class="text-center" style="width:5%">##</th>
-														<th>{{_("Immat")}}</th>
-														<th>{{_("Marque")}}</th>
-														<th>{{_("Modèle")}}</th>
-														<th>{{_("Catégorie")}}</th>
-														<th>{{_("Entrée")}}</th>
-														<th>{{_("Sortie")}}</th>
-														<th>{{_("Propriétaire")}}</th>
-														<th>{{_("Conducteur")}}</th>
-												  </tr>
-											  </thead>
-											  <tbody>
-											  </tbody>
-										</table>
+									<table id="table_liste_aliment" class="table table-bordered table-striped dataTable dtr-inline">
+										  <thead>
+											  <tr>
+													<th class="text-center" style="width:5%">##</th>
+													<th>{{_("Immat")}}</th>
+													<th>{{_("Marque")}}</th>
+													<th>{{_("Modèle")}}</th>
+													<th>{{_("Catégorie")}}</th>
+													<th>{{_("Entrée")}}</th>
+													<th>{{_("Sortie")}}</th>
+													<th>{{_("Propriétaire")}}</th>
+													<th>{{_("Conducteur")}}</th>
+											  </tr>
+										  </thead>
+										  <tbody>
+										  </tbody>
+									</table>
 								</div>
 							</div>
 						</div>
@@ -384,7 +391,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Valeur neuve")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="valeur_a_neuf" value="" />
+											<input type="text" class="form-control money_field" name="valeur_neuve" value="" />
 										</div>
 									</div>
 									<div class="form-group row">
@@ -454,9 +461,9 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Puissance')}}</label>
+										<label class="col-sm-5 col-form-label">{{_('Puissance')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="puissance_fiscale"/>
+											<input type="text" class="form-control money_field" name="puissance_fiscale" required>
 										</div>
 									</div>
 									<div class="form-group row">
@@ -466,21 +473,21 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Poids à charge")}}</label>
+										<label class="col-sm-5 col-form-label">{{_("Poid à vide")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="poid_vide" value=""/>
+											<input type="text" class="form-control money_field" name="poids_a_vide" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Propriétaire")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="commentaire" value="" required>
+											<input type="text" class="form-control" name="proprietaire" value="" required>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Commentaire")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="proprietaire" value="">
+											<input type="text" class="form-control" name="commentaire" value="">
 										</div>
 									</div>
 								</div>

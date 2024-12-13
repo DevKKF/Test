@@ -56,8 +56,8 @@ $(document).ready(function () {
         },
         order: [[0, 'desc']],
         lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
+            [100, 250, 500, -1],
+            [100, 250, 500, 'Tout'],
         ]
     });
 
@@ -69,8 +69,8 @@ $(document).ready(function () {
     //        },
     //        order: [[0, 'desc']],
     //        lengthMenu: [
-    //            [10, 25, 50, -1],
-    //            [10, 25, 50, 'Tout'],
+    //            [100, 250, 500, -1],
+    //            [100, 250, 500, 'Tout'],
     //        ]
     //    });
     //
@@ -81,8 +81,8 @@ $(document).ready(function () {
     //        },
     //        order: [[0, 'asc']],
     //        lengthMenu: [
-    //            [10, 25, 50, -1],
-    //            [10, 25, 50, 'Tout'],
+    //            [100, 250, 500, -1],
+    //            [100, 250, 500, 'Tout'],
     //        ]
     //    });
 
@@ -95,8 +95,8 @@ $(document).ready(function () {
         },
         order: [[0, 'desc']],
         lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
+            [100, 250, 500, -1],
+            [100, 250, 500, 'Tout'],
         ]
     });
 
@@ -106,8 +106,8 @@ $(document).ready(function () {
         },
         // order: [[6, 'desc']],
         lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
+            [100, 250, 500, -1],
+            [100, 250, 500, 'Tout'],
         ]
     });
 
@@ -118,8 +118,8 @@ $(document).ready(function () {
         },
         order: [[6, 'desc']],
         lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
+            [100, 250, 500, -1],
+            [100, 250, 500, 'Tout'],
         ]
     });
 
@@ -130,8 +130,8 @@ $(document).ready(function () {
         },
         order: [[0, 'asc']],
         lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'Tout'],
+            [100, 250, 500, -1],
+            [100, 250, 500, 'Tout'],
         ]
     });
     */
@@ -341,9 +341,9 @@ $(document).ready(function () {
 
                                         /*
                                         let client = response.data;
-    
+
                                         let t = $('#table_clients').DataTable();
-    
+
                                         t.row.add([
                                                     client.nom + ' ' + client.prenoms,
                                                     client.type_client,
@@ -1195,7 +1195,7 @@ $(document).ready(function () {
 
 
     $(document).on("click", "#btn_save_document_dossier_sinistre", function () {
-        
+
         const button = $(this); // Sauvegarder le bouton cliqué
         button.prop('disabled', true).text('Chargement'); // Désactive le bouton et change le texte
 
@@ -2077,8 +2077,108 @@ $(document).ready(function () {
     });
 
 
+    $("#btn_save_vehicule").on('click', function () {
+        let btn_submit = $(this);
 
-    //
+        btn_submit.attr('disabled', true);
+
+        let formulaire = $('#form_add_vehicule');
+        let href = formulaire.attr('action');
+
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            // Enregistrement direct sans confirmation
+            let data_serialized = formulaire.serialize();
+            $.each(data_serialized.split('&'), function (index, elem) {
+                let vals = elem.split('=');
+
+                let key = vals[0];
+                let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                formData.append(key, valeur);
+            });
+
+            // Récupérer les garanties cochées
+            $('.garantie-checkbox:checked').each(function () {
+                let garantieId = $(this).val(); // ID de la garantie
+                let franchise = $(`input[name="franchise_${garantieId}"]`).val() || ''; // Franchise associée
+                let capital = $(`input[name="capital_${garantieId}"]`).val() || ''; // Capital associé
+
+                // Ajouter ces données au FormData
+                formData.append(`garanties[${garantieId}][id]`, garantieId);
+                formData.append(`garanties[${garantieId}][franchise]`, franchise);
+                formData.append(`garanties[${garantieId}][capital]`, capital);
+            });
+
+            $.ajax({
+                type: 'post',
+                url: href,
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+
+                    btn_submit.removeAttr('disabled');
+
+                    if (response.statut == 1) {
+
+                        let police = response.data;
+
+                        // Vider le formulaire
+                        resetFields('#' + formulaire.attr('id'));
+
+                        notifySuccess(response.message, function () {
+                            location.reload();
+                        });
+
+                    }
+                    if (response.statut == 2) {
+
+                        notifyWarning(response.message);
+
+                    } else {
+
+                        let errors = JSON.parse(JSON.stringify(response.errors));
+                        let errors_list_to_display = '';
+                        for (field in errors) {
+                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                        }
+
+                        $('#modal-vehicule .alert .message').html(errors_list_to_display);
+
+                        $('#modal-vehicule .alert').fadeTo(5000, 2000).slideUp(2000, function () {
+                            $(this).slideUp(2000);
+                        }).removeClass('alert-success').addClass('alert-warning');
+                    }
+                },
+                error: function (request, status, error) {
+                    btn_submit.removeAttr('disabled');
+                    notifyWarning("Erreur lors de l'enregistrement ");
+                }
+            });
+
+        } else {
+            // Validation échouée
+            btn_submit.removeAttr('disabled');
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+                console.log('Id: ' + index + ' Message: ' + value);
+            });
+
+            notifyWarning('Veuillez renseigner tous les champs obligatoires');
+        }
+    });
+
+
+    /*
     $(document).on('click', "#btn_save_vehicule", function () {
 
         let formulaire = $('#form_add_vehicule');
@@ -2177,7 +2277,7 @@ $(document).ready(function () {
         }
 
 
-    });
+    });*/
 
 
 
@@ -2238,6 +2338,11 @@ $(document).ready(function () {
                                 notifySuccess(response.message);
                                 location.reload();
 
+                            }
+                             if (response.statut == 2) {
+
+                                notifyWarning(response.message);
+
                             } else {
 
                                 let errors = JSON.parse(JSON.stringify(response.errors));
@@ -2287,7 +2392,7 @@ $(document).ready(function () {
     });
 
 
-    $(document).on('click', "#btn_supprimer_vehicule", function () {
+    $(document).on('click', ".btn_supprimer_vehicule", function () {
 
         let vehicule_id = $(this).data('vehicule_id');
 
@@ -2509,8 +2614,8 @@ $(document).ready(function () {
                 },
                 order: [[0, 'desc']],
                 lengthMenu: [
-                    [10],
-                    [10],
+                    [100],
+                    [100],
                 ],
                 searching: false,
                 lengthChange: false,
@@ -2521,9 +2626,9 @@ $(document).ready(function () {
             $('.dropzone_area').each(function(myElement){
                 let zone_id = $(this).data('zone_id');
                 let href = $(this).attr('action');
-    
+
                 let dropzone = new Dropzone("#"+zone_id, { url: href, dictDefaultMessage: ""});
-    
+
             });
             */
 
@@ -2563,8 +2668,8 @@ $(document).ready(function () {
                 },
                 order: [[0, 'desc']],
                 lengthMenu: [
-                    [10],
-                    [10],
+                    [100],
+                    [100],
                 ],
                 searching: false,
                 lengthChange: false,
@@ -2575,9 +2680,9 @@ $(document).ready(function () {
             $('.dropzone_area').each(function(myElement){
                 let zone_id = $(this).data('zone_id');
                 let href = $(this).attr('action');
-    
+
                 let dropzone = new Dropzone("#"+zone_id, { url: href, dictDefaultMessage: ""});
-    
+
             });
             */
 
@@ -2983,9 +3088,9 @@ $(document).ready(function () {
                                         for(field in errors){
                                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                         }
-            
+
                                         $('#modal-carte .alert .message').html(errors_list_to_display);
-            
+
                                         $('#modal-carte .alert ').fadeTo(2000, 500).slideUp(500, function(){
                                             $(this).slideUp(500);
                                         }).removeClass('alert-success').addClass('alert-warning');
@@ -3281,8 +3386,8 @@ $(document).ready(function () {
                 },
                 order: [[0, 'desc']],
                 lengthMenu: [
-                    [10],
-                    [10],
+                    [100],
+                    [100],
                 ],
                 searching: false,
                 lengthChange: false,
@@ -3303,6 +3408,54 @@ $(document).ready(function () {
 
             //
             $('#modal-details_vehicule').modal();
+
+        });
+
+
+    });
+
+    //DETAILS de l'historique du vehicule
+    $(document).on("click", ".btn_details_historique_vehicule", function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+           alert(model_name);
+        //let dialog_box = $("<div>").addClass('olea_std_dialog_box').appendTo('body');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-historique_vehicule .dataTable:not(.customDataTable_)').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+                },
+                order: [[0, 'desc']],
+                lengthMenu: [
+                    [100],
+                    [100],
+                ],
+                searching: false,
+                lengthChange: false,
+            });
+
+            let i = 0;
+            $('.dropzone_area').each(function (myElement) {
+                let zone_id = $(this).attr('id');
+                let href = $(this).attr('action');
+
+                let dropzone = new Dropzone("#" + zone_id, { url: href, dictDefaultMessage: "" });
+
+            });
+
+            $('#modal-historique_vehicule').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-historique_vehicule').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-historique_vehicule').modal();
 
         });
 
@@ -3415,13 +3568,13 @@ $(document).ready(function () {
 
                         /*
                         $('#modal-avenant .alert .message').text(response.message);
-    
+
                         $('#modal-avenant .alert ').fadeTo(2000, 500).slideUp(500, function(){
                             $(this).slideUp(500);
-    
+
                             avenant = response.data;
                             let t = $('#table_avenants').DataTable();
-    
+
                             t.row.add([
                                         avenant.mouvement,
                                         avenant.motif ,
@@ -3429,14 +3582,14 @@ $(document).ready(function () {
                                         avenant.date_fin_periode_garantie
                                         ])
                                         .draw(false);
-    
+
                             //Vider le formulaire
                             resetFields('#'+formulaire.attr('id'));
-    
+
                             notifySuccess(response.message, function(){
                                 location.reload();
                             });
-    
+
                         }).removeClass('alert-warning').addClass('alert-success');
                         */
 
@@ -3607,8 +3760,8 @@ $(document).ready(function () {
 
                         /*
                         let t = $('#table_formules').DataTable();
-    
-    
+
+
                         t.row.add([
                                     formule.libelle,
                                     '<span style="text-align:right"display:block;>'+formule.taux_couverture + ' %</span>',
@@ -4002,9 +4155,9 @@ $(document).ready(function () {
                         for(field in errors){
                             errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                         }
-    
+
                         $('#modal-bareme .alert .message').html(errors_list_to_display);
-    
+
                         $('#modal-bareme .alert ').fadeTo(2000, 500).slideUp(500, function(){
                             $(this).slideUp(500);
                         }).removeClass('alert-success').addClass('alert-warning');
@@ -5695,40 +5848,48 @@ $(document).ready(function () {
     }
 
 
-    //
+    // Participation
+    function on_change_participation(participation, mode) {
+        let modal_id = mode === 'modification' ? '#modal-modification_police' : '#modal-police';
+        let box_id = mode === 'modification' ? '#box_taux_participation_modification' : '#box_taux_participation';
+        let taux_id = mode === 'modification' ? '#taux_participation_modification' : '#taux_participation';
 
-
-    function on_change_participation(participation) {
-
-        if (participation == 'OUI') {
-
-            $('#modal-police #box_taux_participation').show();
-
-            $("#modal-police #taux_participation").attr('required', true);
-
-            $('#modal-police #box_taux_participation').find('label').html('Taux de participation <span class="text-red">*</span>');
-
+        if (participation === 'OUI') {
+            if ($(`${modal_id} ${box_id}`).length) {
+                $(`${modal_id} ${box_id}`).show();
+                $(`${modal_id} ${taux_id}`).attr('required', true);
+                $(`${modal_id} ${box_id}`).find('label').html('Taux de participation <span class="text-red">*</span>');
+            } else {
+                console.error(`Element ${box_id} not found in ${modal_id}`);
+            }
         } else {
-
-            $('#modal-police #box_taux_participation').hide();
-
-            $("#modal-police #taux_participation").val('0').removeAttr('required');
-
-            $('#modal-police #box_taux_participation').find('label').html('Taux de participation ');
-
+            if ($(`${modal_id} ${box_id}`).length) {
+                $(`${modal_id} ${box_id}`).hide();
+                $(`${modal_id} ${taux_id}`).val('0').removeAttr('required');
+                $(`${modal_id} ${box_id}`).find('label').html('Taux de participation');
+            } else {
+                console.error(`Element ${box_id} not found in ${modal_id}`);
+            }
         }
-
     }
 
-    //on_change_participation();
     $(document).on("change", "#modal-police .participation", function () {
-
         let participation = $(this).val();
-
-        on_change_participation(participation);
-
+        on_change_participation(participation, 'creation');
     });
 
+    $(document).on("change", "#modal-modification_police .participation_modification", function () {
+        let participation = $(this).val();
+        on_change_participation(participation, 'modification');
+    });
+
+    // Initialisation pour le mode modification
+    $(document).ready(function () {
+        let participation_modification = $("#modal-modification_police .participation_modification:checked").val();
+        if (participation_modification) {
+            on_change_participation(participation_modification, 'modification');
+        }
+    });
 
     //gestion autres taxes
 
@@ -5810,8 +5971,8 @@ $(document).ready(function () {
                 },
                 order: [[0, 'desc']],
                 lengthMenu: [
-                    [5, 10],
-                    [5, 10],
+                    [50, 100],
+                    [50, 100],
                 ],
                 //scrollY: '100px',
                 //scrollX: true,
@@ -6328,12 +6489,12 @@ $(document).ready(function () {
             taux_com_courtage_terme = taux_com_courtage_terme * (-1);
         }
         $('#modal-quittance #cout_police_compagnie').val(cout_police_compagnie);
-        $('#modal-quittance #cout_police_courtier').val(cout_police_courtier); 
+        $('#modal-quittance #cout_police_courtier').val(cout_police_courtier);
         $('#modal-quittance #taxe').val(taxe);
         $('#modal-quittance #autres_taxes').val(autres_taxes);
         $('#modal-quittance #taux_com_gestion').val(taux_com_gestion);
         $('#modal-quittance #taux_com_courtage').val(taux_com_courtage);
-        $('#modal-quittance #taux_com_courtage_terme').val(taux_com_courtage_terme);   
+        $('#modal-quittance #taux_com_courtage_terme').val(taux_com_courtage_terme);
         */
 
         let prime_ttc = prime_ht + cout_police_compagnie + cout_police_courtier + taxe + autres_taxes;
@@ -6496,8 +6657,8 @@ $(document).ready(function () {
                     },
                     order: [[0, 'desc']],
                     lengthMenu: [
-                        [5, 10],
-                        [5, 10],
+                        [50, 100],
+                        [50, 100],
                     ],
                 });
 
@@ -6841,7 +7002,7 @@ $(document).ready(function () {
                         },
                         //order: [[0, 'desc']],
                         lengthMenu: [
-                            [10, 25, 50, 100, -1], [10, 25, 50, 100, "Tout"]
+                            [100, 250, 500, 1000, -1], [100, 250, 500, 1000, "Tout"]
                         ],
                         //sDom: "<'row'<'col-sm-6'>>t<'row'<'col-sm-6'><'col-sm-6'>>",
                         paging: false,
@@ -7229,7 +7390,7 @@ $(document).ready(function () {
                         },
                         //order: [[0, 'desc']],
                         lengthMenu: [
-                            [10, 25, 50, 100, -1], [10, 25, 50, 100, "Tout"]
+                            [100, 250, 500, 1000, -1], [100, 250, 500, 1000, "Tout"]
                         ],
                         //sDom: "<'row'<'col-sm-6'>>t<'row'<'col-sm-6'><'col-sm-6'>>",
                         paging: false,
@@ -7421,7 +7582,7 @@ $(document).ready(function () {
                 montant_total_a_encaisser = montant_total_com_courtage;
                 difference = montant_com_courtage - montant_a_encaisser_court;
                 if (montant_com_courtage < montant_a_encaisser_court) {
-                    erreur_difference = false; //true; car peut encaisser un montant superieur 
+                    erreur_difference = false; //true; car peut encaisser un montant superieur
                 }
             }
             else {
@@ -7432,7 +7593,7 @@ $(document).ready(function () {
                 montant_total_a_encaisser = montant_total_com_gestion;
                 difference = montant_com_gestion - montant_a_encaisser_gest;
                 if (montant_com_gestion < montant_a_encaisser_gest) {
-                    erreur_difference = false; //true; car peut encaisser un montant superieur 
+                    erreur_difference = false; //true; car peut encaisser un montant superieur
                 }
             }
 
@@ -7463,7 +7624,7 @@ $(document).ready(function () {
             }
 
             if (difference < 0) {
-                erreur_difference = false; //true; car peut encaisser un montant superieur 
+                erreur_difference = false; //true; car peut encaisser un montant superieur
             }
 
             montant_solde = montant_solde + difference;
@@ -7502,7 +7663,7 @@ $(document).ready(function () {
             || (debit_difference > 0 && difference_match == false)
             || (credit_difference > 0 && difference_match == false)
             || ($('#compte_difference').val() != "" && debit_difference == 0 && credit_difference == 0)
-            //|| (montant_solde > 0 && credit_difference > 0) 
+            //|| (montant_solde > 0 && credit_difference > 0)
             || erreur_difference == true) {
             $('#btn_save_encaissement').attr('disabled', 'true');
             console.log("disabled 2");
@@ -7557,7 +7718,7 @@ $(document).ready(function () {
                         },
                         //order: [[0, 'desc']],
                         lengthMenu: [
-                            [10, 25, 50, 100, -1], [10, 25, 50, 100, "Tout"]
+                            [100, 250, 500, 1000, -1], [100, 250, 500, 1000, "Tout"]
                         ],
                         //sDom: "<'row'<'col-sm-6'>>t<'row'<'col-sm-6'><'col-sm-6'>>",
                         paging: true,
@@ -11143,8 +11304,8 @@ $(document).ready(function () {
                 },
                 order: [[0, 'desc']],
                 lengthMenu: [
-                    [10],
-                    [10],
+                    [100],
+                    [100],
                 ],
                 searching: false,
                 lengthChange: false,
@@ -11699,8 +11860,8 @@ $(document).ready(function () {
                 },
                 order: [[0, 'desc']],
                 lengthMenu: [
-                    [10],
-                    [10],
+                    [100],
+                    [100],
                 ],
                 searching: false,
                 lengthChange: false,
@@ -12099,7 +12260,7 @@ $(document).ready(function () {
 
 
 
-    // PHARMACIE 
+    // PHARMACIE
     $(document).on('keydown', '#numero_carte_pharmacie', function (event) {
         if (event.keyCode === 13) {
             event.preventDefault();
@@ -12770,8 +12931,8 @@ $(document).ready(function () {
                 },
                 order: [[0, 'desc']],
                 lengthMenu: [
-                    [10],
-                    [10],
+                    [100],
+                    [100],
                 ],
                 searching: false,
                 lengthChange: false,
@@ -12956,7 +13117,7 @@ $(document).ready(function () {
     // FIN ACTE
 
 
-    // MISSING CODE JS 
+    // MISSING CODE JS
     // ADD MEMBRE FAMILLE D'UN BENEFICIAIRE
     $(document).on('click', "#btn_save_membre_famille_beneficiaire", function () {
 
@@ -13185,17 +13346,17 @@ $(document).ready(function () {
             //delimiter: ' ',
         });
         alert("cleve init");
-    
-    
+
+
         if ($('.money_field').length > 0) {
-    
+
            AutoNumeric.multiple('.money_field', {
               currencySymbol: '',
               digitGroupSeparator: ' ',
               decimalCharacter: '.',
               decimalPlaces: 0
             });
-    
+
         }
         */
 
@@ -13317,49 +13478,6 @@ $(document).ready(function () {
     });
 });
 
-function on_change_apporteur(response) {
-    if (response === 'OUI') {
-        $('#test').show();
-        $('#test input, #test select, #test textarea').attr('required', true);
-    } else {
-        $('#test').hide();
-        $('#test input, #test select, #test textarea').val('').removeAttr('required');
-        $('#total_commission_intermediaire').val('0');
-    }
-}
-
-function on_change_garantie(response) {
-    if (response === 'OUI') {
-        $('#test_garantie').show();
-        $('#formule_block').show();
-        $('#test_garantie input').attr('required', true);
-    } else {
-        $('#test_garantie').hide();
-        $('#formule_block').hide();
-        $('#test_garantie input').val('').removeAttr('required');
-    }
-}
-
-// Attachement des événements pour les boutons radio apporteur
-$('input[name="apporteur"]').on('change', function () {
-    on_change_apporteur($(this).val());
-});
-
-// Attachement des événements pour les boutons radio garantie
-$('input[name="garantie"]').on('change', function () {
-    on_change_garantie($(this).val());
-});
-
-// Initialisation basée sur l'état initial des boutons radio
-$(document).ready(function () {
-    // Initialiser la section apporteur
-    const response_apporteur = $('input[name="apporteur"]:checked').val();
-    on_change_apporteur(response_apporteur);
-
-    // Initialiser la section garantie
-    const response_garantie = $('input[name="garantie"]:checked').val();
-    on_change_garantie(response_garantie);
-});
 
 $(document).ready(function () {
 
@@ -13407,9 +13525,11 @@ $(document).ready(function () {
             }
             if (branche_code == 100992) {
                 $('#aliment-tab').removeClass('d-none');
+                $('.aliment_champ_obligatoire').removeAttr('required');
             }
         } else if (typeproduit_id == 2) {
             $('#risque-tab').removeClass('d-none');
+            $('.aliment_champ_obligatoire').removeAttr('required');
         }
     });
 
@@ -13439,7 +13559,8 @@ $(document).ready(function () {
             });
     });
 
-    // Bouton pour enregistrer via le fichier d'importation
+
+    /* Bouton pour enregistrer via le fichier d'importation
     $('#importation_aliment').on('click', function () {
         // Effacer tout message précédent
         $('#message-error').text('');
@@ -13468,13 +13589,17 @@ $(document).ready(function () {
 
         // Requête Ajax pour envoyer le fichier au backend
         $.ajax({
-            url: '/production/import-aliments/',
+            url: '/production/import-excel-aliments/',
             type: 'POST',
             data: formData,
             processData: false,
             contentType: false,
+            headers: {
+                'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val() // Ajouter le CSRF token
+            },
             success: function (response) {
                 const tbody = $('#table_liste_aliment tbody');
+                alert(response.success);
                 if (response.success) {
                     // Ajouter les nouvelles lignes au tableau
                     response.data.forEach((row, index) => {
@@ -13494,6 +13619,7 @@ $(document).ready(function () {
                             </tr>
                         `);
                     });
+
 
                     // Vider le champ fichier après importation réussie
                     $('#fichier_aliment').removeClass('is-invalid').val('');
@@ -13529,6 +13655,7 @@ $(document).ready(function () {
             }
         });
     });
+
 
     // Bouton pour enregistrer via le formulaire modal
     $('#btn_save_police_aliment').on('click', function () {
@@ -13560,7 +13687,7 @@ $(document).ready(function () {
 
         // Requête Ajax pour envoyer les données au backend
         $.ajax({
-            url: '/production/import-aliments/',
+            url: '/production/import-formulaire-aliments/',
             type: 'POST',
             data: formData,
             processData: false,
@@ -13588,7 +13715,7 @@ $(document).ready(function () {
                     });
 
                     // Vider le champ fichier après importation réussie
-                    $('#fichier_aliment').removeClass('is-invalid').val('');
+                    $('#modal-police_aliment').val('');
 
                     // Afficher le message de succès renvoyé par le backend
                     $('#message-success').text(response.message || 'Importation réussie !').show();
@@ -13622,6 +13749,7 @@ $(document).ready(function () {
         });
     });
 
+
     $(document).on('click', '.btn-danger', function () {
         const index = $(this).closest('tr').data('index');
         supprimerAliment(index);
@@ -13632,9 +13760,7 @@ $(document).ready(function () {
         $.ajax({
             url: `/production/supprimer_aliment/${index}/`,
             type: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken')
-            },
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
             success: function (response) {
                 if (response.success) {
                     // Si la suppression est réussie, supprime la ligne correspondante du tableau
@@ -13647,66 +13773,105 @@ $(document).ready(function () {
                 console.error('Erreur de communication avec le serveur.');
             }
         });
+    } */
+
+
+    // Apporteur
+    function on_change_apporteur(response, mode) {
+        let modal_id = mode === 'modification' ? '#modal-modification_police' : '#modal-police';
+        let box_id = mode === 'modification' ? '#test_modification' : '#test';
+        let total_id = mode === 'modification' ? '#total_commission_intermediaire_modification' : '#total_commission_intermediaire';
+
+        if (response === 'OUI') {
+            if ($(`${modal_id} ${box_id}`).length) {
+                $(`${modal_id} ${box_id}`).show();
+                $(`${modal_id} ${box_id} input, ${modal_id} ${box_id} select, ${modal_id} ${box_id} textarea`).attr('required', true);
+            } else {
+                console.error(`Element ${box_id} not found in ${modal_id}`);
+            }
+        } else {
+            if ($(`${modal_id} ${box_id}`).length) {
+                $(`${modal_id} ${box_id}`).hide();
+                $(`${modal_id} ${box_id} input, ${modal_id} ${box_id} select, ${modal_id} ${box_id} textarea`).val('').removeAttr('required');
+                $(`${modal_id} ${total_id}`).val('0');
+            } else {
+                console.error(`Element ${box_id} not found in ${modal_id}`);
+            }
+        }
     }
 
-    // Fonction pour mettre à jour le tableau des garanties
-    function chargementGarantiesProduitTable(produitId) {
-        // Efface le contenu existant du tableau sauf l'entête
-        $("#table_garantie_police tbody").empty();
+    // Attachement des événements pour les boutons radio apporteur
+    $(document).on("change", "#modal-police input[name='apporteur']", function () {
+        let response = $(this).val();
+        on_change_apporteur(response, 'creation');
+    });
 
-        // Effacer tout message précédent
-        $('#garantie-message-error').text('').hide();
-        $('#garantie-message-warning').text('').hide();
+    $(document).on("change", "#modal-modification_police input[name='apporteur']", function () {
+        let response = $(this).val();
+        on_change_apporteur(response, 'modification');
+    });
 
-        // Vérifie qu'un ID produit a été sélectionné
-        if (!produitId) {
-            return;
+    // Initialisation pour le mode modification
+    $(document).ready(function () {
+        let apporteur_response_modification = $("#modal-modification_police input[name='apporteur']:checked").val();
+        if (apporteur_response_modification) {
+            on_change_apporteur(apporteur_response_modification, 'modification');
         }
 
-        // Appel AJAX pour récupérer les garanties liées au produit
-        $.ajax({
-            url: "/production/get_garanties_by_produit/",
-            type: "GET",
-            data: { produit_id: produitId },
-            success: function (data) {
-                if (data && data.garanties) {
-                    // Parcourt les garanties et les ajoute dans le tableau
-                    data.garanties.forEach((garantie, index) => {
-                        let row = `
-                            <tr>
-                                <td style="vertical-align:middle;">
-                                    <input type="checkbox" class="form-control garantie-checkbox" name="garantie_${garantie.id}" value="${garantie.id}" style="width: 1rem; height: 1.25rem;">
-                                </td>
-                                <td style="vertical-align:middle;">${garantie.nom}</td>
-                                <td style="vertical-align:middle;padding:5px;">
-                                    <input type="text" class="form-control form-control-sm franchise-input" name="franchise_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)" disabled>
-                                </td>
-                                <td style="vertical-align:middle;padding:5px;">
-                                    <input type="text" class="form-control form-control-sm capital-input" name="capital_${garantie.id}" value="" onkeypress="isInputNumber(event)" oninput="formatMontant(this)" disabled>
-                                </td>
-                            </tr>
-                        `;
-                        $("#table_garantie_police tbody").append(row);
-                    });
-                } else {
-                    $('#garantie-message-warning').text('Aucune garantie trouvée pour ce produit.').show();
-                    setTimeout(() => $('#garantie-message-error').fadeOut(), 5000);
-                }
-            },
-            error: function (xhr, status, error) {
-                $('#message-error').text(response.error || 'Erreur lors de la récupération des garanties.').show();
-                setTimeout(() => $('#garantie-message-error').fadeOut(), 5000);
-            },
-        });
-    }
-
-    // Événement sur le changement du produit sélectionné
-    $("#produit").change(function () {
-        let produitId = $(this).find(":selected").data("produit_id");
-        if (produitId) {
-            chargementGarantiesProduitTable(produitId);
+        let apporteur_response_creation = $("#modal-police input[name='apporteur']:checked").val();
+        if (apporteur_response_creation) {
+            on_change_apporteur(apporteur_response_creation, 'creation');
         }
     });
+
+    function on_change_garantie(response, mode) {
+        let modal_id = mode === 'modification' ? '#modal-modification_police' : '#modal-police';
+        let box_id = mode === 'modification' ? '#test_garantie_modification' : '#test_garantie';
+        let formule_id = mode === 'modification' ? '#formule_block_modification' : '#formule_block';
+
+        if (response === 'OUI') {
+            if ($(`${modal_id} ${box_id}`).length && $(`${modal_id} ${formule_id}`).length) {
+                $(`${modal_id} ${box_id}`).show();
+                $(`${modal_id} ${formule_id}`).show();
+                $(`${modal_id} ${box_id} input`).show();
+            } else {
+                console.error(`Elements ${box_id} or ${formule_id} not found in ${modal_id}`);
+            }
+        } else {
+            if ($(`${modal_id} ${box_id}`).length && $(`${modal_id} ${formule_id}`).length) {
+                $(`${modal_id} ${box_id}`).hide();
+                $(`${modal_id} ${formule_id}`).hide();
+                $(`${modal_id} ${box_id} input`).val('').removeAttr('required');
+            } else {
+                console.error(`Elements ${box_id} or ${formule_id} not found in ${modal_id}`);
+            }
+        }
+    }
+
+    // Attachement des événements pour les boutons radio garantie
+    $(document).on("change", "#modal-police input[name='garantie']", function () {
+        let response = $(this).val();
+        on_change_garantie(response, 'creation');
+    });
+
+    $(document).on("change", "#modal-modification_police input[name='garantie']", function () {
+        let response = $(this).val();
+        on_change_garantie(response, 'modification');
+    });
+
+    // Initialisation pour le mode modification
+    $(document).ready(function () {
+        let garantie_response_modification = $("#modal-modification_police input[name='garantie']:checked").val();
+        if (garantie_response_modification) {
+            on_change_garantie(garantie_response_modification, 'modification');
+        }
+
+        let garantie_response_creation = $("#modal-police input[name='garantie']:checked").val();
+        if (garantie_response_creation) {
+            on_change_garantie(garantie_response_creation, 'creation');
+        }
+    });
+
 
     function chargementGarantiesFormuleTable(formuleId) {
         // Efface le contenu existant du tableau sauf l'entête
@@ -13767,11 +13932,6 @@ $(document).ready(function () {
         }
     });
 
-    // Chargement initial basé sur le produit sélectionné
-    let produitId = $("#produit").find(":selected").data("produit_id");
-    if (produitId) {
-        chargementGarantiesProduitTable(produitId);
-    }
 
     // Surveiller les changements des cases à cocher
     $(document).on('change', '.garantie-checkbox', function () {
@@ -13830,7 +13990,266 @@ $(document).ready(function () {
         return cookieValue;
     }
 
+    $("#importation_aliment").on("click", function () {
+        const inputFichier = $("#fichier_aliment");
+        const fichier = inputFichier.prop("files")[0];
+
+        if (!fichier) {
+            inputFichier.css("border-color", "red");
+            $("#message-warning").text("Veuillez sélectionner un fichier.").delay(5000).fadeOut();
+            return;
+        }
+
+        inputFichier.css("border-color", "");
+
+        const formData = new FormData();
+        formData.append("fichier_aliment", fichier);
+
+        $.ajax({
+            url: "/production/import-excel-aliments/",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
+            success: function (response) {
+                if (response.success) {
+                    $("#message-success").text(response.message).show().delay(5000).fadeOut();
+                    // Appeler la fonction pour afficher les aliments dans le tableau
+                    afficherAliments(response.data);
+                } else {
+                    $("#message-warning").text(response.message).delay(5000).fadeOut();
+                }
+            },
+            error: function (xhr) {
+                // Gérer les erreurs 500 ou autres erreurs inattendues
+                const response = xhr.responseJSON;
+                if (xhr.status === 500) {
+                    $("#message-error").text(response?.message || "Une erreur interne du serveur est survenue. Veuillez réessayer plus tard.").show().delay(5000).fadeOut();
+                } else if (xhr.status === 400) {
+                    $("#message-warning").text(response?.message || "Erreur dans les données soumises. Veuillez vérifier votre fichier.").show().delay(5000).fadeOut();
+                } else {
+                    $("#message-error").text(response?.message || "Une erreur inattendue est survenue. Veuillez réessayer.").show().delay(5000).fadeOut();
+                }
+            },
+        });
+    });
+
+    $('#btn_save_police_aliment').on('click', function () {
+        // Supprimer les erreurs précédentes
+        $('.mod_aliment_champ_obligatoire').removeClass('is-invalid').removeClass('is-valid');
+        $('#message-modal-error').text('').hide();
+        $('#message-modal-warning').text('').hide();
+        $('#message-modal-success').text('').hide();
+
+        // Valider les champs obligatoires
+        let valide = true;
+        $('.mod_aliment_champ_obligatoire').each(function () {
+            if (!$(this).val().trim()) {
+                $(this).addClass('is-invalid'); // Ajouter classe invalide
+                valide = false;
+            } else {
+                $(this).removeClass('is-invalid')
+            }
+        });
+
+        if (!valide) {
+            // Afficher un message si un champ obligatoire est vide
+            $('#message-modal-error').text('Veuillez remplir tous les champs obligatoires.').show();
+            setTimeout(() => $('#message-modal-error').fadeOut(), 5000);
+            return;
+        }
+
+        // Récupérer les données du formulaire
+        const formData = new FormData($('#form_add_police_aliment')[0]);
+
+        // Requête Ajax pour envoyer les données au backend
+        $.ajax({
+            url: '/production/import-formulaire-aliments/',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    $("#message-modal-success").text(response.message).show().delay(5000).fadeOut();
+                    // Appeler la fonction pour afficher les aliments dans le tableau
+                    afficherAliments(response.data);
+                } else {
+                    $("#message-modal-warning").text(response.message).delay(5000).fadeOut();
+                }
+            },
+            error: function (xhr) {
+                // Gérer les erreurs 500 ou autres erreurs inattendues
+                const response = xhr.responseJSON;
+                if (xhr.status === 500) {
+                    $("#message-modal-error").text(response?.message || "Une erreur interne du serveur est survenue. Veuillez réessayer plus tard.").show().delay(5000).fadeOut();
+                } else if (xhr.status === 400) {
+                    $("#message-modal-warning").text(response?.message || "Erreur dans les données soumises. Veuillez vérifier votre fichier.").show().delay(5000).fadeOut();
+                } else {
+                    $("#message-modal-error").text(response?.message || "Une erreur inattendue est survenue. Veuillez réessayer.").show().delay(5000).fadeOut();
+                }
+            },
+        });
+    });
+
+    // Fonction pour afficher les aliments dans le tableau
+    function afficherAliments(aliments) {
+        const $table = $("#table_liste_aliment tbody"); // Sélecteur du tableau
+        $table.empty(); // Vider les anciennes données
+
+        aliments.forEach((aliment, index) => {
+            const row = `
+                <tr>
+                    <td><button class="btn btn-danger btn-sm" onclick="supprimerAliment(${index + 1})"><i class="fa fa-trash-o"></i></button></td>
+                    <td>${aliment.immat || ""}</td>
+                    <td>${aliment.marque || ""}</td>
+                    <td>${aliment.modele || ""}</td>
+                    <td>${aliment.T_categorie_id || ""}</td>
+                    <td>${aliment.date_entree || ""}</td>
+                    <td>${aliment.date_sortie || ""}</td>
+                    <td>${aliment.proprietaire || ""}</td>
+                    <td>${aliment.chauffeur || ""}</td>
+                </tr>
+            `;
+            $table.append(row); // Ajouter la ligne au tableau
+        });
+    }
+
+    $(document).on('click', '.btn-danger', function () {
+        const index = $(this).closest('tr').data('index');
+        supprimerAliment(index);
+    });
+
+    // Fonction pour supprimer un aliment via AJAX en utilisant l'index
+    function supprimerAliment(index) {
+        $.ajax({
+            url: `/production/supprimer_aliment/${index}/`,
+            type: 'POST',
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
+            success: function (response) {
+                if (response.success) {
+                    // Si la suppression est réussie, supprime la ligne correspondante du tableau
+                    $(`tr[data-index="${index}"]`).remove();
+                } else {
+                    console.error(response.error || 'Erreur lors de la suppression.');
+                }
+            },
+            error: function () {
+                console.error('Erreur de communication avec le serveur.');
+            }
+        });
+    }
+
 });
 
 
+$(document).ready(function () {
+    // Initialisation lors du chargement de la page
+    $(".typecompagnie").prop("checked", false).prop("disabled", true);
+    $("#box_compagnie, #box_compagnie_modification").hide();
+
+    // Activer les boutons radio seulement si une compagnie est choisie
+    $("#compagnie").on("change", function () {
+        const selectedCompagnieId = $(this).val();
+
+        if (selectedCompagnieId) {
+            $(".typecompagnie").prop("disabled", false);
+        } else {
+            $(".typecompagnie").prop("checked", false).prop("disabled", true);
+            $("#box_compagnie").hide();
+            $("#compagnie_id").empty().append('<option value="">Choisir</option>');
+        }
+    });
+
+    // Gestion de l'affichage dynamique des compagnies lors de l'enregistrement
+    $(".typecompagnie").on("change", function () {
+        const selectedTypeId = $(this).val();
+        const selectedCompagnieId = $("#compagnie").val();
+
+        if (selectedTypeId) {
+            $("#box_compagnie").show();
+            $.ajax({
+                url: "/production/get_compagnies/",
+                method: "GET",
+                data: {
+                    type_id: selectedTypeId,
+                    exclude_compagnie_id: selectedCompagnieId
+                },
+                success: function (response) {
+                    const compagnieSelect = $("#compagnie_id");
+                    compagnieSelect.empty();
+                    compagnieSelect.append('<option value="">Choisir</option>');
+                    response.compagnies.forEach(function (compagnie) {
+                        compagnieSelect.append(`<option value="${compagnie.id}">${compagnie.nom}</option>`);
+                    });
+                },
+                error: function () {
+                    alert("Une erreur est survenue lors du chargement des compagnies.");
+                }
+            });
+        } else {
+            $("#box_compagnie").hide();
+        }
+    });
+
+    // Gestion pour la modification
+    const selectedCompagnieId = $("#compagnie_modification").val();
+    const selectedTypeId = $("input[name='typecompagnie']:checked").val();
+
+    if (selectedTypeId) {
+        $("#box_compagnie_modification").show();
+    }
+
+    $("#compagnie_modification").on("change", function () {
+        const compagnieId = $(this).val();
+
+        if (compagnieId) {
+            $(".typecompagnie").prop("disabled", false);
+        } else {
+            $(".typecompagnie").prop("checked", false).prop("disabled", true);
+            $("#box_compagnie_modification").hide();
+            $("#compagnie_id").empty().append('<option value="">Choisir</option>');
+        }
+    });
+
+    $(".typecompagnie").on("change", function () {
+        const typeId = $(this).val();
+        const compagnieId = $("#compagnie_modification").val();
+        alert(compagnieId);
+        if (typeId) {
+            $("#box_compagnie_modification").show();
+            $.ajax({
+                url: "/production/get_compagnies/",
+                method: "GET",
+                data: {
+                    type_id: typeId,
+                    exclude_compagnie_id: compagnieId
+                },
+                success: function (response) {
+                    const compagnieSelect = $("#compagnie_id");
+                    compagnieSelect.empty();
+                    compagnieSelect.append('<option value="">Choisir</option>');
+                    response.compagnies.forEach(function (compagnie) {
+                        compagnieSelect.append(`<option value="${compagnie.id}" ${compagnie.id === selectedCompagnieId ? "selected" : ""}>${compagnie.nom}</option>`);
+                    });
+                },
+                error: function () {
+                    alert("Une erreur est survenue lors du chargement des compagnies.");
+                }
+            });
+        } else {
+            $("#box_compagnie_modification").hide();
+        }
+    });
+
+    // Rendre le champ non obligatoire si la liste des compagnies est masquée
+    $("form").on("submit", function (e) {
+        if ($("#box_compagnie").is(":hidden") || $("#box_compagnie_modification").is(":hidden")) {
+            $("#compagnie_id").prop("required", false);
+        } else {
+            $("#compagnie_id").prop("required", true);
+        }
+    });
+});
 
