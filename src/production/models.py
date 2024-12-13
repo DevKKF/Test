@@ -1942,3 +1942,35 @@ class CarteDigitalDematerialisee(models.Model):
         db_table = 'cartes_digital_dematerialisees'
         verbose_name = 'Carte Digital Dématérialisée'
         verbose_name_plural = 'Cartes Digital Dématérialisées'
+
+
+
+
+# Les choix pour le champ service
+SERVICE_CHOICES = [
+    ('production', 'Production'),
+    ('sinistre', 'Sinistre'),
+    ('comptabilite', 'Comptabilité'),
+]
+
+# Les choix pour le champ status
+STATUS_CHOICES = [
+    ('Actif', 'Actif'),
+    ('Inactive', 'Inactive'),
+]
+
+class Courrier(models.Model):
+    designation = models.CharField(max_length=255)
+    lien_fichier = models.CharField(max_length=50, blank=True, null=True)
+    service = models.CharField(max_length=50, choices=SERVICE_CHOICES)
+    produit = models.ForeignKey(Produit, blank=True, null=True, on_delete=models.RESTRICT)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Inactif')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    def __str__(self):
+        return f" {self.designation} - {self.service} - {self.status} - {self.created_at} "
+
+    class Meta:
+        db_table = "production_courrier"

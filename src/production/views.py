@@ -10,6 +10,8 @@ from pprint import pprint
 import math
 from sqlite3 import Date
 from datetime import date
+from venv import create
+
 from django.db.models import Max
 
 import openpyxl
@@ -20,6 +22,7 @@ import pandas as pd
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.utils.html import escape
 from django.contrib.auth.models import Group
 from django.core import serializers
 from django.core.files.storage import FileSystemStorage
@@ -41,6 +44,7 @@ from django.views.generic import TemplateView, ListView
 from django_dump_die.middleware import dd
 # from django_dump_die.middleware import dd
 from fpdf import FPDF
+from urllib3 import request
 from xhtml2pdf import pisa
 from datetime import datetime, timezone
 from django.core.exceptions import ObjectDoesNotExist
@@ -59,7 +63,7 @@ from inov import settings
 from production.forms import ContactForm, FilialeForm, AcompteForm, DocumentForm, PoliceForm, PhotoUploadForm
 from production.helper_production import create_alimet_helper
 from production.models import FormuleRubriquePrefinance, ModePrefinancement, Motif, Mouvement, Aliment, Client, Police, \
-    Acompte, Document, Filiale, AutreRisque, PoliceGarantie, AlimentPolice, HistoriqueVehicule, PoliceAssureur,  \
+    Acompte, Document, Filiale, AutreRisque, PoliceGarantie, AlimentPolice, HistoriqueVehicule, PoliceAssureur, Courrier, \
     Contact, Quittance, SecteurActivite, TypeDocument, AlimentFormule, Statut, FormuleGarantie, MouvementPolice, StatutQuittance, \
     Genre, StatutFamilial, PlacementEtGestion, ModeRenouvellement, CalculTM, ApporteurPolice, TaxePolice, \
     TaxeQuittance, Reglement, OptionYesNo, Carte, TypeMajorationContrat, Vehicule, VehiculePolice, Energie, \
@@ -74,6 +78,7 @@ from shared.veos import get_taux_euro_by_devise, get_taux_usd_by_devise, send_cl
 from sinistre.models import Sinistre, DossierSinistre
 import traceback
 from django.core.files.base import File
+
 
 
 ## INOV API MOBILE
@@ -2367,6 +2372,7 @@ def formules_by_police(request, police_id):
     formules_serialize = serializers.serialize('json', formules)
 
     return HttpResponse(formules_serialize, content_type='application/json')
+
 
 @login_required
 def polices_restantes(request, police_id):
@@ -7514,6 +7520,162 @@ def add_formule_universelle(request):
 
 
 @method_decorator(login_required, name='dispatch')
+
+class CourrierView(TemplateView):
+    template_name = 'police/courrier.html'
+    model = Courrier
+
+    def get(self, request, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+        police_id = kwargs.get('police_id')
+
+            # Vérification de la police
+        police = Police.objects.filter(id=police_id,bureau=request.user.bureau,statut_validite=StatutValidite.VALIDE).first()
+
+        if police:
+            courriers = Courrier.objects.all() # Récupère tous les courriers
+            produits = Produit.objects.all()
+            today = timezone.now().date()
+
+            context = {
+                'police': police,  # Passe l'objet Police au template
+                'courriers': courriers,  # Passe les courriers au template
+                'produits': produits,
+                'today': today,
+            }
+
+            return self.render_to_response(context)
+
+        else:
+            return redirect("clients")
+
+    def get_context_data(self, **kwargs):
+        # Ajout du contexte original enrichi avec admin.site.each_context
+        context = super().get_context_data(**kwargs)
+        context.update(admin.site.each_context(self.request))  # Contexte admin
+        context['opts'] = self.model._meta  # Options du modèle Courrier
+        return context
+
+
+@login_required()
+def add_courrier(request, police_id):
+    police = Police.objects.get(id=police_id)
+    if police and request.method == 'POST':
+
+        produit_id = request.POST.get('produit')
+        produit = get_object_or_404(Produit, id=produit_id)
+
+        courrier_created = Courrier.objects.create(
+            designation = request.POST.get('designation'),
+            lien_fichier = request.POST.get('lien_fichier'),
+            service = request.POST.get('service'),
+            produit = produit,
+            status = request.POST.get('status')
+        )
+
+    response = {
+        'statut': 1,
+        'message': "Enregistrement effectuée avec succès !",
+        'data': {
+            'designation': courrier_created.designation,
+            'service':courrier_created.service,
+            'lien_fhichier': courrier_created.lien_fichier,
+            'status': courrier_created.status,
+            'created_at': courrier_created.created_at,
+        }
+    }
+
+    return JsonResponse(response)
+
+
+
+
+def modifier_courrier(request, courrier_id):
+    courrier = get_object_or_404(Courrier, id=courrier_id)
+
+    if request.method == 'POST':
+
+        courrier_before = courrier
+        pprint(courrier_before)
+
+        # Récupérer les champs envoyés par le formulaire
+        produit_id = request.POST.get('produit')
+        designation = request.POST.get('designation')
+        lien_fichier = escape(request.POST.get('lien_fichier'))
+        service = escape(request.POST.get('service'))
+        status = request.POST.get('statut')
+
+
+        if produit_id:
+            produit_id = int(produit_id)
+            produit = get_object_or_404(Produit, id=produit_id)
+        else:
+            produit = None
+
+        # Mettre à jour les champs
+        courrier.produit = produit
+        courrier.designation = designation
+        courrier.lien_fichier = lien_fichier
+        courrier.service = service
+        courrier.status = status
+
+        # Sauvegarder les modifications
+        courrier.save()
+
+        # Log d'action (si nécessaire)
+        ActionLog.objects.create(
+            done_by=request.user,
+            action="update",
+            description="Modification d'un courrier",
+            table="courrier",
+            row=courrier.pk,
+        )
+
+        # Retourner une réponse JSON pour AJAX
+        return JsonResponse({
+            'statut': 1,
+            'message': "Courrier modifié avec succès !"
+        })
+
+    else:
+        courriers = Courrier.objects.all()  # Options pour les services et statuts
+        produits = Produit.objects.all()
+        today = datetime.datetime.now(tz=timezone.utc)
+        return render(request, 'police/modal_courrier_update.html', {
+            'courrier': courrier,
+            'produits': produits,
+            'today': today,
+        })
+
+
+@login_required()
+def supprimer_courrier(request):
+    if request.method == "POST":
+        courrier_id = request.POST.get('courrier_id')
+
+        try:
+            courrier = Courrier.objects.get(id=courrier_id)
+            courrier.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Courrier supprimé avec succès !",
+            }
+
+        except Courrier.DoesNotExist:
+            response = {
+                'statut': 0,
+                'message': "Courrier introuvable !",
+            }
+
+        return JsonResponse(response)
+
+    return JsonResponse({'statut': 0, 'message': "Requête invalide !"}, status=400)
+
+
+
+
 class FormulesView(TemplateView):
     # permission_required = "production.view_formules"
     template_name = 'police/formules.html'

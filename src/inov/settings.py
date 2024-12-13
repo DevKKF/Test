@@ -297,12 +297,12 @@ JAZZMIN_SETTINGS = {
                 "icon": "fa fa-money",
                 "permissions": ["sinistre.can_do_ordonnancement"],
             },
-            {
-                "name": "Bordereaux ordonnancés",
-                "url": "bordereaux_ordonnances",
-                "icon": "far fa-credit-card",
-                "permissions": ["sinistre.can_view_bordereaux_ordonnancement"],
-            },
+            # {
+            #     "name": "Bordereaux ordonnancés",
+            #     "url": "bordereaux_ordonnances",
+            #     "icon": "far fa-credit-card",
+            #     "permissions": ["sinistre.can_view_bordereaux_ordonnancement"],
+            # },
             {
                 "name": "Bordereaux payés",
                 "url": "bordereaux_payes",
@@ -336,33 +336,33 @@ JAZZMIN_SETTINGS = {
             },
         ],
         "comptabilite": [
+            # {
+            #     "name": "Bordereaux payés",
+            #     "url": "bordereaux_payes_compta",
+            #     # "icon": "fa fa-times",
+            #     "permissions": ["comptabilite.can_do_reglement_compagnie"],
+            # },
+            # {
+            #     "name": "Edition de lettre chèque",
+            #     "url": "edition-lettre-cheque",  #
+            #     # "icon": "fa fa-times",
+            #     "permissions": ["comptabilite.can_do_reglement_compagnie"],
+            # },
+            # {
+            #     "name": "Historique des lettres Chèques",
+            #     "url": "admin:configurations_bordereaulettrecheque_changelist",
+            #     # "icon": "far fa-file-excel-o",
+            #     # "icon": "fa fa-list",
+            #     # "permissions": ["configuration.can_do_reglement_compagnie"]
+            # },
+            # {
+            #     "name": "Paiements réalisés",
+            #     "url": "paiements-realises",  #
+            #     # "icon": "fa fa-times",
+            #     "permissions": ["comptabilite.can_do_reglement_compagnie"],
+            # },
             {
-                "name": "Bordereaux payés",
-                "url": "bordereaux_payes_compta",
-                # "icon": "fa fa-times",
-                "permissions": ["comptabilite.can_do_reglement_compagnie"],
-            },
-            {
-                "name": "Edition de lettre chèque",
-                "url": "edition-lettre-cheque",  #
-                # "icon": "fa fa-times",
-                "permissions": ["comptabilite.can_do_reglement_compagnie"],
-            },
-            {
-                "name": "Historique des lettres Chèques",
-                "url": "admin:configurations_bordereaulettrecheque_changelist",
-                # "icon": "far fa-file-excel-o",
-                # "icon": "fa fa-list",
-                # "permissions": ["configuration.can_do_reglement_compagnie"]
-            },
-            {
-                "name": "Paiements réalisés",
-                "url": "paiements-realises",  #
-                # "icon": "fa fa-times",
-                "permissions": ["comptabilite.can_do_reglement_compagnie"],
-            },
-            {
-                "name": "Règlements compagnies",
+                "name": "Règlements assureur",
                 "url": "reglements_compagnies",
                 "icon": "fa fa-money",
                 "permissions": ["comptabilite.can_do_reglement_compagnie"],
@@ -373,12 +373,12 @@ JAZZMIN_SETTINGS = {
                 "icon": "fa fa-money",
                 "permissions": ["comptabilite.can_do_reglement_compagnie"],
             },
-            {
-                "name": "Encais. com. gestion",
-                "url": "encaissement_commissions_court_gest_gestion",
-                "icon": "fa fa-money",
-                "permissions": ["comptabilite.can_do_reglement_compagnie"],
-            },
+            # {
+            #     "name": "Encais. com. gestion",
+            #     "url": "encaissement_commissions_court_gest_gestion",
+            #     "icon": "fa fa-money",
+            #     "permissions": ["comptabilite.can_do_reglement_compagnie"],
+            # },
             # {
             #    "name": "Règlements Apporteurs",
             #    "url": "reglements_apporteurs",
@@ -386,50 +386,56 @@ JAZZMIN_SETTINGS = {
             #    "permissions": ["comptabilite.can_do_reglement_compagnie"]
             # },
             # A commenter sur jusqu'à la mise en prod de ces fonctionnalités
-            {
-                "name": "Fonds de roulements",
-                "url": "initialisation_fonds_de_roulements",
-                # "icon": "fa fa-times",
-                "permissions": ["comptabilite.can_do_reglement_compagnie"],
-            },
-            {
-                "name": "Refacturation garant",
-                "url": "refacturation_assureur",
-                # "icon": "fa fa-times",
-                "permissions": [
-                    "comptabilite.can_do_reglement_compagnie"
-                ],  # remplacer sinistre par comptabilite
-            },
-            {
-                "name": "Suivi factures garants",
-                "url": "factures_compagnies",
-                # "icon": "fa fa-times",
-                "permissions": ["comptabilite.can_do_reglement_compagnie"],
-            },
-            {
-                "name": "Suivi de la tresorerie",
-                "url": "suivi-tresorerie",
-                # "icon": "fa fa-chart-pie",
-                "permissions": [
-                    "comptabilite.can_do_reglement_compagnie"
-                ],  # remplacer sinistre par comptabilite
-            },
+            # {
+            #     "name": "Fonds de roulements",
+            #     "url": "initialisation_fonds_de_roulements",
+            #     # "icon": "fa fa-times",
+            #     "permissions": ["comptabilite.can_do_reglement_compagnie"],
+            # },
+            # {
+            #     "name": "Refacturation garant",
+            #     "url": "refacturation_assureur",
+            #     # "icon": "fa fa-times",
+            #     "permissions": [
+            #         "comptabilite.can_do_reglement_compagnie"
+            #     ],  # remplacer sinistre par comptabilite
+            # },
+            # {
+            #     "name": "Suivi factures garants",
+            #     "url": "factures_compagnies",
+            #     # "icon": "fa fa-times",
+            #     "permissions": ["comptabilite.can_do_reglement_compagnie"],
+            # },
+            # {
+            #     "name": "Suivi de la tresorerie",
+            #     "url": "suivi-tresorerie",
+            #     # "icon": "fa fa-chart-pie",
+            #     "permissions": [
+            #         "comptabilite.can_do_reglement_compagnie"
+            #     ],  # remplacer sinistre par comptabilite
+            # },
             # A commenter sur jusqu'à la mise en prod de ces fonctionnalités
-            {
-                "name": "Exec. requêtes excel",
-                "url": "execution_requete_excel_compta",
-                "icon": "far fa-file-excel-o",
-                # "permissions": ["sinistre.can_view_bordereaux_ordonnancement"]
-            },
-            {
-                "name": "Requête en arrière-plan",
-                "url": "admin:configurations_backgroundquerytask_changelist",
-                "icon": "far fa-file-excel-o",
-                # "icon": "fa fa-list",
-                # "permissions": ["configuration.can_view_backgroundquerytask"]
-            },
+            # {
+            #     "name": "Exec. requêtes excel",
+            #     "url": "execution_requete_excel_compta",
+            #     "icon": "far fa-file-excel-o",
+            #     # "permissions": ["sinistre.can_view_bordereaux_ordonnancement"]
+            # },
+            # {
+            #     "name": "Requête en arrière-plan",
+            #     "url": "admin:configurations_backgroundquerytask_changelist",
+            #     "icon": "far fa-file-excel-o",
+            #     # "icon": "fa fa-list",
+            #     # "permissions": ["configuration.can_view_backgroundquerytask"]
+            # },
         ],
         "configurations": [
+            # {
+            #     "name": "Gestion Ws Boby",
+            #     "url": "ws_bobys",
+            #     # "icon": "fa fa-times",
+            #     "permissions": ["configurations.view_wsbooby"],
+            # },
             #{
                 #"name": "Gestion Ws Boby",
                 #"url": "ws_bobys",

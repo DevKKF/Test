@@ -764,7 +764,7 @@ def requete_analyse_prime_compta(request):
             c.police.client.code if hasattr(c.police.client, 'code') else '', #3
             nom_client, #4
             # c.police.famille_branche if hasattr(c.police, 'famille_branche') else '', #5
-            c.police.produit.branche if hasattr(c.police, 'branche') else 'SANTE',  #6
+            c.police.produit.branche if hasattr(c.police, 'Branches') else 'SANTE',  #6
             # c.police.client.groupe if hasattr(c.police.client, 'groupe') else '',#7
             # c.police.groupe_compagnie if hasattr(c.police, 'groupe_compagnie') else '', #8
             c.police.compagnie.nom if hasattr(c.police, 'compagnie') else '', #9
@@ -1063,7 +1063,7 @@ def requete_analyse_prime_compta_apporteur(request):
             c.police.client.code if hasattr(c.police.client, 'code') else '', #4
             nom_client, #5
             c.police.produit.famille_branche if hasattr(c.police, 'famille_branche') else 'ASSURANCE DE PERSONNES', #6 --
-            c.police.produit.branche if hasattr(c.police, 'branche') else 'SANTE',  #7
+            c.police.produit.branche if hasattr(c.police, 'Branches') else 'SANTE',  #7
             groupe_compagnie if groupe_compagnie else '', #8 -- groupe_compagnie
             c.police.compagnie.nom if hasattr(c.police, 'compagnie') else '', #9
             c.police.numero if hasattr(c.police, 'numero') else '', #10

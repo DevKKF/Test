@@ -465,7 +465,7 @@ class Devise(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.libelle
+        return f"{self.libelle} - {self.code} "
 
     class Meta:
         db_table = 'devises'
@@ -1230,7 +1230,7 @@ class Affection(models.Model):
     categorie = models.ForeignKey(CategorieAffection, on_delete=models.RESTRICT, null=True)
 
     def __str__(self):
-        return self.libelle
+        return f"{self.libelle} - {self.status} - {self.code_cim_10} - {self.status}"
 
     class Meta:
         db_table = 'affections'
@@ -1380,10 +1380,10 @@ class Branche(models.Model):
     status = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.nom
+        return f"{self.code} - {self.status} - {self.nom} "
 
     class Meta:
-        db_table = 'branche'
+        db_table = 'Branche'
         verbose_name = 'Branche'
         verbose_name_plural = 'Branches'
 
@@ -1764,7 +1764,7 @@ class ApporteurInternational(models.Model):
     status = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.nom
+        return f"{self.nom} - {self.code} - {self.status} - {self.pays}"
 
 
     class Meta:
@@ -1792,7 +1792,7 @@ class Apporteur(models.Model):
     status = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.nom
+        return f"{self.nom} - {self.code} - {self.telephone} -{self.adresse} - {self.status} - {self.pays}"
 
 
     class Meta:
@@ -2621,3 +2621,6 @@ class GarantieFormule(models.Model):
         db_table = 'garantie_formule'
         verbose_name = 'Garanties / Formules'
         verbose_name_plural = 'Garanties / Formules'
+
+
+

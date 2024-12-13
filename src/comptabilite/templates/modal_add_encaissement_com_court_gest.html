@@ -5,21 +5,21 @@
 			{% csrf_token %}
 			<input type="hidden" id="com_type" value="{{ type }}">
 			<div class="modal-header">
-				<h4 class="modal-title">{% if type == "courtage" %}{{ _("FORMULAIRE_D_ENCAISSEMENT_DE_COMMISSION_DE_COURTAGE") }} {% else %} {{ _("FORMULAIRE_D_ENCAISSEMENT_DE_COMMISSION_DE_GESTION") }} {% endif %}</b></h4>
+				<h4 class="modal-title">{% if type == "courtage" %}{{ _("FORMULAIRE D'ENCAISSEMENT DE COMMISSION DE COURTAGE") }} {% else %} {{ _("FORMULAIRE D'ENCAISSEMENT DE COMMISSION DE GESTION") }} {% endif %}</b></h4>
 				<button type="button"class="close"data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">×</span>
 				</button>
 			</div>
 			<div class="modal-body">
 				<div class="alert  alert-dismissible fade show hidden" role="alert">
-				  <span class="message"> {{ _('TRAITEMENT_EN_COURS') }}</span>
+				  <span class="message"> {{ _('TRAITEMENT EN COURS') }}</span>
 				</div>
 				<div class="col-md-12 offset-0">
 					<div class="row">
 						<div class="col-md-6">
 
 							<div class="form-group row">
-									<label class="col-sm-6 col-form-label">{{ _("Compte_d_encaissement") }} <span class="required">*</span></label>
+									<label class="col-sm-6 col-form-label">{{ _("Compte d'encaissement") }} <span class="required">*</span></label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="compte_tresorerie" id="compte_tresorerie" required>
 										<option value="" selected>{{ _('Choisir') }}</option>
@@ -58,7 +58,7 @@
  							{% endcomment %}
 						
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Banque_emettrice') }}</label>
+								<label class="col-sm-6 col-form-label">{{ _('Banque emettrice') }}</label>
 								<div class="col-sm-6">
 									<input type="text" class="form-control alpha_num_n_space_input" name="banque_emettrice" id="banque_emettrice"/>
 								</div>
@@ -69,7 +69,7 @@
 						<div class="col-md-6" style="border-left:0px;margin-left:-10px;padding-left:20px;">
 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _("Mode_d_encaissement") }} <span class="required">*</span></label>
+								<label class="col-sm-6 col-form-label">{{ _("Mode d'encaissement") }} <span class="required">*</span></label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="mode_reglement" id="mode_reglement" required>
 										<option value="">{{ _('Choisir') }}</option>
@@ -81,7 +81,7 @@
 							</div>
 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Date_encaissement') }} <span class="required">*</span></label>
+								<label class="col-sm-6 col-form-label">{{ _('Date encaissement') }} <span class="required">*</span></label>
 								<div class="col-sm-6">
 									<input type="date" class="form-control" name="date_paiement" value="{{ today|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}"  max="{{ today|date:'Y-m-d' }}" readonly required/>
 								</div>
@@ -116,34 +116,34 @@
 		 				{% endcomment %}
 						</div>
 					</div>
-					<div class="row table-responsive text-nowrap" style="border-top:1px solid #eee;"><span>{{ _('Liste_des_reglements_reverses') }}</span>
+					<div class="row table-responsive text-nowrap" style="border-top:1px solid #eee;"><span>{{ _('Liste des reglements reverses') }}</span>
 						<div id="box_reglements_reverses">
 							<!-- LISTE A CHARGER DYNAMIQUEMENT  -->
 							<table class="table table-bordered table-striped dataTable0 dtr-inline" id="table_reglements_reverses">
 							  <thead>
 								<tr>
 								<th scope="col" width="2%"></th>
-								<th scope="col" width="10%">{{_('Numero_Reg_client') }}</th>
-								<th scope="col" width="10%">{{_('Numero_Piece') }}</th>
+								<th scope="col" width="10%">{{_('Numero Reg client') }}</th>
+								<th scope="col" width="10%">{{_('Numero Piece') }}</th>
 								{% if type == "courtage" %}
-								<th scope="col" width="7%">{{_('Com_court') }}</th>
-								<th scope="col" width="10%">{{_('Com_court_enc') }}</th>
+								<th scope="col" width="7%">{{_('Com court') }}</th>
+								<th scope="col" width="10%">{{_('Com court enc') }}</th>
                         		{% else %}
-								<th scope="col" width="7%">{{_('Com_gest') }}</th>
-								<th scope="col" width="10%">{{_('Com_gest_enc') }}</th>
+								<th scope="col" width="7%">{{_('Com gest') }}</th>
+								<th scope="col" width="10%">{{_('Com gest enc') }}</th>
                         		{% endif %}
 								<th scope="col" width="9%">{{_('Montant Restant') }}</th>
-								<th scope="col" width="10%">{{_('Numero_Quittance') }}</th>
+								<th scope="col" width="10%">{{_('Numero Quittance') }}</th>
 								<th scope="col" width="11%">{{_('Client') }}</th>
-								<th scope="col" width="7%">{{_('Mt_Reg_clt') }}</th>
-								<th scope="col" width="7%">{{_('Mt_CIE') }}</th>
+								<th scope="col" width="7%">{{_('Mt Reg clt') }}</th>
+								<th scope="col" width="7%">{{_('Mt CIE') }}</th>
 								{% comment %} <th scope="col">{{ _('Com Apport') }}</th> {% endcomment %}
 								{% comment %} <th scope="col">{{ _('Date Reversement') }}</th> {% endcomment %}
 								</tr>
 							  </thead>
 							  <tbody>
 							  	<tr>
-								  <td colspan="15" style="text-align:center;">{{ _('Selectionner_une_compagnie_pour_charger_la_liste') }}</td>
+								  <td colspan="15" style="text-align:center;">{{ _('Selectionner une compagnie pour charger la liste') }}</td>
 								</tr>
 							  </tbody>
 							</table>
