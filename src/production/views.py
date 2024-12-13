@@ -1380,7 +1380,7 @@ def modifier_police(request, police_id):
                     if not apporteur_existant:
 
                         # Vider la table intermédiaire pour ajouter les nouveaux
-                        ApporteurPolice.objects.filter(police_id=police_id).update(statut_validite=StatutValidite.SUPPRIME, updated_at=datetime.datetime.now(tz=timezone.utc))
+                        ApporteurPolice.objects.filter(police_id=police_id).update(statut_validite=StatutValidite.SUPPRIME, updated_at=datetime.now(tz=timezone.utc))
 
                         ApporteurPolice.objects.create(police_id=police.id, apporteur_id=apporteur_id,
                                                     base_calcul_id=base_calcul, taux_com_affaire_nouvelle=taux_com_an,
@@ -1425,26 +1425,28 @@ def modifier_police(request, police_id):
                     capital=capital if capital else None,
                 )
 
-        # Mise à jour de police assureur
-        police_assureur_old = PoliceAssureur.objects.filter(type_compagnie_id=typecompagnie_prin.id).first()
-
-        if police_assureur_old:
-            police_assureur_old.type_compagnie_id = typecompagnie_prin.id
-            police_assureur_old.compagnie_id = compagnie.id
-            police_assureur_old.historique_police_id = historique_police.id
-            police_assureur_old.save()
-        else:
-            # Gérer le cas où aucun objet n'est trouvé (facultatif)
-            print("Aucune police assureur trouvée pour ce type de compagnie.")
+        # Créer un nouveau assureur principal
+        police_assureur = PoliceAssureur(
+            client_id=police.client_id,
+            historique_police_id=historique_police.id,
+            type_compagnie_id=typecompagnie_prin.id,
+            compagnie_id=compagnie.id,
+            date_creation=datetime.now(),
+            created_by=request.user
+        )
+        police_assureur.save()
 
         # Si type_compagnie est choisi avec une autre compagnie choisie
         if typecompagnie and compagnie_id:
-            police_assureur_autre_old = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id)
-            if police_assureur_autre_old:
-                police_assureur_autre_old.historique_police_id=historique_police.id
-                police_assureur_autre_old.type_compagnie_id=typecompagnie
-                police_assureur_autre_old.compagnie_id=compagnie_id
-                police_assureur_autre_old.save()
+            police_assureur_autre = PoliceAssureur(
+                client_id=police.client_id,
+                historique_police_id=historique_police.id,
+                type_compagnie_id=typecompagnie,
+                compagnie_id=compagnie_id,
+                date_creation=datetime.now(),
+                created_by=request.user
+            )
+            police_assureur_autre.save()
 
         # enregistrer les autres taxes
         taxes = request.POST.get('liste_autres_taxes_modification')
@@ -1466,7 +1468,7 @@ def modifier_police(request, police_id):
             'data': {
                 'id': police.pk,
                 'numero': police.numero,
-                'compagnie': police_assureur_old.compagnie.nom,
+                'compagnie': police_assureur.compagnie.nom,
                 'prime_ht': historique_police.prime_ht,
                 'prime_ttc': historique_police.prime_ttc,
                 'commission_courtage': historique_police.commission_courtage,
