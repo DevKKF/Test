@@ -9,7 +9,7 @@ from import_export.admin import ImportExportModelAdmin
 from django import forms
 from admin_custom.admin import custom_admin_site
 from configurations.forms import ActionLogForm, PermissionForm, RegroupementActeForm, SousRubriqueForm, StatExcelWsBobyForm, TarifForm, \
-    CompagnieAdminForm, BanqueAdminForm, SousRegroupementActeForm, ApporteurInternationalForm, GroupeInterForm
+    CompagnieAdminForm, BanqueAdminForm, SousRegroupementActeForm, ApporteurInternationalForm, GroupeInterForm, GarantieBrancheForm, GarantieFormuleForm
 from configurations.models import *
 from production.models import Quittance, SecteurActivite, TypeDocument, TarifPrestataireClient, Mouvement, Motif
 
@@ -141,14 +141,14 @@ class UtilisateurVeosAdmin(ImportExportModelAdmin):
     search_fields = ('NOM', 'PRENOM', 'CODE', 'LOGIN', 'EMAIL', 'ID_PRESTA', 'NUM_PRESTA', 'NOM_PRESTA', 'SOCIETE')
     list_per_page = 10
 
-#
-# class UtilisateurGrhVeosAdmin(ImportExportModelAdmin):
-#     list_display = ('NOM', 'LOGIN', 'ADMIN', 'SUPERVUE', 'ACCES_SANTE',
-#                     'NOM_CLIENT', 'CODE_CLIENT')
-#
-#     search_fields = ('NOM', 'LOGIN', 'ADMIN', 'SUPERVUE', 'ACCES_SANTE',
-#                     'NOM_CLIENT', 'CODE_CLIENT')
-#     list_per_page = 10
+
+class UtilisateurGrhVeosAdmin(ImportExportModelAdmin):
+    list_display = ('NOM', 'LOGIN', 'ADMIN', 'SUPERVUE', 'ACCES_SANTE',
+                    'NOM_CLIENT', 'CODE_CLIENT')
+
+    search_fields = ('NOM', 'LOGIN', 'ADMIN', 'SUPERVUE', 'ACCES_SANTE',
+                    'NOM_CLIENT', 'CODE_CLIENT')
+    list_per_page = 10
 
 
 class ChangementFormuleAdmin(ImportExportModelAdmin):
@@ -160,9 +160,9 @@ class ChangementFormuleAdmin(ImportExportModelAdmin):
     list_per_page = 10
 
 
-# class PrescripteurVeosAdmin(ImportExportModelAdmin):
-#     list_display = ('id_per', 'numero', 'nom', 'prenom', 'specialite', 'email',
-#                     'telephone', 'ID_PRESTA', 'NUM_PRESTA', 'NOM_PRESTA')
+class PrescripteurVeosAdmin(ImportExportModelAdmin):
+    list_display = ('id_per', 'numero', 'nom', 'prenom', 'specialite', 'email',
+                    'telephone', 'ID_PRESTA', 'NUM_PRESTA', 'NOM_PRESTA')
     
     search_fields = ('id_per', 'numero', 'nom', 'prenom', 'specialite', 'NUM_PRESTA', 'NOM_PRESTA')
     list_per_page = 10
@@ -283,10 +283,10 @@ class CompagnieAdmin(admin.ModelAdmin):
 class MotifAdmin(admin.ModelAdmin):
     list_display = ('code','libelle',)
 
-# class PrescripteurAdmin(ImportExportModelAdmin):
-#     list_filter = ('nom', 'prenoms', 'numero_ordre')
-#     list_display = ('nom', 'prenoms', 'numero_ordre', 'telephone', 'email',)
-#     search_field = ('nom', 'prenoms', 'numero_ordre')
+class PrescripteurAdmin(ImportExportModelAdmin):
+    list_filter = ('nom', 'prenoms', 'numero_ordre')
+    list_display = ('nom', 'prenoms', 'numero_ordre', 'telephone', 'email',)
+    search_field = ('nom', 'prenoms', 'numero_ordre')
 
 class TypePrestataireSpecialiteInline(admin.TabularInline):
     model = SpecialiteTypePresta
@@ -306,12 +306,12 @@ class PrescripteurPrestataireInline(admin.TabularInline):
     extra = 0
 
 
-# class PrestataireAdmin(ImportExportModelAdmin):
-#     inlines = [TarifPrestataireClientInline, PrescripteurPrestataireInline] #, PrestataireReseauxInline,
-#     list_filter = ('name', 'bureau')
-#     list_display = ('name', 'code', 'telephone', 'fax', 'email', 'addresse', 'bureau','fichier_tarifs',)
-#     search_field = ('name', 'bureau')
-#     list_per_page = 10
+class PrestataireAdmin(ImportExportModelAdmin):
+    inlines = [TarifPrestataireClientInline, PrescripteurPrestataireInline] #, PrestataireReseauxInline,
+    list_filter = ('name', 'bureau')
+    list_display = ('name', 'code', 'telephone', 'fax', 'email', 'addresse', 'bureau','fichier_tarifs',)
+    search_field = ('name', 'bureau')
+    list_per_page = 10
 
 
     # overide save_model method to process other actions
@@ -1067,6 +1067,87 @@ class BusinessUnitAdmin(ImportExportModelAdmin):
     search_field = ('libelle', 'status', 'created_at')
     list_per_page = 10
 
+class GarantieBrancheAdmin(admin.ModelAdmin):
+    form = GarantieBrancheForm
+
+    list_display = ['branche', 'get_garanties', 'status', 'created_at', 'updated_at']
+    list_filter = ['branche', 'status']
+    search_fields = ['branche__nom', 'garantie__nom']
+
+    def save_model(self, request, obj, form, change):
+        """
+        Gérer la sauvegarde en associant branche et garanties via IDs
+        """
+        branche = form.cleaned_data['branche']
+        garanties_selected = form.cleaned_data['garanties']
+        status = form.cleaned_data['status']
+
+        # Supprimer les anciennes associations pour la branche
+        GarantieBranche.objects.filter(branche=branche).delete()
+
+        try:
+            # Créer les nouvelles associations
+            GarantieBranche.objects.bulk_create([
+                GarantieBranche(
+                    branche=branche,
+                    garantie=garantie,
+                    status=status
+                ) for garantie in garanties_selected
+            ])
+        except Exception as e:
+            self.message_user(request, f"Erreur : {e}", level='error')
+
+    def get_garanties(self, obj):
+        """
+        Afficher les garanties associées à une branche
+        """
+        garanties = GarantieBranche.objects.filter(branche=obj.branche).values_list('garantie__nom', flat=True)
+        return ', '.join(garanties)
+
+    get_garanties.short_description = "Garanties"
+
+
+
+class GarantieFormuleAdmin(admin.ModelAdmin):
+    form = GarantieFormuleForm
+
+    list_display = ['formule', 'get_garanties', 'status', 'created_at', 'updated_at']
+    list_filter = ['formule', 'status']
+    search_fields = ['formule__libelle', 'garantie__nom']
+
+    def save_model(self, request, obj, form, change):
+        """
+        Gérer la sauvegarde en associant branche et garanties via IDs
+        """
+        formule = form.cleaned_data['formule']
+        garanties_selected = form.cleaned_data['garanties']
+        status = form.cleaned_data['status']
+
+        # Supprimer les anciennes associations pour la branche
+        GarantieFormule.objects.filter(formule=formule).delete()
+
+        try:
+            # Créer les nouvelles associations
+            GarantieFormule.objects.bulk_create([
+                GarantieFormule(
+                    formule=formule,
+                    garantie=garantie,
+                    status=status
+                ) for garantie in garanties_selected
+            ])
+        except Exception as e:
+            self.message_user(request, f"Erreur : {e}", level='error')
+
+    def get_garanties(self, obj):
+        """
+        Afficher les garanties associées à une branche
+        """
+        garanties = GarantieFormule.objects.filter(formule=obj.formule).values_list('garantie__nom', flat=True)
+        return ', '.join(garanties)
+
+    get_garanties.short_description = "Garanties"
+
+
 
 admin.site.register(Bureau, BureausAdmin)
 admin.site.register(Compagnie, CompagnieAdmin)
@@ -1080,6 +1161,9 @@ admin.site.register(Acte)
 # admin.site.register(RegroupementActe, RegroupementActeAdmin)
 # admin.site.register(SousRegroupementActe, SousRegroupementActeAdmin)
 # admin.site.register(TypeActe)
+admin.site.register(Prestataire, PrestataireAdmin)
+admin.site.register(TypePrestataire, TypePrestataireAdmin)
+admin.site.register(Acte, ActeAdmin)
 admin.site.register(CategorieAffection)
 admin.site.register(Affection)
 admin.site.register(Profession, ProfessionAdmin)
@@ -1088,6 +1172,7 @@ admin.site.register(Civilite)
 # admin.site.register(ReseauSoin, ReseauSoinAdmin)
 # admin.site.register(TypeClient)
 #admin.site.register(SecteurActivite, SecteurActiviteAdmin)
+admin.site.register(TypeClient)
 admin.site.register(TypePersonne)
 # admin.site.register(Langue, LangueAdmin)
 admin.site.register(Pays, PaysAdmin)
@@ -1096,6 +1181,8 @@ admin.site.register(Produit, ProduitAdmin)
 admin.site.register(Fractionnement,)
 admin.site.register(ModeReglement,)
 admin.site.register(NatureOperation, NatureOperationAdmin)
+admin.site.register(Banque, BanqueAdmin)
+admin.site.register(Devise,DeviseAdmin)
 # admin.site.register(Regularisation,)
 # admin.site.register(TicketModerateur,)
 # admin.site.register(Territorialite,)
@@ -1110,6 +1197,8 @@ admin.site.register(Devise)
 admin.site.register(Taxe, TaxeAdmin)
 admin.site.register(TypePriseencharge)
 admin.site.register(TypeEtablissement, TypeEtablissementAdmin)
+admin.site.register(Tarif, TarifAdmin)
+admin.site.register(TypeQuittance, TypeQuittanceAdmin)
 # admin.site.register(CompagnieVeos, CompagnieVeosAdmin)
 # admin.site.register(ClientVeos, ClientVeosAdmin)
 # admin.site.register(PoliceVeos, PoliceVeosAdmin)
@@ -1132,30 +1221,86 @@ admin.site.register(TypeEtablissement, TypeEtablissementAdmin)
 #admin.site.register(Quittance)
 # admin.site.register(QuittanceVeos, QuittanceVeosAdmin)
 admin.site.register(KeyValueData, KeyValueDataAdmin)
-# admin.site.register(ApporteurVeos, ApporteurVeosAdmin)
 admin.site.register(TypeApporteur)
-admin.site.register(ApporteurInternational, ApporteurInternationalAdmin)
 admin.site.register(CompteTresorerie)
 admin.site.register(BackgroundQueryTask, BackgroundQueryTaskAdmin)
 # admin.site.register(ModelLettreCheque, ModelLettreChequeAdmin)
 admin.site.register(BordereauLettreCheque, BordereauLettreChequeAdmin)
+admin.site.register(BusinessUnit, BusinessUnitAdmin)
+admin.site.register(TypeProduit)
+admin.site.register(CategorieVehicule)
+admin.site.register(Carburant)
+admin.site.register(Usage)
+admin.site.register(Carosserie)
+admin.site.register(Garantie)
+admin.site.register(GarantieBranche, GarantieBrancheAdmin)
+admin.site.register(Formule)
+admin.site.register(GarantieFormule, GarantieFormuleAdmin)
 # admin.site.register(Retenue, RetenueAdmin)
 
 # admin.site.register(MailingList)
 
 # admin.site.register(PeriodeVeos, PeriodeVeosAdmin)
 # admin.site.register(ComptePrestataireVeos, ComptePrestataireVeosAdmin)
+admin.site.register(User, CustomUserAdmin)
 
-
+#admin.site.register(ActeWaspito, ActeWaspitoAdmin)
+#admin.site.register(GroupeInter, GroupeInterAdmin)
+#admin.site.register(StatExcelWsBoby, StatExcelWsBobyAdmin)
+#admin.site.register(TypePrefinancement, TypePrefinancementAdmin)
+#admin.site.register(PeriodeComptable, PeriodeComptableAdmin)
+#admin.site.register(ModeCreation, ModeCreationAdmin)
+#admin.site.register(TypeRemboursement, TypeRemboursementAdmin)
 #admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 # admin.site.register(ActeWaspito, ActeWaspitoAdmin)
 admin.site.register(GroupeInter, GroupeInterAdmin)
 # admin.site.register(StatExcelWsBoby, StatExcelWsBobyAdmin)
+#admin.site.register(Retenue, RetenueAdmin)
+#admin.site.register(MailingList)
+#admin.site.register(PeriodeVeos, PeriodeVeosAdmin)
+#admin.site.register(ComptePrestataireVeos, ComptePrestataireVeosAdmin)
+#admin.site.register(Quittance)
+#admin.site.register(QuittanceVeos, QuittanceVeosAdmin)
+#admin.site.register(ApporteurVeos, ApporteurVeosAdmin)
+#admin.site.register(ApporteurInternational, ApporteurInternationalAdmin)
+#admin.site.register(ModelLettreCheque, ModelLettreChequeAdmin)
+#admin.site.register(CompagnieVeos, CompagnieVeosAdmin)
+#admin.site.register(ClientVeos, ClientVeosAdmin)
+#admin.site.register(PoliceVeos, PoliceVeosAdmin)
+#admin.site.register(FormuleVeos, FormuleVeosAdmin)
+#admin.site.register(AlimentVeos, AlimentVeosAdmin)
+#admin.site.register(AlimentBaobab, AlimentBaobabAdmin)
+#admin.site.register(PrestataireVeos, PrestataireVeosAdmin)
+#admin.site.register(UtilisateurVeos, UtilisateurVeosAdmin)
+#admin.site.register(UtilisateurGrhVeos, UtilisateurGrhVeosAdmin)
+#admin.site.register(ChangementFormule, ChangementFormuleAdmin)
+#admin.site.register(PrescripteurVeos, PrescripteurVeosAdmin)
+#admin.site.register(SinistreVeos, SinistreVeosAdmin)
+#admin.site.register(TypeGarant)
+#admin.site.register(Regularisation,)
+#admin.site.register(TicketModerateur,)
+#admin.site.register(Territorialite,)
+#admin.site.register(Duree,) #à réactiver plus tard
+#admin.site.register(QualiteBeneficiaire,)
+#admin.site.register(TypeAssurance,)
+#admin.site.register(ModeCalcul,)
+#admin.site.register(TypeTarif,)
+#admin.site.register(Medicament, MedicamentAdmin)
+#admin.site.register(RegroupementActe, RegroupementActeAdmin)
+#admin.site.register(SousRegroupementActe, SousRegroupementActeAdmin)
+#admin.site.register(TypeActe)
+#admin.site.register(Specialite, SpecialiteAdmin)
+#admin.site.register(Rubrique, RubiqueAdmin)
+#admin.site.register(SousRubrique, SousRubriqueAdmin)
+#admin.site.register(Prescripteur, PrescripteurAdmin)
+#admin.site.register(TypeAssure)
+#admin.site.register(ReseauSoin, ReseauSoinAdmin)
+#admin.site.register(SecteurActivite, SecteurActiviteAdmin)
+#admin.site.register(Langue, LangueAdmin)
 
 #admin.site.register(MarqueVehicule) #à réactiver plus tard
 #admin.site.register(TypeCarosserie) #à réactiver plus tard
-#admin.site.register(CategorieVehicule) #à réactiver plus tard
 
 
 #admin.site.register(TypeDocument,TypeDocumentAdmin) #à réactiver plus tard

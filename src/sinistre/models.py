@@ -629,7 +629,7 @@ class ReglementCompagnie(models.Model):
     mode_reglement = models.ForeignKey(ModeReglement, null=True, on_delete=models.RESTRICT)
     banque = models.ForeignKey(Banque, null=True, on_delete=models.RESTRICT)
     compte_tresorerie = models.ForeignKey(CompteTresorerie, null=True, on_delete=models.RESTRICT)
-    devise = models.ForeignKey(Devise, null=True, on_delete=models.CASCADE)
+    devise = models.ForeignKey(Devise, null=True, on_delete=models.RESTRICT)
     montant = models.DecimalField(max_digits=20, decimal_places=0, blank=True, null=True)
     date_reglement = models.DateField(blank=True, null=True)
     observation = models.CharField(max_length=255, null=True)

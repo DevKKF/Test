@@ -57,7 +57,7 @@
 {% block content_title %}
     <div class="row mb-2">
           <div class="col-sm-6">
-                <h1 class="m-0">Liste des polices du client</h1>
+                <h4 class="m-0 f-bold">CLIENT : {{ client.nom }} {{ client.prenoms }} / N° {{ client.code }}</h4>
           </div>
           <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -74,14 +74,14 @@
 <div class="col-md-12 accordion" id="accordionClient_removed">
   <div class="card offset" style="padding:0px;margin:0px;border:none;">
     <div class="card-header">
-      <h3 class="card-title text-white">POLICES DU CLIENT</h3>
+      <h3 class="card-title text-white">LISTE DES POLICES</h3>
       <div class="card-tools">
           <!--button-- type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse"><i class="fas fa-minus"></i></button-->
       </div>
     </div>
     <div class="card-body">
         <div class="button-link pull-right mb-2">
-            <a class="btn btn-sm btn-primary mb-1" data-toggle="modal" data-target="#modal-police"><i class="fas fa-plus"></i> {{_("Créer une police")}}</a>&nbsp;&nbsp;
+            <a class="btn btn-sm btn-primary mb-1" data-toggle="modal" data-target="#modal-police"><i class="fas fa-plus-circle"></i> {{_("Créer une police")}}</a>&nbsp;&nbsp;
             <a class="btn btn-sm btn-primary mb-1" data-toggle="modal" data-target="#modal-changement_compagnie"><i class="fas fa-refresh"></i> {{_("Changement d'assureur")}}</a>&nbsp;&nbsp;
             <!--{% if request.user.is_superuser %}<a class="btn btn-sm btn-default mb-1" data-toggle="modal" data-target="#modal-transfert_beneficiaires"><i class="fas fa-arrow-up"></i> {{_("Transfert de beneficiaires")}}</a>{% endif %}-->
             <span style="cursor:pointer;" class="btn btn-sm btn-warning btn_modifier_client mb-1" data-client_id="{{ client.id }}" data-model_name="client" data-modal_title="MODIFICATION D'UN CLIENT" data-href="{% url 'modifier_client' client.id %}"><i class="fas fa-edit"></i> {{_("Modifier client")}}</span>
@@ -100,22 +100,22 @@
                             {{_('Assureur')}}
                         </th>
                         <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                            {{_('Prime_HT')}}
+                            {{_("Prime HT")}}
                         </th>
                         <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                            {{_('Prime_TTC')}}
+                            {{_("Prime TTC")}}
                         </th>
-                        <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
+                        <!--th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
                             {{_('Com_gest')}}
-                        </th>
+                        </th-->
                         <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Platform(s): activate to sort column ascending">
-                            {{_('Com_court')}}
+                            {{_("Com court")}}
                         </th>
                         <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="Engine version: activate to sort column ascending">
-                            {{_('Debut')}}
+                            {{_("Début")}}
                         </th>
                         <th class="sorting sorting_asc" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="CSS grade: activate to sort column descending" aria-sort="ascending">
-                            {{_('Echeance')}}
+                            {{_("Echéance")}}
                         </th>
                         <th class="sorting sorting_asc" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-label="CSS grade: activate to sort column descending" aria-sort="ascending">
                             {{_('Etat')}}
@@ -133,16 +133,16 @@
                         <td class="">{{ police.compagnie|default_if_none:"" }}</td>
                         <td class="text-right">{{ police.prime_ht|default_if_none:""|money_field }}</td>
                         <td class="text-right">{{ police.prime_ttc|default_if_none:""|money_field }}</td>
-                        <td class="text-right">{{ police.commission_gestion|default_if_none:""|money_field }}</td>
+                        <!--td class="text-right">{{ police.commission_gestion|default_if_none:""|money_field }}</td-->
                         <td class="text-right">{{ police.commission_courtage|default_if_none:""|money_field }}</td>
                         <td class="">{{ police.date_debut_effet|date:'d/m/Y'|default_if_none:"" }}</td>
                         <td class="">{{ police.date_fin_effet|date:'d/m/Y'|default_if_none:"" }}</td>
                         <td class=""><span class="badge badge-{{police.etat_police|default_if_none:''|slugify}}">{{ police.etat_police|default_if_none:"" }}</span></td>
                         <td>
                             <a href="{% url 'police.details' police.id %}"><span class="badge btn-sm btn-details rounded-pill"><i class="fa fa-eye"></i> Détails</span></a>&nbsp;&nbsp;
-    <!--                                        {% if police.etat_police == "En cours" or police.etat_police == "En attente" %}-->
-    <!--                                        <span class="btn_modifier_police badge btn-sm btn-modifier rounded-pill" data-href="{% url 'modifier_police' police.id %}" style="cursor:pointer;"><i class="fa fa-edit text-warning"></i> Modifier</span>-->
-    <!--                                        {% endif %}-->
+                            <!-- {% if police.etat_police == "En cours" or police.etat_police == "En attente" %}-->
+                                <!-- <span class="btn_modifier_police badge btn-sm btn-modifier rounded-pill" data-href="{% url 'modifier_police' police.id %}" style="cursor:pointer;"><i class="fa fa-edit text-warning"></i> Modifier</span>-->
+                            <!--{% endif %}-->
                         </td>
                     </tr>
                     {% endfor %}

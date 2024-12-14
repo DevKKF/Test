@@ -4,14 +4,14 @@
 			<form id="form_add_autres_taxes" action="" method="post">
 				{% csrf_token %}
                 <div class="modal-header">
-                    <h4 class="modal-title">{{_('AJOUT_DE_TAXES')}}</h4>
+                    <h4 class="modal-title">{{_("AJOUT DE TAXES")}}</h4>
                     <button type="button"class="close"data-dismiss="modal"aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="alert  alert-dismissible fade show hidden" role="alert">
-                        <span class="message"> {{_('TRAITEMENT_EN_COURS')}}</span>
+                        <span class="message"> {{_("TRAITEMENT EN COURS")}}</span>
                     </div>
                     <div class="col-md-12 offset-0">
                         <div class="row">
@@ -39,9 +39,9 @@
                     </div>
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">{{_('Fermer')}}</button>
-                    <span>{{_('Montant_Total')}}: <span class="badge badge-warning total_autres_taxes" style="padding:5px 10px;">0</span> {{police.devise}}</span>
-                    <button type="button" id="btn_save_taxe" class="btn o-bg-primary" data-dismiss="modal">{{_('Enregistrer')}}</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Fermer')}}</button>
+                    <span>{{_("Montant Total")}}: <span class="badge badge-warning total_autres_taxes" style="padding:5px 10px;">0</span> {{police.devise}}</span>
+                    <button type="button" id="btn_save_taxe" class="btn btn-info o-bg-primary" data-dismiss="modal"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
                 </div>
             </form>
 		</div>

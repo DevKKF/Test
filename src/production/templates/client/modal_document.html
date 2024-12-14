@@ -19,8 +19,8 @@
                     <div class="col-sm-7">
                     <select class="form-control" name="type_document" id="type_document" required>
                         <option value="">{{_('Choisir')}}</option>
-                        {% for type_document in types_documents %}
-                            <option value="{{ type_document.id }}">{{ type_document.libelle }}</option>
+                        {% for typedocument in typedocuments %}
+                            <option value="{{ typedocument.id }}">{{ typedocument.libelle }}</option>
                         {% endfor %}
                     </select>
                     </div>

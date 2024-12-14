@@ -223,7 +223,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-5 col-form-label">{{_("Secteur activité")}}</label>
                                 <div class="col-sm-7">
-                                <span class="form-control">{{ client.secteur_activite|default_if_none:""  }}</span>
+                                <span class="form-control">{{ client.secteur_activite.libelle|default_if_none:""  }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">

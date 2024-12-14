@@ -5,22 +5,22 @@
 			<form enctype="multipart/form-data" id="form_add_quittance" action="{% url 'add_quittance' police.id %}" method="post">
 			{% csrf_token %}
 			<div class="modal-header">
-				<h4 class="modal-title">{{_('CREATION_D_UNE_QUITTANCE_POLICE')}} <b>{{_('Numero')}} {{police.numero}}</b><!-- - CLIENT <b>{{police.client.nom}} --></b></h4>
+				<h4 class="modal-title">{{_("CREATION D'UNE QUITTANCE DE LA POLICE")}} <b>{{_('N°')}} {{police.numero}}</b><!-- - CLIENT <b>{{police.client.nom}} --></b></h4>
 				<button type="button"class="close"data-dismiss="modal"aria-label="Close">
 					<span aria-hidden="true">×</span>
 				</button>
 			</div>
 			<div class="modal-body">
 				<div class="alert  alert-dismissible fade show hidden" role="alert">
-				  <span class="message"> {{_('TRAITEMENT_EN_COURS')}}</span>
+				  <span class="message"> {{_("TRAITEMENT EN COURS")}}</span>
 				</div>
 				<div class="col-md-12 offset-0">
 					<div class="row">
 						<div class="col-md-6">
 							<div class="form-group row" style="display:none0;">
-								<label class="col-sm-5 col-form-label">{{_('Nature')}} *</label>
+								<label class="col-sm-5 col-form-label">{{_('Nature')}} <span class="required">*</span></label>
 								<div class="col-sm-7">
-									<select class="form-control calculs_handler_police" name="nature_quittance" id="nature_quittance">
+									<select class="form-control calculs_handler_police" name="nature_quittance" id="nature_quittance" required>
 										<option value="">{{_('Choisir')}}</option>
 										{% for nature_quittance in natures_quittances %}
 										<option value="{{ nature_quittance.id }}">{{ nature_quittance.libelle }}</option>
@@ -29,7 +29,7 @@
 								</div>
 							</div>
 							<div class="form-group row">
-								<label class="col-sm-5 col-form-label">{{_('Type_de_quittance')}} *</label>
+								<label class="col-sm-5 col-form-label">{{_("Type de quittance")}} <span class="required">*</span></label>
 								<div class="col-sm-7">
 									<select class="form-control calculs_handler_police" name="type_quittance" id="type_quittance" required>
 										<option value="">{{_('Choisir')}}</option>
@@ -40,7 +40,7 @@
 								</div>
 							</div>
 							<div class="form-group row">
-								<label class="col-sm-5 col-form-label">{{_('Date_d_emission')}}</label>
+								<label class="col-sm-5 col-form-label">{{_("Date d'émission")}}</label>
 								<div class="col-sm-7">
 									<input type="date" class="form-control" name="date_emission" required value="{{ today|date:'Y-m-d' }}" 
 									{% comment %} min="{{ police_dernier_mouvement.date_effet|date:'Y-m-d' }}"  {% endcomment %}  {% comment %}Possible de créer une quittance à date antérieure suite à POINT IT avec filliales {% endcomment %}
@@ -50,25 +50,25 @@
 								</div>
 							</div>
 							<div class="form-group row">
-								<label class="col-sm-5 col-form-label">{{_('Date_debut')}}</label>
+								<label class="col-sm-5 col-form-label">{{_("Date début")}}</label>
 								<div class="col-sm-7">
 									<input type="date" class="form-control" name="date_debut" value="{{ police_dernier_mouvement.date_effet|date:'Y-m-d' }}" min="{{ police_dernier_mouvement.date_effet|date:'Y-m-d' }}" max="{{ police_dernier_mouvement.date_fin_periode_garantie|date:'Y-m-d' }}" required/>
 								</div>
 							</div>
 							<div class="form-group row">
-								<label class="col-sm-5 col-form-label">{{_('Date_fin')}}</label>
+								<label class="col-sm-5 col-form-label">{{_("Date fin")}}</label>
 								<div class="col-sm-7">
 									<input type="date" class="form-control" name="date_fin" value="{{ police_dernier_mouvement.date_fin_periode_garantie|date:'Y-m-d' }}" min="{{ police_dernier_mouvement.date_effet|date:'Y-m-d' }}" max="{{ police_dernier_mouvement.date_fin_periode_garantie|date:'Y-m-d' }}" required/>
 								</div>
 							</div>
 							<div class="form-group row">
-								<label class="col-sm-5 col-form-label">{{_('PrimeHT ')}}<span class="required"></span></label>
+								<label class="col-sm-5 col-form-label">{{_("Prime HT")}}<span class="required"></span></label>
 								<div class="col-sm-7">
 									<input type="text" class="form-control money_field calculs_handler_police" name="prime_ht" id="prime_ht" value="{{ police.prime_ht }}" />
 								</div>
 							</div>
 							<div class="form-group row">
-								<label class="col-sm-5 col-form-label">{{_('Cout_police_Cie')}} <span class="required"></span></label>
+								<label class="col-sm-5 col-form-label">{{_("Coût police Cie")}} <span class="required"></span></label>
 								<div class="col-sm-7">
 									<input type="text" class="form-control money_field_negative calculs_handler_police" name="cout_police_compagnie" id="cout_police_compagnie" value="{{ police.cout_police_compagnie }}" />
 								</div>
@@ -78,7 +78,7 @@
 						<div class="col-md-5" style="border-left:0px;">
 
 							<div class="form-group row">
-								<label class="col-sm-5 col-form-label">{{_('Cout_police_courtier')}}<span class="required"></span></label>
+								<label class="col-sm-5 col-form-label">{{_("Coût police courtier")}}<span class="required"></span></label>
 								<div class="col-sm-7">
 									<input type="text" class="form-control money_field_negative calculs_handler_police" name="cout_police_courtier" id="cout_police_courtier" value="{{ police.cout_police_courtier }}" />
 								</div>
@@ -90,7 +90,7 @@
 								</div>
 							</div>
 							<div class="form-group row">
-								<label class="col-sm-5 col-form-label">{{_('Autres_Taxes')}} <span class="required"></span></label>
+								<label class="col-sm-5 col-form-label">{{_("Autres Taxes")}} <span class="required"></span></label>
 								<div class="col-sm-6" style="padding-right:0px;">
 									<input style="border-top-right-radius:0px;border-bottom-right-radius:0px;" type="text" class="form-control money_field calculs_handler_police" name="autres_taxes" id="autres_taxes" value="{{ police.autres_taxes }}" readonly/>
 								</div>
@@ -99,7 +99,7 @@
 								</div>
 							</div>
 							<div class="form-group row">
-								<label class="col-sm-5 col-form-label">{{_('Prime_TTC')}} <span class="required"></span></label>
+								<label class="col-sm-5 col-form-label">{{_("Prime TTC")}} <span class="required"></span></label>
 								<div class="col-sm-7">
 									<input type="text" class="form-control money_field" name="prime_ttc" id="prime_ttc" value="{{ police.prime_ttc }}" readonly/>
 								</div>
@@ -118,16 +118,9 @@
 									<input type="text" class="form-control money_field_negative" name="commission_courtage_terme" id="commission_courtage_terme" value="{% if police.taux_com_courtage_terme %}{{ police.taux_com_courtage_terme|diviser:100|multiply:police.prime_ht }}{% endif %}" data-value_from_police="{{ police.commission_courtage }} " readonly/>
 								</div>
 							</div>
-							<div class="form-group row">
-								<label class="col-sm-5 col-form-label">Com Gestion ({{police.taux_com_gestion|default_if_none:""}}%)<span class="required"></span></label>
-								<div class="col-sm-7">
-									<input type="hidden" class="form-control" name="taux_com_gestion" id="taux_com_gestion" value="{{police.taux_com_gestion|default_if_none:''}}" readonly/>
-									<input type="text" class="form-control money_field_negative" name="commission_gestion" id="commission_gestion" value="{% if police.taux_com_gestion %}{{ police.taux_com_gestion|diviser:100|multiply:police.prime_ht }}{% endif %}" data-value_from_police="{{ police.commission_gestion }}" readonly/>
-								</div>
-							</div>
 
 							<div class="form-group row">
-								<label class="col-sm-5 col-form-label">{{_('Retrocession_Apporteur')}}<span class="required"></span></label>
+								<label class="col-sm-5 col-form-label">{{_("Retrocession Apporteur")}}<span class="required"></span></label>
 								<div class="col-sm-7">
 									<input type="text" class="form-control money_field_negative" name="commission_intermediaire" id="total_commission_intermediaire" value="{{ police.commission_intermediaires }}" readonly/>
 								</div>
@@ -140,9 +133,9 @@
 						<thead>
 							<tr>
 								<th style="width:;">{{_('Apporteur')}}</th>
-								<th style="width:;">{{_('Base_calcul')}}</th>
-								<th style="width:20%;">{{_('Tx_Com_AN')}}</th>
-								<th style="width:20%;">{{_('Tx_Com_Renouv')}}</th>
+								<th style="width:;">{{_("Base calcul")}}</th>
+								<th style="width:20%;">{{_("Tx Com AN")}}</th>
+								<th style="width:20%;">{{_("Tx Com Renouv")}}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -172,8 +165,8 @@
 
 				</div>
 				<div class="modal-footer justify-content-between">
-					<button type="button" class="btn btn-default" data-dismiss="modal">{{_('Retour')}}</button>
-					<button type="button" id="btn_save_quittance" class="btn o-bg-primary">{{_('Valider')}}</button>
+					<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Retour')}}</button>
+					<button type="button" id="btn_save_quittance" class="btn btn-info"><i class="fa fa-check-circle"></i> {{_('Valider')}}</button>
 				</div>
 			</div>
 			</form>
@@ -189,14 +182,14 @@
 			<form id="form_add_autres_taxes_quittance" action="" method="post">
 				{% csrf_token %}
 				<div class="modal-header">
-					<h4 class="modal-title">{{_('AJOUT_DE_TAXES')}}</h4>
+					<h4 class="modal-title">{{_("AJOUT DE TAXES")}}</h4>
 					<button type="button"class="close"data-dismiss="modal"aria-label="Close">
 						<span aria-hidden="true">×</span>
 					</button>
 				</div>
 				<div class="modal-body">
 					<div class="alert  alert-dismissible fade show hidden" role="alert">
-						<span class="message"> {{_('TRAITEMENT_EN_COURS')}}</span>
+						<span class="message"> {{_("TRAITEMENT EN COURS")}}</span>
 					</div>
 					<div class="col-md-12 offset-0">
 						<div class="row">
@@ -224,9 +217,9 @@
 					</div>
 				</div>
 				<div class="modal-footer justify-content-between">
-					<button type="button" class="btn btn-default" data-dismiss="modal">{{_('Fermer')}}</button>
-					<span>{{_('Montant_Total')}}: <span class="badge badge-warning total_autres_taxes" style="padding:5px 10px;">0</span> {{police.client.pays.devise}}</span>
-					<button type="button" id="btn_save_taxe" class="btn o-bg-primary" data-dismiss="modal">{{_('Enregistrer')}}</button>
+					<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-remove"></i> {{_('Fermer')}}</button>
+					<span>{{_("Montant Total")}}: <span class="badge badge-warning total_autres_taxes" style="padding:5px 10px;">0</span> {{police.client.pays.devise}}</span>
+					<button type="button" id="btn_save_taxe" class="btn o-bg-primary" data-dismiss="modal"><i class="fa fa-check-circle"></i> {{_('Enregistrer')}}</button>
 				</div>
 			</form>
 		</div>

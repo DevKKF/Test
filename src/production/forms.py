@@ -83,7 +83,7 @@ class AlimentForm(forms.ModelForm):
 class ApporteurAdminForm(forms.ModelForm):
     class Meta:
         model = Apporteur
-        exclude = ['bureau', 'code', 'created_by', 'id_per']  # Excluez le champ bureau du formulaire
+        exclude = ['bureau', 'created_by', 'id_per']  # Excluez le champ bureau du formulaire
 
 
 

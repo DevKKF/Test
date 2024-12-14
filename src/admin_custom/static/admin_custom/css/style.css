@@ -5,7 +5,7 @@
 }
 
 [class*=sidebar-dark-] .nav-treeview>.nav-item>.nav-link:focus, [class*=sidebar-dark-] .nav-treeview>.nav-item>.nav-link:hover {
-    background-color: #138496;
+    background-color: #F16623;
     color: #fff !important;
 }
 
@@ -14,13 +14,13 @@
 }
 
 [class*=sidebar-dark-] .nav-treeview>.nav-item>.nav-link.active, [class*=sidebar-dark-] .nav-treeview>.nav-item>.nav-link.active:focus, [class*=sidebar-dark-] .nav-treeview>.nav-item>.nav-link.active:hover {
-    background-color: #138496;
+    background-color: #F16623;
     color: #fff !important;
 }
 
 
 .sidebar-dark-primary .nav-sidebar>.nav-item>.nav-link.active, .sidebar-light-primary .nav-sidebar>.nav-item>.nav-link.active {
-    background: #138496;
+    background: #F16623;
     color: #fff !important;
 }
 
@@ -66,7 +66,8 @@ img.custom-logo.brand-image {
 }
 
 [class*=sidebar-dark] .brand-link {
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #F16623;
+    background: white;
 }
 
 /****** SIDEBAR CSS END ******/
@@ -74,7 +75,7 @@ img.custom-logo.brand-image {
 /****** TOP BAR CSS ******/
 
 .navbar-white {
-    background: linear-gradient(45deg, #138496, #138496);
+    background: linear-gradient(45deg, #F16623, #F16623);
     color: #fff;
 }
 
@@ -132,12 +133,12 @@ img.custom-logo.brand-image {
 }
 
 .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
-    background-color: #138496 !important;
+    background-color: #F16623 !important;
     color: white;
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected], .select2-container--default .select2-results__option--highlighted[aria-selected]:hover {
-    background-color: #138496;
+    background-color: #F16623;
     color: #fff;
 }
 
@@ -151,11 +152,11 @@ img.custom-logo.brand-image {
 }
 
 .accent-primary .btn-link, .accent-primary .nav-tabs .nav-link, .accent-primary a:not(.dropdown-item):not(.btn-app):not(.nav-link):not(.brand-link):not(.page-link):not(.btn) {
-    color: #138496;
+    color: #000;
 }
 
 .accent-primary .btn-link:hover, .accent-primary .nav-tabs .nav-link:hover, .accent-primary a:not(.dropdown-item):not(.btn-app):not(.nav-link):not(.brand-link):not(.page-link):not(.btn):hover {
-    color: #066978;
+    color: #FFF;
 }
 
 .accent-primary .dropdown-item.active, .accent-primary .dropdown-item:active {
@@ -253,8 +254,9 @@ table.table_v_middle th, table.table_v_middle td{
 
 
 :root {
-  --couleur_olea: #138496;
-  --colorPrimary: #138496;
+  --couleur_olea: #F16623;
+  --colorPrimary: #F16623;
+  --colorInov: orange;
   --colorJauneOlea: #EFBF77;
   --colorAccent: gray;
 }
@@ -356,13 +358,13 @@ article .shimmer{
 }
 
 .btn-details{
-    background: #5FB7B1;
+    background: #138496;
     color: white;
     font-weight: normal;
 }
 
 .btn-details:hover{
-    background: #F8AF3C;
+    background: #F16623;
     color: white;
 }
 
@@ -378,7 +380,7 @@ article .shimmer{
 }
 
 .btn-modifier{
-    background: #F8AF3C;
+    background: #F16623;
     color: white;
     font-weight: normal;
 }
@@ -423,7 +425,7 @@ article .shimmer{
 
 .o-bg-top
 {
-    background-color: #F8AF3C!important;
+    background-color: #F16623 !important;
     color: #000;
 }
 
@@ -452,44 +454,39 @@ article .shimmer{
 
 .card-header, .card-header0, .bg_rouge_olea
 {
-    background-color: var(--colorPrimary)!important;
+    background-color: var(--colorInov)!important;
     color: #fff;
 }
 
 .btn-complement-rouge{
-    background: #F8AF3C;
-    color: white;
-    color: #272727;
+    background: #F16623;
+    color: #fff;
 }
 
 .btn-complement-rouge:hover{
-    background: #5FB7B1;
-    color: white;
-    color: #272727;
+    background: #594b45;
+    color: #fff;
 }
 
 
 .btn-complement-jaune{
     background: var(--colorPrimary);
-    color: white;
-    color: #272727;
+    color: #fff;
 }
 
 .btn-complement-jaune:hover{
-    background: #5FB7B1;
-    color: white;
-    color: #272727;
+    background: #594b45;
+    color: #fff;
 }
 
 
 .card-header .btn-default:not(.btn-retour), .btn-paiement_comptable {
-    background: #F8AF3C;
-    color: white;
-    color: #272727;
+    background: #F16623;
+    color: #fff;
 }
 
 .card-header .btn-default:not(.btn-retour):hover, .btn-paiement_comptable:hover{
-    background: #5FB7B1;
+    background: #594b45#594b45;
     color: white;
 }
 
@@ -510,6 +507,11 @@ article .shimmer{
   background-color: #ffc107;
 }
 
+.badge-annule{
+  color: #fff;
+  background-color: red;
+}
+
 .badge-ordonnance{
   color: #fff;
   background-color: #6c757d;
@@ -526,7 +528,7 @@ article .shimmer{
     color: white;
 }
 .badge-entree-en-cours{
-    background-color: #138496;
+    background-color: #F16623;
     color: white;
 }
 
@@ -548,8 +550,8 @@ article .shimmer{
 
 .current_bureau, .current_police{
     padding:10px;
-    background: linear-gradient(45deg, #F8AF3C, #F8AF3C);
-    color: #272727 !important;
+    background: linear-gradient(45deg, #F16623, #F16623);
+    color: #fff !important;
     border-radius: 3px;
     font-weight: bold;
     /*box-shadow: 3px 3px 20px 0 rgb(123 31 162 / 50%);*/
@@ -560,10 +562,66 @@ article .shimmer{
 }
 
 .nav-tabs{
-    margin-top:-17px
+    margin-top:-17px;
+    /*width: 1137.9px;*/
+    background: orange;
+    /*margin-left: -23.5px;*/
+    border-bottom: 1px solid #ccc;
+    font-weight: bold;
+}
+
+.nav-tabs a{
+    color:#FFF !important;
+}
+
+.nav-tabs .nav-link.active{
+    background: #6B726A;
+    color: #000 !important;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+    border-bottom: 1px solid #ccc;
+    border: 1px solid orange;
+    font-weight: bold;
 }
 
 .button-link{
-    background: #343A40;
     padding: 10px;
+}
+
+.bg-inov-vive{
+    background: #EF6630;
+    color: #fff;
+}
+
+.bg-inov-elegante{
+    background: #6B726A;
+    color: #fff;
+}
+
+.bg-inov-variation{
+    background:  #658348 ;
+    color: #fff;
+}
+
+#table_clients tbody a{
+    color: #EF6630;
+}
+
+.card-header-gray{
+    background : orange !important;
+    font-weight: bold;
+}
+
+.bordered_block {
+  box-shadow: none !important;
+  margin-bottom: 1rem;
+  border: 1px solid #000;
+}
+
+.f_none_bold label:not(.form-check-label):not(.custom-file-label) {
+  font-weight: none !important;
+}
+
+#modal-police_aliment label:not(.form-check-label):not(.custom-file-label) {
+  font-weight: 200 !important;
 }
