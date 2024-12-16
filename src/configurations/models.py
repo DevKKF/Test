@@ -2081,7 +2081,7 @@ class Usage(models.Model):
         return self.libelle
 
     class Meta:
-        db_table = 'usage'
+        db_table = 'usages'
         verbose_name = 'Usages'
         verbose_name_plural = "Usages"
 

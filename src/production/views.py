@@ -7145,13 +7145,11 @@ class CourrierView(TemplateView):
         if police:
             courriers = Courrier.objects.all() # Récupère tous les courriers
             produits = Produit.objects.all()
-            today = timezone.now().date()
 
             context = {
                 'police': police,  # Passe l'objet Police au template
                 'courriers': courriers,  # Passe les courriers au template
                 'produits': produits,
-                'today': today,
             }
 
             return self.render_to_response(context)
