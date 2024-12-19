@@ -407,8 +407,8 @@ class HistoriquePolice(models.Model):
     taxes = models.ManyToManyField(Taxe, through='HistoriqueTaxePolice')
     intermediaires = models.ManyToManyField(Apporteur, through='HistoriqueApporteurPolice')
 
-    apporteur = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)  # False
-    garantie = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)  # False
+    apporteur = models.CharField(choices=OptionYesNo.choices, max_length=3, null=True)
+    garantie = models.CharField(max_length=255, null=True)
 
     date_souscription = models.DateField(null=True)
     date_debut_effet = models.DateField()
@@ -1557,7 +1557,7 @@ class Operation(models.Model):
     uuid = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return self.libelle
+        return f"{self.numero} - {self.montant_total}"
 
     class Meta:
         db_table = 'operations'
@@ -1610,7 +1610,7 @@ class Reglement(models.Model):
         verbose_name_plural = 'Reglements'
 
     def montant_com_global(self):
-        return self.montant_com_courtage + self.montant_com_gestion
+        return self.montant_com_courtage + self.montant_com_intermediaire
 
     def montant_com_courtage_encaisse(self):
         montant = 0
@@ -1629,8 +1629,8 @@ class Reglement(models.Model):
         # print(f"{self.numero} {montant}")
         return montant
 
-    def montant_com_gestion_solde(self):
-        return (self.montant_com_gestion - self.montant_com_gestion_encaisse())
+    #def montant_com_gestion_solde(self):
+        #return (self.montant_com_gestion - self.montant_com_gestion_encaisse())
 
     # def montant_com_intermediaire_encaisse(self):
     #     montant = 0

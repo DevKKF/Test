@@ -906,20 +906,21 @@ def add_police(request, client_id):
                     # TaxePolice.objects.create(police_id=police.id, taxe_id=taxe_id, montant=taxe_montant).save()
 
             # créer une ligne dans période de couverture
-            periode_couverture = PeriodeCouverture.objects.create(
+            periode_couverture = PeriodeCouverture(
                 police_id=police.id,
                 date_debut_effet=date_debut_effet,
                 date_fin_effet=date_fin_effet,
-            ).save()
+            )
+            periode_couverture.save()
 
             # Initialiser une liste pour les garanties
             garanties = []
             # Parcourir les données POST pour trouver les champs de garantie
             for key, value in request.POST.items():
                 if key.startswith('garantie_'):
-                    garantie_id = key.split('_')[1]  # Extraire l'ID de la garantie
-                    franchise = request.POST.get(f'franchise_{garantie_id}', '0')  # Obtenir la franchise
-                    capital = request.POST.get(f'capital_{garantie_id}', '0')  # Obtenir le capital
+                    garantie_id = key.split('_')[1]
+                    franchise = request.POST.get(f'franchise_{garantie_id}', '0')
+                    capital = request.POST.get(f'capital_{garantie_id}', '0')
 
                     # Ajouter les données extraites à la liste
                     garanties.append({
@@ -927,13 +928,19 @@ def add_police(request, client_id):
                         'franchise': franchise,
                         'capital': capital,
                     })
+
             print("Garantie transmis", garanties)
+            print("Reponse Garantie", garantie)
             # Enregistrer chaque garantie de la police
             for garantie in garanties:
                 franchise = garantie['franchise'].replace(' ', '')
                 capital = garantie['capital'].replace(' ', '')
 
-                PoliceGarantie.objects.create(
+                print("id garantie : ", garantie['garantie_id'])
+                print("franchise garantie : ", franchise)
+                print("capital garantie : ", capital)
+
+                police_garantie = PoliceGarantie(
                     client_id=client_id,
                     police_id=police.id,
                     created_by=request.user,
@@ -942,6 +949,7 @@ def add_police(request, client_id):
                     franchise=franchise if franchise else None,
                     capital=capital if capital else None,
                 )
+                police_garantie.save()
 
             historique_police_created = HistoriquePolice(
                 police_id=police.id,
@@ -1018,10 +1026,15 @@ def add_police(request, client_id):
             branche_code = Produit.objects.filter(id=request.POST.get('produit')).first()
 
             if branche_code.branche.code == "100991":
+
                 vehicule_existant = Vehicule.objects.filter(numero_immatriculation=request.POST.get('immatriculation')).first()
+
                 if vehicule_existant:
+
                     date_entree_conversion = datetime.strptime(date_entree, '%Y-%m-%d').date()
+
                     if vehicule_existant.date_sortie and date_entree_conversion > vehicule_existant.date_sortie:
+
                         aliment_police = AlimentPolice(
                             vehicule_id = vehicule_existant.id,
                             usage_id=request.POST.get('usage_id'),
@@ -1040,7 +1053,9 @@ def add_police(request, client_id):
                             statut = Statut.ACTIF
                         )
                         aliment_police.save()
+
                     else:
+
                         response = {
                             'statut': 0,
                             'message': "Ce véhicule est déjà lié à une police et sa date de sortie n'est pas encore connue à ce jour.",
@@ -1051,6 +1066,7 @@ def add_police(request, client_id):
                         }
                         return JsonResponse(response)
                 else:
+
                     vehicule_created = Vehicule(
                         categorie_vehicule_id=request.POST.get('categorie_id'),
                         carburant_id=request.POST.get('carburant_id'),
@@ -1190,48 +1206,46 @@ def modifier_police(request, police_id):
         # Récupérer la police à mettre à jour
         police_old = Police.objects.get(id=police_id)
 
-        dernier_historique = HistoriquePolice.objects.filter(police_id=police_old.id).order_by('-date_du_jour').first()
-
         # Créer l'historique avant la mise à jour
-        historique_police = HistoriquePolice.objects.create(
+        histtorique_police = HistoriquePolice.objects.create(
             police=police_old,
             client_id=police_old.client_id,
+            bureau_id=police_old.client.bureau_id,
             produit=police_old.produit,
             bureau=police_old.bureau,
             devise=police_old.devise,
-            created_by=police_old.created_by,
-            updated_by=request.user,
-            numero=police_old.numero,
-            apporteur=dernier_historique.apporteur,
-            garantie=dernier_historique.garantie,
-            date_souscription=police_old.date_souscription,
-            date_debut_effet=dernier_historique.date_debut_effet,
-            date_fin_effet=dernier_historique.date_fin_effet,
-            preavis_de_resiliation=police_old.preavis_de_resiliation,
-            mode_renouvellement=dernier_historique.mode_renouvellement,
-            fractionnement_id=dernier_historique.fractionnement_id,
-            mode_reglement_id=dernier_historique.mode_reglement_id,
-            regularisation_id=dernier_historique.regularisation_id,
-            date_prochaine_facture=police_old.date_prochaine_facture,
-            participation=police_old.participation,
-            taux_participation=police_old.taux_participation,
-            prime_ht=dernier_historique.prime_ht,
-            prime_ttc=dernier_historique.prime_ttc,
-            taxe=dernier_historique.taxe,
-            autres_taxes=dernier_historique.autres_taxes,
-            taux_com_courtage=dernier_historique.taux_com_courtage,
-            taux_com_courtage_terme=dernier_historique.taux_com_courtage_terme,
-            commission_courtage=dernier_historique.commission_courtage,
-            commission_intermediaires=dernier_historique.commission_intermediaires,
-            cout_police_compagnie=dernier_historique.cout_police_compagnie,
-            cout_police_courtier=dernier_historique.cout_police_courtier,
-            calcul_tm=dernier_historique.calcul_tm,
-            statut_contrat=dernier_historique.statut_contrat,
-            statut=police_old.statut,
-            created_at=police_old.created_at,
-            updated_at=police_old.updated_at,
+            numero=numero,
+            apporteur=apporteur,
+            garantie=garantie,
+            date_souscription=date_debut_effet,
+            date_debut_effet=date_debut_effet,
+            date_fin_effet=date_fin_effet,
+            preavis_de_resiliation=preavis_de_resiliation,
+            mode_renouvellement=mode_renouvellement,
+            fractionnement_id=fractionnement_id,
+            mode_reglement_id=mode_reglement_id,
+            regularisation_id=regularisation_id,
+            date_prochaine_facture=date_prochaine_facture,
+            participation=participation,
+            taux_participation=taux_participation,
+            prime_ht=prime_ht,
+            prime_ttc=prime_ttc,
+            taxe=taxe,
+            autres_taxes=autres_taxes,
+            taux_com_courtage=taux_com_courtage,
+            taux_com_courtage_terme=taux_com_courtage_terme,
+            commission_courtage=commission_courtage,
+            commission_intermediaires=commission_intermediaires,
+            cout_police_compagnie=cout_police_compagnie,
+            cout_police_courtier=cout_police_courtier,
+            calcul_tm=calcul_tm,
+            statut_contrat=statut_contrat,
+            statut=Statut.ACTIF,
             date_du_jour=datetime.now(),
+            created_by=request.user,
         )
+
+        dernier_historique = HistoriquePolice.objects.filter(police_id=police_old.id).order_by('-date_du_jour').first()
 
         # Historique apporteur police
         apporteurs_old = ApporteurPolice.objects.filter(police_id=police_id)
@@ -1241,7 +1255,7 @@ def modifier_police(request, police_id):
                 taux_com_renouvellement=apporteur_old.taux_com_renouvellement,
                 base_calcul=apporteur_old.base_calcul,
                 apporteur=apporteur_old.apporteur,
-                historique_police=historique_police,
+                historique_police_id=dernier_historique.id,
                 date_effet=apporteur_old.date_effet,
                 statut_validite=apporteur_old.statut_validite,
                 created_at=apporteur_old.created_at,
@@ -1255,7 +1269,7 @@ def modifier_police(request, police_id):
             HistoriqueTaxePolice.objects.create(
                 montant=taxe.montant,
                 taxe=taxe.taxe,
-                historique_police=historique_police,
+                historique_police_id=dernier_historique.id,
                 created_at=taxe.created_at,
                 updated_at=taxe.updated_at,
             )
@@ -1263,9 +1277,9 @@ def modifier_police(request, police_id):
         # relier l'historique police au mouvement police
         # get 2nd last mouvement police
 
-        mouvement_police = MouvementPolice.objects.filter(police_id=police_id, historique_police_id__isnull=True).order_by('-id').first()
+        mouvement_police = MouvementPolice.objects.filter(police_id=police_id, historique_police_id=dernier_historique.id).order_by('-id').first()
         if mouvement_police:
-            mouvement_police.historique_police = historique_police
+            mouvement_police.historique_police_id = dernier_historique.id
             mouvement_police.save()
 
         # creation du monvement police
@@ -1433,7 +1447,7 @@ def modifier_police(request, police_id):
         # Créer un nouveau assureur principal
         police_assureur = PoliceAssureur(
             client_id=police.client_id,
-            historique_police_id=historique_police.id,
+            historique_police_id=dernier_historique.id,
             type_compagnie_id=typecompagnie_prin.id,
             compagnie_id=compagnie.id,
             date_creation=datetime.now(),
@@ -1445,7 +1459,7 @@ def modifier_police(request, police_id):
         if typecompagnie and compagnie_id:
             police_assureur_autre = PoliceAssureur(
                 client_id=police.client_id,
-                historique_police_id=historique_police.id,
+                historique_police_id=dernier_historique.id,
                 type_compagnie_id=typecompagnie,
                 compagnie_id=compagnie_id,
                 date_creation=datetime.now(),
@@ -1474,11 +1488,11 @@ def modifier_police(request, police_id):
                 'id': police.pk,
                 'numero': police.numero,
                 'compagnie': police_assureur.compagnie.nom,
-                'prime_ht': historique_police.prime_ht,
-                'prime_ttc': historique_police.prime_ttc,
-                'commission_courtage': historique_police.commission_courtage,
-                'date_debut_effet': historique_police.date_debut_effet,
-                'date_fin_effet': historique_police.date_fin_effet,
+                'prime_ht': dernier_historique.prime_ht,
+                'prime_ttc': dernier_historique.prime_ttc,
+                'commission_courtage': dernier_historique.commission_courtage,
+                'date_debut_effet': dernier_historique.date_debut_effet,
+                'date_fin_effet': dernier_historique.date_fin_effet,
                 'statut': police.statut,
             }
         }
@@ -1575,6 +1589,8 @@ def get_garanties_by_formule_modification(request):
     garanties = GarantieFormule.objects.filter(formule_id=formule_id).values('garantie__id', 'garantie__nom')
     garanties = [{'id': g['garantie__id'], 'nom': g['garantie__nom']} for g in garanties]
     return JsonResponse({'garanties': list(garanties)})
+
+
 
 
 
@@ -2601,8 +2617,17 @@ class PoliceQuittancesView(TemplateView):
 
         documents = Document.objects.filter(quittance__in=quittances)
 
+        # Récupérer le dernier historique
+        dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+        # Récupérer les assureurs associés à l'historique
+        assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id, type_compagnie_id=1).first()
+        autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id).exclude(type_compagnie_id=1).first()
+
+        print("Police assureur : ", assureur_police)
+
         context_perso = {'police': police, 'client':client, 'types_quittances': types_quittances, 'quittances': quittances, 'documents': documents,
-                         'quittances_impayees': quittances_impayees, 'quittances_honoraires': quittances_honoraires,
+                         'quittances_impayees': quittances_impayees, 'quittances_honoraires': quittances_honoraires, 'dernier_historique': dernier_historique, 'assureur_police': assureur_police, 'autre_assureur_police': autre_assureur_police,
                          'quittances_ristournes': quittances_ristournes, 'quittances_annulees': quittances_annulees, 'etat_police': etat_police}
 
         context = {**context_original, **context_perso}
@@ -2653,6 +2678,7 @@ def add_document_to_quittance(request, quittance_id, police_id):
             }
             return JsonResponse(response)
 
+
 @login_required
 def details_quittance(request, quittance_id):
     quittance = Quittance.objects.get(id=quittance_id)
@@ -2672,6 +2698,7 @@ def details_quittance(request, quittance_id):
     return render(request, 'police/modal_details_quittance.html',
                   {'police': police, 'types_quittances': types_quittances, 'natures_quittances': natures_quittances,'types_documents':types_documents,
                    'taxes_quittances': taxes_quittances, 'quittance': quittance, 'reglements': reglements,'documents':documents })
+
 
 @login_required
 def add_quittance(request, police_id):
@@ -2714,12 +2741,21 @@ def add_quittance(request, police_id):
 
         devise = police.bureau.pays.devise
 
+        # Récupérer le dernier historique
+        dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+        # Récupérer les assureurs associés à l'historique
+        assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id,type_compagnie_id=1).first()
+        autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id).exclude(type_compagnie_id=1).first()
+
+        print("Police assureur : ", assureur_police)
+
         # print(nature_quittance_id == '3')
         # dd(nature_quittance_id)
 
         # Create Quittance object
         quittance = Quittance.objects.create(police_id=police_id,
-                                            compagnie=police.compagnie,
+                                            compagnie=assureur_police.compagnie,
                                             devise=devise,
                                             nature_quittance_id=nature_quittance_id,
                                             type_quittance_id=type_quittance_id,
@@ -2842,6 +2878,15 @@ def add_quittance(request, police_id):
 
     else:
 
+        # Récupérer le dernier historique
+        dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+        # Récupérer les assureurs associés à l'historique
+        assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id,type_compagnie_id=1).first()
+        autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id).exclude(type_compagnie_id=1).first()
+
+        print("Police assureur : ", assureur_police)
+
         natures_quittances = NatureQuittance.objects.filter(status=True).order_by('libelle')
         types_quittances = TypeQuittance.objects.filter(status=True).order_by('libelle')
 
@@ -2852,7 +2897,7 @@ def add_quittance(request, police_id):
         #staxes_police = TaxePolice.objects.filter(police=police)
         taxes_police = BureauTaxe.objects.filter(bureau=police.bureau) #pour être plus flexible, pas obligé que la taxe ait été ajouté sur la police avant qu'elle apparaisse à la création de la quittance
 
-        param_produit = ParamProduitCompagnie.objects.filter(produit=police.produit, compagnie=police.compagnie)[:1].get()
+        param_produit = ParamProduitCompagnie.objects.filter(produit=police.produit, compagnie=assureur_police.compagnie)[:1].get()
 
         police_dernier_mouvement = MouvementPolice.objects.filter(police=police, statut_validite=StatutValidite.VALIDE, motif__code__in=["AN", "RENOUV"]).last()
 
@@ -2863,7 +2908,7 @@ def add_quittance(request, police_id):
 
         return render(request, 'police/modal_add_quittance.html',
                       {'police': police, 'police_dernier_mouvement': police_dernier_mouvement, 'taxes_police': taxes_police, 'param_produit': param_produit, 'today': today,
-                       'types_quittances': types_quittances, 'natures_quittances': natures_quittances,
+                       'types_quittances': types_quittances, 'natures_quittances': natures_quittances, 'dernier_historique': dernier_historique, 'assureur_police': assureur_police, 'autre_assureur_police': autre_assureur_police,
                        'bureau_taxes': bureau_taxes, 'apporteurs_polices': apporteurs_polices})
 
 
@@ -7041,7 +7086,7 @@ class PoliceClientView(TemplateView):
 
             polices_data = []
             for contrat in polices:
-                # Récupérer la dernière historique
+                # Récupérer le dernier historique
                 dernier_historique = HistoriquePolice.objects.filter(police_id=contrat.id).order_by('-date_du_jour').first()
 
                 # Récupérer les assureurs associés à l'historique
@@ -7121,6 +7166,7 @@ def get_compagnies(request):
         return JsonResponse({'compagnies': compagnies_data}, safe=False)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
 
 
 #Liste des contacts du client
@@ -7520,7 +7566,6 @@ def add_formule_universelle(request):
 
 
 @method_decorator(login_required, name='dispatch')
-
 class CourrierView(TemplateView):
     template_name = 'police/courrier.html'
     model = Courrier
@@ -7536,7 +7581,8 @@ class CourrierView(TemplateView):
         if police:
             courriers = Courrier.objects.all() # Récupère tous les courriers
             produits = Produit.objects.all()
-            today = timezone.now().date()
+            #today = timezone.now().date()
+            today = datetime.now(tz=timezone.utc)
 
             context = {
                 'police': police,  # Passe l'objet Police au template

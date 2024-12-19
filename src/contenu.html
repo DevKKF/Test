@@ -1,0 +1,13 @@
+# Récupérer les assureurs associés à l'historique
+assureur_police = PoliceAssureur.objects.filter(compagnie_id=compagnie_id, type_compagnie_id=1).first()
+
+polices = Police.objects.filter(id=assureur_police.historique_police.police_id)
+
+site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
+print("Logo : ", site_logo_url)
+
+'site_logo_url': site_logo_url,
+
+
+TRUNCATE `aliment_police`; TRUNCATE `apporteurs_police`; TRUNCATE `autre_risque`; TRUNCATE `client_police`; TRUNCATE `historique_apporteurs_police`; TRUNCATE `historique_ordonnancement_sinistre`; TRUNCATE `historique_paiement_comptable_sinistre`; TRUNCATE `historique_polices`; TRUNCATE `historique_taxe_police`; TRUNCATE `historique_vehicules`; TRUNCATE `mouvements_aliments`; TRUNCATE `mouvements_polices`; TRUNCATE `mouvement_quittance`; TRUNCATE `police_assureurs`; TRUNCATE `police_garantie`; TRUNCATE `vehicules`; TRUNCATE `vehicule_police`; TRUNCATE `polices`; TRUNCATE `periode_couverture`;
+TRUNCATE `quittances`; TRUNCATE `reglements`; TRUNCATE `reglement_compagnie`; TRUNCATE `reglement_facture_compagnie`; TRUNCATE `reglement_facture_compagnie`;

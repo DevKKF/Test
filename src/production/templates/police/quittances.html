@@ -26,7 +26,7 @@
     </div>
     <div class="card-body">
       <div class="button-link pull-right mb-2">
-        {% if police.compagnie.has_taux_com %}
+        {% if assureur_police.compagnie.has_taux_com %}
             <span id="btnOpenDialogAddQuittance" class="btn btn-sm btn-primary" data-toggle="modal" data-href="{% url 'add_quittance' police.id %}"><i class="fas fa-plus-circle"></i> {{_("Créer une quittance")}}</span>
             <span id="btnOpenDialogAddReglement" class="btn btn-sm btn-primary" data-toggle="modal" data-href="{% url 'add_reglement' police.id %}"><i class="fas fa-money-bill"></i> {{_("Faire un Règlement")}}</span>
           {% else %}
@@ -39,6 +39,7 @@
             <table class="table table-bordered table-striped dataTable dtr-inline" id="table_quittances_impayees">
               <thead>
                 <tr>
+                  <th>#</th>
                   <th scope="col">{{_("N° Quittance")}}</th>
                   <th scope="col">{{_('Nature')}}</th>
                   <th scope="col">{{_('Type')}}</th>
@@ -56,7 +57,8 @@
               </thead>
               <tbody>
               {% for quittance_imp in quittances_impayees %}
-                <tr class="btnOpenDialogDetailQuittance" data-href="{% url 'details_quittance' quittance_imp.id %}">
+                <tr>
+                  <td><span class="badge badge-info btnOpenDialogDetailQuittance" data-href="{% url 'details_quittance' quittance_imp.id %}"><i class="fa fa-eye"></i></span></td>
                   <td>{{ quittance_imp.numero|default_if_none:"" }}</td>
                   <td>{{ quittance_imp.nature_quittance|default_if_none:"" }}</td>
                   <td>{{ quittance_imp.type_quittance|default_if_none:"" }}</td>
@@ -96,6 +98,7 @@
             <table class="table table-bordered table-striped dataTable dtr-inline" id="table_quittances">
               <thead>
                 <tr>
+                  <th>#</th>
                   <th scope="col">{{_("N° Quittance")}}</th>
                   <th scope="col">{{_('Nature')}}</th>
                   <th scope="col">{{_('Type')}}</th>
@@ -113,7 +116,8 @@
               </thead>
               <tbody>
               {% for quittance in quittances %}
-                <tr class="btnOpenDialogDetailQuittance" data-href="{% url 'details_quittance' quittance.id %}">
+                <tr>
+                  <td><span class="badge badge-info btnOpenDialogDetailQuittance" data-href="{% url 'details_quittance' quittance.id %}"><i class="fa fa-eye"></i></span></td>
                   <td>{{ quittance.numero|default_if_none:"" }}</td>
                   <td>{{ quittance.nature_quittance|default_if_none:"" }}</td>
                   <td>{{ quittance.type_quittance|default_if_none:"" }}</td>
@@ -153,6 +157,7 @@
             <table class="table table-bordered table-striped dataTable dtr-inline" id="table_honoraires">
                 <thead>
                   <tr>
+                    <th>#</th>
                     <th scope="col">{{_("N° Quittance")}}</th>
                     <th scope="col">{{_('Nature')}}</th>
                     <th scope="col">{{_('Type')}}</th>
@@ -168,7 +173,8 @@
                 </thead>
                 <tbody>
                   {% for honoraire in quittances_honoraires %}
-                    <tr class="btnOpenDialogDetailQuittance" data-href="{% url 'details_quittance' honoraire.id %}">
+                    <tr>
+                      <td><span class="badge badge-info btnOpenDialogDetailQuittance" data-href="{% url 'details_quittance' honoraire.id %}"><i class="fa fa-eye"></i></span></td>
                       <td>{{ honoraire.numero|default_if_none:"" }}</td>
                       <td>{{ honoraire.nature_quittance|default_if_none:"" }}</td>
                       <td>{{ honoraire.type_quittance|default_if_none:"" }}</td>
@@ -206,15 +212,16 @@
             <table class="table table-bordered table-striped dataTable dtr-inline" id="table_quittances_annulees">
               <thead>
                 <tr>
-                  <th scope="col">{{_('Numero_Quittance')}}</th>
-                  <th scope="col">{{_('Nature')}}</th>
-                  <th scope="col">{{_('Type')}}</th>
-                  <th scope="col">{{_('Date_d_emission')}}</th>
-                  <th scope="col">{{_('Debut_periode')}}</th>
-                  <th scope="col">{{_('Prime_HT')}}</th>
-                  <th scope="col">{{_('Prime_ttc')}}</th>
-                  <th scope="col">{{_('Com_Courtage')}}</th>
-                  <th scope="col">{{_('Retro_Apporteur')}}</th>
+                  <th>#</th>
+                  <th scope="col">{{_("N° Quittance")}}</th>
+                  <th scope="col">{{_("Nature")}}</th>
+                  <th scope="col">{{_("Type")}}</th>
+                  <th scope="col">{{_("Date d'émission")}}</th>
+                  <th scope="col">{{_("Début période")}}</th>
+                  <th scope="col">{{_("Prime HT")}}</th>
+                  <th scope="col">{{_("Prime TTC")}}</th>
+                  <th scope="col">{{_("Com Courtage")}}</th>
+                  <th scope="col">{{_("Retro Apporteur")}}</th>
                   <th scope="col">{{_('Solde')}}</th>
                   <th scope="col">{{_('Devise')}}</th>
                   <th scope="col">{{_('Situation')}}</th>
@@ -223,7 +230,8 @@
               </thead>
               <tbody>
                 {% for qa in quittances_annulees %}
-                  <tr class="btnOpenDialogDetailQuittance" data-href="{% url 'details_quittance' qa.id %}">
+                  <tr>
+                    <td><span class="badge badge-info btnOpenDialogDetailQuittance" data-href="{% url 'details_quittance' qa.id %}"><i class="fa fa-eye"></i></span></td>
                     <td>{{ qa.numero|default_if_none:"" }}</td>
                     <td>{{ qa.nature_quittance|default_if_none:"" }}</td>
                     <td>{{ qa.type_quittance|default_if_none:"" }}</td>

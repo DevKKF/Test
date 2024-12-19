@@ -618,10 +618,31 @@ article .shimmer{
   border: 1px solid #000;
 }
 
-.f_none_bold label:not(.form-check-label):not(.custom-file-label) {
-  font-weight: none !important;
+label:not(.form-check-label):not(.custom-file-label) {
+  font-weight: 200 !important;
 }
 
 #modal-police_aliment label:not(.form-check-label):not(.custom-file-label) {
   font-weight: 200 !important;
+}
+
+.btn-primary{
+	color: #fff;
+	background-color: #F16623;
+	border-color: #F16623;
+	box-shadow: none;
+}
+
+.btn-primary:hover{
+	color: #fff;
+	background-color: #d45802;
+	border-color: #d45802;
+	box-shadow: none;
+}
+
+.btn-warning{
+  color: #fff;
+  background-color: #5B7641;
+  border-color: #5B7641;
+  box-shadow: none;
 }

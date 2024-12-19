@@ -6652,7 +6652,7 @@ $(document).ready(function () {
             //init datatables
             if (!$.fn.DataTable.isDataTable('#table_reglements')) {
 
-                $('#table_reglements_0').DataTable({
+                $('#table_reglements').DataTable({
                     "language": {
                         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
                     },
@@ -14263,20 +14263,22 @@ $(document).ready(function () {
         });
     }
 
-});
 
-
-$(document).ready(function () {
     // Initialisation lors du chargement de la page
     $(".typecompagnie").prop("checked", false).prop("disabled", true);
-    $("#box_compagnie, #box_compagnie_modification").hide();
+    $("#box_compagnie").hide();
+    $("#compagnie_id").empty().append('<option value="">Choisir</option>');
 
     // Activer les boutons radio seulement si une compagnie est choisie
     $("#compagnie").on("change", function () {
         const selectedCompagnieId = $(this).val();
 
+        // Si une compagnie est sélectionnée
         if (selectedCompagnieId) {
             $(".typecompagnie").prop("disabled", false);
+            $("#box_compagnie").hide();
+            $("#compagnie_id").empty().append('<option value="">Choisir</option>');
+            $(".typecompagnie").prop("checked", false);
         } else {
             $(".typecompagnie").prop("checked", false).prop("disabled", true);
             $("#box_compagnie").hide();
@@ -14284,11 +14286,12 @@ $(document).ready(function () {
         }
     });
 
-    // Gestion de l'affichage dynamique des compagnies lors de l'enregistrement
+    // Gestion de l'affichage dynamique des compagnies lors du changement d'un type de compagnie
     $(".typecompagnie").on("change", function () {
         const selectedTypeId = $(this).val();
         const selectedCompagnieId = $("#compagnie").val();
 
+        // Si un type de compagnie est sélectionné
         if (selectedTypeId) {
             $("#box_compagnie").show();
             $.ajax({
@@ -14302,6 +14305,8 @@ $(document).ready(function () {
                     const compagnieSelect = $("#compagnie_id");
                     compagnieSelect.empty();
                     compagnieSelect.append('<option value="">Choisir</option>');
+
+                    // Ajouter les options retournées par l'API
                     response.compagnies.forEach(function (compagnie) {
                         compagnieSelect.append(`<option value="${compagnie.id}">${compagnie.nom}</option>`);
                     });
@@ -14315,63 +14320,13 @@ $(document).ready(function () {
         }
     });
 
-    // Gestion pour la modification
-    const selectedCompagnieId = $("#compagnie_modification").val();
-    const selectedTypeId = $("input[name='typecompagnie']:checked").val();
-
-    if (selectedTypeId) {
-        $("#box_compagnie_modification").show();
-    }
-
-    $("#compagnie_modification").on("change", function () {
-        const compagnieId = $(this).val();
-
-        if (compagnieId) {
-            $(".typecompagnie").prop("disabled", false);
-        } else {
-            $(".typecompagnie").prop("checked", false).prop("disabled", true);
-            $("#box_compagnie_modification").hide();
-            $("#compagnie_id").empty().append('<option value="">Choisir</option>');
-        }
-    });
-
-    $(".typecompagnie").on("change", function () {
-        const typeId = $(this).val();
-        const compagnieId = $("#compagnie_modification").val();
-        alert(compagnieId);
-        if (typeId) {
-            $("#box_compagnie_modification").show();
-            $.ajax({
-                url: "/production/get_compagnies/",
-                method: "GET",
-                data: {
-                    type_id: typeId,
-                    exclude_compagnie_id: compagnieId
-                },
-                success: function (response) {
-                    const compagnieSelect = $("#compagnie_id");
-                    compagnieSelect.empty();
-                    compagnieSelect.append('<option value="">Choisir</option>');
-                    response.compagnies.forEach(function (compagnie) {
-                        compagnieSelect.append(`<option value="${compagnie.id}" ${compagnie.id === selectedCompagnieId ? "selected" : ""}>${compagnie.nom}</option>`);
-                    });
-                },
-                error: function () {
-                    alert("Une erreur est survenue lors du chargement des compagnies.");
-                }
-            });
-        } else {
-            $("#box_compagnie_modification").hide();
-        }
-    });
-
     // Rendre le champ non obligatoire si la liste des compagnies est masquée
     $("form").on("submit", function (e) {
-        if ($("#box_compagnie").is(":hidden") || $("#box_compagnie_modification").is(":hidden")) {
+        if ($("#box_compagnie").is(":hidden")) {
             $("#compagnie_id").prop("required", false);
         } else {
             $("#compagnie_id").prop("required", true);
         }
     });
-});
 
+});

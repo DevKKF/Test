@@ -18,7 +18,7 @@
 						<ul class="nav nav-tabs" id="myTab" role="tablist">
 							<li class="nav-item"><a class="nav-link active" id="general-tab_modification" data-toggle="tab" href="#general_modification" role="tab" aria-controls="general_modification" aria-selected="true">{{_('GENERAL')}}</a></li>
 							<li class="nav-item"><a class="nav-link" id="intermediaire-tab_modification" data-toggle="tab" href="#intermediaire_modification" role="tab" aria-controls="intermediaire_modification" aria-selected="false">{{_('APPORTEURS')}}</a></li>
-							<li class="nav-item"><a class="nav-link" id="garantie-tab_modification" data-toggle="tab" href="#garantie_modification" role="tab" aria-controls="garantie_modification" aria-selected="false">{{_('GARANTIES')}}</a></li>
+							<li class="nav-item" style="display:none;"><a class="nav-link" id="garantie-tab_modification" data-toggle="tab" href="#garantie_modification" role="tab" aria-controls="garantie_modification" aria-selected="false">{{_('GARANTIES')}}</a></li>
 							<li class="nav-item"><a class="nav-link" id="facturation-tab_modification" data-toggle="tab" href="#facturation_modification" role="tab" aria-controls="facturation_modification" aria-selected="false">{{_('FACTURATION')}}</a></li>
 							<li class="nav-item"><a class="nav-link" id="prime-tab_modification" data-toggle="tab" href="#prime_modification" role="tab" aria-controls="prime_modification" aria-selected="false">{{_('PRIME')}}</a></li>
 						</ul>
@@ -41,42 +41,46 @@
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_('Produit')}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<select class="form-control " name="produit" id="produit_modification">
+												<select class="form-control d-none" name="produit" id="produit_modification" disabled>
 													<option value="">{{_('Choisir')}}</option>
 													{% for produit in produits %}
-													<option {% if police.produit.id == produit.id %} selected {% endif %} value="{{ produit.id }}" data-code="{{ produit.code }}">{{ produit.nom }}</option>
+														<option {% if police.produit.id == produit.id %} selected {% endif %} value="{{ produit.id }}" data-code="{{ produit.code }}">{{ produit.nom }}</option>
 													{% endfor %}
 												</select>
+												<input type="hidden" class="form-control" name="produit" value="{{ police.produit.id }}"/>
+												<input type="text" class="form-control" name="edit_produit" value="{{ police.produit.nom|default_if_none:"" }}" readonly/>
 											</div>
 										</div>
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_('Assureur')}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<select class="form-control" name="compagnie" id="compagnie_modification" required>
+												<select class="form-control d-none" name="compagnie" id="compagnie_modification" required disabled>
 													<option value="">{{_('Choisir')}}</option>
 													{% for compagnie in compagnies %}
-														<option {% if assureur_police.compagnie_id == compagnie.id %} selected {% endif %} value="{{ compagnie.id }}">{{ compagnie.nom|default_if_none:"" }}</option>
+														<option {% if assureur_police.compagnie_id == compagnie.id %} selected {% endif %} value="{{ compagnie.id }}" data-compagnie_id="{{ compagnie.id }}">{{ compagnie.nom|default_if_none:"" }}</option>
 													{% endfor %}
 												</select>
+												<input type="hidden" class="form-control" name="compagnie" value="{{ assureur_police.compagnie_id }}"/>
+												<input type="text" class="form-control" name="edit_compagnie" value="{{ assureur_police.compagnie.nom|default_if_none:"" }}" readonly/>
 											</div>
 										</div>
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("Numéro police Cie")}}</label>
 											<div class="col-sm-7">
-												<input type="text" class="form-control" name="numero" value="{{ police.numero }}" />
+												<input type="text" class="form-control" name="numero" value="{{ police.numero }}" readonly/>
 											</div>
 										</div>
 
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("Date début")}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<input type="date" class="form-control" name="date_debut_effet" value="{{ periode_couverture.date_debut_effet|date:'Y-m-d' }}" required readonly/>
+												<input type="date" class="form-control" name="date_debut_effet" value="{{ dernier_historique.date_debut_effet|date:'Y-m-d' }}" required/>
 											</div>
 										</div>
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("Date Fin periode garantie")}}<span class="required">*</span></label>
 											<div class="col-sm-7">
-												<input type="date" class="form-control" name="date_fin_effet" value="{{ periode_couverture.date_fin_effet|date:'Y-m-d' }}" required readonly/>
+												<input type="date" class="form-control" name="date_fin_effet" value="{{ dernier_historique.date_fin_effet|date:'Y-m-d' }}" required/>
 											</div>
 										</div>
 									</div>
@@ -88,12 +92,12 @@
 											<div class="col-sm-7">
 												<select class="form-control" name="preavis_de_resiliation" required>
 													<option value="">Choisir</option>
-													<option {% if police.preavis_de_resiliation == '1' %} selected {% endif %} value="1">1 {{_('MOIS')}}</option>
-													<option {% if police.preavis_de_resiliation == '2' %} selected {% endif %} value="2">2 {{_('MOIS')}}</option>
-													<option {% if police.preavis_de_resiliation == '3' %} selected {% endif %} value="3">3 {{_('MOIS')}}</option>
-													<option {% if police.preavis_de_resiliation == '4' %} selected {% endif %} value="4">4 {{_('MOIS')}}</option>
-													<option {% if police.preavis_de_resiliation == '5' %} selected {% endif %} value="5">5 {{_('MOIS')}}</option>
-													<option {% if police.preavis_de_resiliation == '6' %} selected {% endif %} value="6">6 {{_('MOIS')}}</option>
+													<option {% if police.preavis_de_resiliation == '1' %} selected {% endif %} value="1">1 {{_('Mois')}}</option>
+													<option {% if police.preavis_de_resiliation == '2' %} selected {% endif %} value="2">2 {{_('Mois')}}</option>
+													<option {% if police.preavis_de_resiliation == '3' %} selected {% endif %} value="3">3 {{_('Mois')}}</option>
+													<option {% if police.preavis_de_resiliation == '4' %} selected {% endif %} value="4">4 {{_('Mois')}}</option>
+													<option {% if police.preavis_de_resiliation == '5' %} selected {% endif %} value="5">5 {{_('Mois')}}</option>
+													<option {% if police.preavis_de_resiliation == '6' %} selected {% endif %} value="6">6 {{_('Mois')}}</option>
 												</select>
 											</div>
 										</div>
@@ -109,18 +113,18 @@
 											</div>
 										</div>
 
-										<div class="form-group row">
+										<div class="form-group row" style="display:none;">
 											<label class="col-sm-6 col-form-label">{{_("Autre assureur")}}</label>
 											<div class="col-sm-6">
 												{% for type in typecompagnie %}
 													<div class="icheck-danger d-inline mr-3">
-													  <input type="radio" name="typecompagnie" value="{{ type.id }}" class="typecompagnie" id="typecompagnie" {% if autre_assureur_police.type_compagnie_id == type.id %} checked {% endif %}>
+													  <input type="radio" name="typecompagnie" value="{{ type.id }}" class="typecompagnie" id="typecompagnie" data-typecompagnie_id="{{ type.id }}">
 													  <label for="typecompagnie">{{ type.libelle }}</label>
 													</div>
 												{% endfor %}
 											</div>
 										</div>
-										<div class="form-group row" id="box_compagnie_modification" style="display:none;">
+										<div class="form-group row" id="box_compagnie" style="display:none;">
 											<label class="col-sm-5 col-form-label">{{_("Choisir l'assureur")}} <span class="required">*</span></label>
 											<div class="col-sm-7">
 												<select class="form-control tags-multiple" name="compagnie_id" id="compagnie_id" autocomplete="off">
@@ -129,7 +133,7 @@
 											</div>
 										</div>
 
-										<div class="form-group row  ">
+										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("Logo du partenaire")}}<span class="required"></span></label>
 											<div class="col-sm-6">
 												<input type="file" class="form-control" id="logo_partenaire_modification" name="logo_partenaire"/>
@@ -297,10 +301,10 @@
 										<div class="form-group row" id="formule_block_modification">
 											<label class="col-sm-6 col-form-label">{{_('Formule')}}</label>
 											<div class="col-sm-6">
-												<select class="form-control " name="formule" id="formule_id" autocomplete="off">
+												<select class="form-control " name="formule" id="formule_modification_id" autocomplete="off">
 													<option value="">{{_('Choisir')}}</option>
 													{% for formule in formules %}
-														<option value="{{ formule.id }}">{{ formule.libelle }}</option>
+														<option value="{{ formule.id }}" data-formule_id="{{ formule.id }}">{{ formule.libelle }}</option>
 													{% endfor %}
 												</select>
 											</div>
@@ -366,7 +370,7 @@
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("Date prochaine facture")}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<input type="date" class="form-control" name="date_prochaine_facture" value="{{ periode_couverture.date_debut_effet|date:'Y-m-d' }}" required/>
+												<input type="date" class="form-control" name="date_prochaine_facture" value="{{ police.date_prochaine_facture|date:'Y-m-d' }}" required/>
 											</div>
 										</div>
 									</div>

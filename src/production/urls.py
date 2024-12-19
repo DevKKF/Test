@@ -133,7 +133,6 @@ urlpatterns = [
     path('formule/detail_bareme/<int:bareme_id>', views.detail_bareme, name='detail_bareme'),
 
 
-
     path('aliment/<int:police_id>/change_formule/<int:aliment_id>', views.change_formule, name='change_formule'),
     path('aliment/<int:police_id>/suspension_beneficiaire/<int:aliment_id>', views.suspension_beneficiaire, name='suspension_beneficiaire'),
     path('aliment/<int:police_id>/remise_en_vigueur/<int:aliment_id>', views.remise_en_vigueur, name='remise_en_vigueur'),

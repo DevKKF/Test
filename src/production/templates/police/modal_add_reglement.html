@@ -98,7 +98,7 @@
 									<select class="form-control" name="devise" id="devise" required>
 										<option value="">{{_('Choisir')}}</option>
 										{% for devise in devises %}
-										<option {% if devise.code == police.client.pays.devise.code %} selected {% endif %} value="{{ devise.id }}">{{ devise.libelle }} ({{ devise.code }})</option>
+											<option {% if devise.code == police.client.pays.devise.code %} selected {% endif %} value="{{ devise.id }}">{{ devise.libelle }} ({{ devise.code }})</option>
 										{% endfor %}
 									</select>
 								</div>
@@ -110,7 +110,7 @@
 						<table class="table table-bordered table-striped dataTable0 dtr-inline" id="table_quittances_impayees">
 						  <thead>
 							<tr>
-								<th scope="col"></th>
+								<th scope="col">##</th>
 								<th scope="col" style="width:200px;">{{_("Montant à régler")}}</th>
 								<th scope="col">{{_("Numéro Quittance")}}</th>
 								<th scope="col">{{_("Début période")}}</th>

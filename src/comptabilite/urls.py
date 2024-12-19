@@ -82,7 +82,6 @@ urlpatterns = [
     path('suivi_treso/datatable', views.datatable_facture_compagnie_specifique, name='datatable_facture_compagnie_specifique'),
 
 
-
     path('reglements_compagnies/', ReversesementCompagniesView.as_view(), name='reglements_compagnies'),
     path('encaissement_commissions/', EncaissementCommissionsView.as_view(), name='encaissement_commissions'),
     path('encaissement_commissions_court_gest/<str:type>', EncaissementCommissionsCourtGestView.as_view(), name='encaissement_commissions_court_gest'),
@@ -101,7 +100,6 @@ urlpatterns = [
     path('generer_bordereau_encaissement_compagnie_pdf/<int:operation_id>', views.generer_bordereau_encaissement_compagnie_pdf, name='generer_bordereau_encaissement_compagnie_pdf'),
 
     path('execution-requete-excel-compta/', views.ExecutionRequeteExcelComptaView.as_view(), name='execution_requete_excel_compta'),
-
 
     #
     path('export_bordereaux_ordonnances/', export_bordereaux_ordonnances, name='export_bordereaux_ordonnances'),

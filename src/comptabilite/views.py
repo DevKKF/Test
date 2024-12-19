@@ -39,9 +39,9 @@ from configurations.models import Bureau, Caution, Compagnie, MailingList, Natur
     CompteTresorerie, ActionLog, TypeRemboursement, Prestataire
 from configurations.models import Compagnie, NatureOperation, Devise, ModeReglement, Banque, PeriodeComptable, \
     CompteTresorerie, ActionLog, TypeRemboursement, Prestataire, ModelLettreCheque, \
-    BordereauLettreCheque
+    BordereauLettreCheque, BusinessUnit
 from production.models import Aliment, Reglement, Police, Quittance, Operation, OperationReglement, MouvementPolice, \
-    Client
+    Client, PoliceAssureur, HistoriquePolice
 from production.templatetags.my_filters import money_field
 from shared.enum import MoyenPaiement, SatutBordereauDossierSinistres, StatutPaiementSinistre, \
     StatutReversementCompagnie, StatutEncaissementCommission, StatutReglementApporteurs, \
@@ -61,6 +61,8 @@ from configurations.models import Compagnie, User
 from django.db.models import OuterRef, Subquery, Count, Sum, Min, Max
 
 from django.core.files.storage import FileSystemStorage
+
+from django.templatetags.static import static
 
 from django.db.models import Sum, DateTimeField
 from django.db.models.functions import TruncMonth
@@ -340,6 +342,7 @@ class InitialisationFondRoulementView(TemplateView):
 
         return context_data
 
+
 def get_fdr_data(request):
     # Vue appelée via AJAX
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -513,6 +516,7 @@ def update_caution_garant(request, garant_id):
             }
         )
 
+
 def edition_caution_compagnie(request, compagnie_id):
     compagnie = Compagnie.objects.get(id=compagnie_id)
 
@@ -572,9 +576,6 @@ def init_fonds_de_roulements(request):
             'message': 'Fonds de roulement initialisé avec succès !'
         }
     )
-
-
-
 
 
 def add_mise_en_reglement_factures_garant(request):
@@ -754,6 +755,8 @@ def generate_facture_assureur_datatable(request):
     
     
     # NB: Cette fonction ne fait que regenerer le fichier facture lui-même. elle ne peut pas remplacer la fonction de generer facture qui stocke des calculs.
+
+
 def generate_facture_compagnie_pdf(request, facture_compagnie_id):
     
     if request.method == "POST":
@@ -874,8 +877,6 @@ def generate_facture_compagnie_pdf(request, facture_compagnie_id):
         
         return facture_compagnie
     
-        
-    
 
 @transaction.atomic
 def submit_generate_facture_assureur(request):
@@ -942,6 +943,7 @@ def submit_generate_facture_assureur(request):
         else:
             return JsonResponse({'statut': 0, 'message': 'Aucun sinistre sélectionné'})
 
+
 def get_refacturation_assureur_data(request):
     # Vue appelée via AJAX
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -970,6 +972,7 @@ def get_refacturation_assureur_data(request):
         return JsonResponse(data)
     else:
         return render(request, 'comptabilite/refacturation-assureur.html')
+
 
 def get_garant_selectionne_data(request, compagnie_id):
     # Vue appelée via AJAX
@@ -1053,6 +1056,7 @@ class  FactureCompagnieView(TemplateView):
         context.update(admin.site.each_context(self.request))
 
         return context
+
 
 def facture_compagnie_datatable(request):
     items_per_page = int(request.GET.get('length', 10))
@@ -1166,6 +1170,7 @@ def fetch_factures(request):
 
     return JsonResponse([], safe=False)
 
+
 @transaction.atomic
 def reglement_facture_garant_simple(request, facture_id):
     facture = FactureCompagnie.objects.get(id=facture_id)
@@ -1247,6 +1252,7 @@ def reglement_facture_garant_simple(request, facture_id):
 
             return render(request, 'modals/creation-reglement-facture-unique-garant.html', {'facture': facture, 'modes_reglements': modes_reglements, 'comptes_tresoreries': comptes_tresoreries, 'banques': banques, 'now':timezone.now().date()})
 
+
 @transaction.atomic
 def annulation_facture_simple(request, facture_id):
     bureau = request.user.bureau
@@ -1282,6 +1288,7 @@ def annulation_facture_simple(request, facture_id):
             sinistres_factures_impayees = Sinistre.objects.filter(facture_compagnie=facture)
 
             return render(request, 'modals/annuler-facture-garant.html', {'facture': facture, 'sinistres_factures_impayees': sinistres_factures_impayees})
+
 
 class DetailFactureGarant(TemplateView):
     template_name = 'comptabilite/detail_facture_garant.html'
@@ -1362,8 +1369,7 @@ def regenerateFactureGarantpdf(request, facture_id):
             }
         )
     
-    
-    
+
 @method_decorator(login_required, name="dispatch")
 class SuiviTresorerie(TemplateView):
     template_name = 'comptabilite/suivi-tresorerie.html'
@@ -1809,7 +1815,8 @@ def export_bordereaux_ordonnances_paye(request):
 
     except Exception as e:
         return JsonResponse({"message": str(e)}, status=500)
-#
+
+
 def bordereaux_payes_datatable(request):
     items_per_page = 10
     page_number = request.GET.get('page')
@@ -1908,6 +1915,7 @@ def bordereaux_payes_datatable(request):
         "recordsFiltered": paginator.count,
         "draw": int(request.GET.get('draw', 1)),
     })
+
 
 #######################################################
 def regenerate_bordereau_pdf(request, paiement_comptable_id):
@@ -2122,7 +2130,6 @@ def paiements_comptables_datatable(request):
     })
 
 
-
 # @method_decorator(csrf_exempt, name='dispatch')
 def export_paiements_comptables(request):
     if request.method == 'POST':
@@ -2184,6 +2191,7 @@ def export_paiements_comptables(request):
         return response
     else:
         return HttpResponse(status=405)
+
 
 def generer_bordereau_reglement_ordonnancement_pdf(request, operation_id):
     operation = Operation.objects.get(id=operation_id)
@@ -2281,7 +2289,6 @@ class DetailBordereauOrdonnancementView(TemplateView):
         }
 
 
-
 def detail_bordereau_ordonnancement_datatable(request, bordereau_id):
     items_per_page = 10
     page_number = request.GET.get('page')
@@ -2368,8 +2375,6 @@ def detail_bordereau_ordonnancement_datatable(request, bordereau_id):
     })
 
 
-
-
 def calculer_montant_accepte_total(garant_id, bordereau_id):
     bordereau = BordereauOrdonnance.objects.get(id=bordereau_id)
 
@@ -2402,6 +2407,7 @@ def update_montant_accepte_total(request):
 
     # Renvoyez la réponse JSON
     return JsonResponse({'montant_accepte_total': montant_accepte_total})
+
 
 def add_mise_en_reglement_ordonnancement(request):
 
@@ -2440,6 +2446,7 @@ def add_mise_en_reglement_ordonnancement(request):
 
     else:
         return render(request, 'modals.creation-mise-en-reglement.html')
+
 
 @transaction.atomic
 def add_mise_en_reglement_ordonnancement_par_garant(request):
@@ -2648,6 +2655,7 @@ def genreate_bordereau_reglement_par_garant(request, bordereau_id, compagnie_id)
 
     return paiement_comptable.fichier
 
+
 def genreate_bordereau_reglement_assure_par_garant(request, bordereau_id, assure_id, compagnie_id):
 
     mode_reglement_id = request.POST.get('garant_moyens_paiement_id', '')
@@ -2802,6 +2810,7 @@ def genreate_bordereau_reglement_assure_par_garant(request, bordereau_id, assure
 
     return paiement_comptable.fichier
 
+
 def generer_bordereau_reglement_ordonnancement_par_garant_pdf(request, operation_id):
     operation = Operation.objects.get(id=operation_id)
 
@@ -2827,6 +2836,7 @@ def generer_bordereau_reglement_ordonnancement_par_garant_pdf(request, operation
     #AFFICHER DIRECTEMENT
     return HttpResponse(File(pdf), content_type='application/pdf')
 
+
 def bordereau_ordonnancement_pdf(request):
     bordereau = BordereauOrdonnancement.objects.get(id=15747)
     compagnie_id = None
@@ -2834,6 +2844,7 @@ def bordereau_ordonnancement_pdf(request):
     return JsonResponse(
         {'statut': 1, 'message': 'Bordereau de paiement généré avec succèss',
          'pdf': pdf.url}, status=200)
+
 
 @method_decorator(login_required, name="dispatch")
 class PaiementsRealises(TemplateView):
@@ -3080,6 +3091,7 @@ def submit_edition_lettre_cheque(request):
         else:
             return JsonResponse({'statut': 0, 'message': 'Aucune donnée trouvé', 'Paiement_ids':Paiement_ids}, status=200)
 
+
 def edition_lettre_cheque_pdf(request):
     paiements = PaiementComptable.objects.filter(bureau=request.user.bureau, mode_reglement_id=5)[:2]
 
@@ -3097,6 +3109,7 @@ def edition_lettre_cheque_pdf(request):
 
     #AFFICHER DIRECTEMENT
     return HttpResponse(File(pdf), content_type='application/pdf')
+
 
 
 @method_decorator(login_required, name='dispatch')
@@ -3132,7 +3145,10 @@ class ReversesementCompagniesView(TemplateView):
 @login_required
 def ajax_reglements_a_reverser_compagnie(request, compagnie_id):
 
-    polices = Police.objects.filter(compagnie_id=compagnie_id)
+    # Récupérer les assureurs associés à l'historique
+    assureur_police = PoliceAssureur.objects.filter(compagnie_id=compagnie_id, type_compagnie_id=1).first()
+
+    polices = Police.objects.filter(id=assureur_police.historique_police.police_id)
 
     reglements_compagnies = ReglementReverseCompagnie.objects.filter(quittance__police__in=polices, statut_reversement_compagnie=StatutReversementCompagnie.NON_REVERSE, statut_validite=StatutValidite.VALIDE).exclude(quittance__nature_quittance__code="Ristourne").exclude(quittance__type_quittance__code="HONORAIRE")
 
@@ -3231,8 +3247,7 @@ def add_reglement_compagnie(request):
         return render(request, 'modal_add_reglement_compagnie.html',
                       {'reglements_compagnies': reglements_compagnies,  'compagnies': compagnies, 'today': today, 'devises': devises, 'natures_operations': natures_operations, 'modes_reglements': modes_reglements, 'banques': banques, 'comptes_tresoreries': comptes_tresoreries, })
 
-
-
+@login_required
 def generer_bordereau_reglement_compagnie_pdf(request, operation_id):
     operation = Operation.objects.get(id=operation_id)
 
@@ -3244,15 +3259,17 @@ def generer_bordereau_reglement_compagnie_pdf(request, operation_id):
     # dd(option_reglements.first())
     total_montant_compagnie = 0
     total_montant_com_courtage = 0
-    total_montant_com_gestion = 0
+    #total_montant_com_gestion = 0
     total_montant_com_intermediaire = 0
 
     for option_reglement in option_reglements:
         total_montant_compagnie += option_reglement.reglement.montant_compagnie
         total_montant_com_courtage += option_reglement.reglement.montant_com_courtage
-        total_montant_com_gestion += option_reglement.reglement.montant_com_gestion
+        #total_montant_com_gestion += option_reglement.reglement.montant_com_gestion
         total_montant_com_intermediaire += option_reglement.reglement.montant_com_intermediaire
 
+    site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
+    print("Logo : ", site_logo_url)
     contexte = {
         'operation': operation,
         'option_reglements': option_reglements,
@@ -3261,8 +3278,9 @@ def generer_bordereau_reglement_compagnie_pdf(request, operation_id):
         'bureau': bureau,
         'total_montant_compagnie': total_montant_compagnie,
         'total_montant_com_courtage': total_montant_com_courtage,
-        'total_montant_com_gestion': total_montant_com_gestion,
+        #'total_montant_com_gestion': total_montant_com_gestion,
         'total_montant_com_intermediaire': total_montant_com_intermediaire,
+        'site_logo_url': site_logo_url,
     }
     pdf = render_pdf('courriers/bordereau_reglement_compagnie.html', contexte)
 
@@ -3535,8 +3553,11 @@ def add_encaissement_commission(request):
 
 @login_required
 def ajax_reglements_reverses_court_gest(request, compagnie_id, type):
+    
+    # Récupérer les assureurs associés à l'historique
+    assureur_police = PoliceAssureur.objects.filter(compagnie_id=compagnie_id, type_compagnie_id=1).first()
 
-    polices = Police.objects.filter(compagnie_id=compagnie_id)
+    polices = Police.objects.filter(id=assureur_police.historique_police.police_id)
 
     reglements_compagnies = ReglementReverseCompagnie.objects.filter(quittance__police__in=polices, statut_reversement_compagnie=StatutReversementCompagnie.REVERSE, statut_validite=StatutValidite.VALIDE).exclude(statut_commission=StatutEncaissementCommission.ENCAISSEE)
 
@@ -3737,7 +3758,8 @@ def add_encaissement_com_court_gest(request, type):
                       {'reglements_compagnies': reglements_compagnies,  'compagnies': compagnies, 'today': today, 'devises': devises, 'natures_operations': natures_operations, 'modes_reglements': modes_reglements, 'banques': banques, 'comptes_tresoreries': comptes_tresoreries, 'comptes_exercices': comptes_exercices, 'type': type})
 
 
-# a la fois pour le courtage ou la gestion determiner par ?type en get
+# a la fois pour le courtage ou la gestion determiner par ? Type en get
+@login_required
 def generer_bordereau_encaissement_compagnie_pdf(request, operation_id):
     operation = Operation.objects.get(id=operation_id)
 
@@ -3776,6 +3798,9 @@ def generer_bordereau_encaissement_compagnie_pdf(request, operation_id):
 
     total_montant_percu_final = total_montant_com_encaisse - op_div if op_sens == "D" else total_montant_com_encaisse + op_div
 
+    site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
+    print("Logo de l'entreprise : ", site_logo_url)
+
     contexte = {
         'operation': operation,
         'encaissement_commissions': encaissement_commissions,
@@ -3793,6 +3818,7 @@ def generer_bordereau_encaissement_compagnie_pdf(request, operation_id):
         'total_montant_percu_final': total_montant_percu_final,
         'type': type,
         # 'total_montant_com_intermediaire': total_montant_com_intermediaire,
+        'site_logo_url': site_logo_url,
     }
     pdf = render_pdf('courriers/bordereau_encaissement_compagnie.html', contexte) if type is None else render_pdf('courriers/bordereau_encaissement_compagnie_court_gest.html', contexte)
 
@@ -3812,7 +3838,6 @@ def generer_bordereau_encaissement_compagnie_pdf(request, operation_id):
 
     #AFFICHER DIRECTEMENT
     return HttpResponse(File(pdf), content_type='application/pdf')
-
 
 
 @method_decorator(login_required, name='dispatch')
@@ -3857,6 +3882,7 @@ def get_montant_caution(bureau, compagnie=None):
     #     created_at_caution=Min('caution__created_at')
     # )
 
+
 def get_montant_sinistre_regle(bureau, compagnie=None, month=None):
     queryset = Sinistre.objects.filter(
         prestataire__bureau=bureau,
@@ -3874,11 +3900,13 @@ def get_montant_sinistre_regle(bureau, compagnie=None, month=None):
 
     return queryset.aggregate(total_remboursement=Sum('montant_remboursement_accepte'))['total_remboursement'] or 0
 
+
 def get_montant_sinistre_reclame(bureau, compagnie=None):
     queryset = FactureCompagnie.par_bureau(bureau)
     if compagnie:
         queryset = queryset.filter(compagnie=compagnie)
     return queryset.aggregate(total_restant=Sum('montant_restant'))['total_restant'] or 0
+
 
 def prepare_camembert_data(bureau, compagnie=None):
 
@@ -3912,6 +3940,7 @@ def prepare_camembert_data(bureau, compagnie=None):
         "couleur_global_sinistre_reclame": couleur_global_sinistre_reclame,
         "stroke_couleur_global_sinistre_reclame": stroke_couleur_global_sinistre_reclame,
     }
+
 
 def get_camembert_data_detail_par_garant(request, compagnie_id):
 
@@ -3959,7 +3988,6 @@ def get_sum_fdr_per_month(bureau, month, compagnie=None):
     return total_montant if total_montant else 0
 
 
-
 def get_consumption_per_month(bureau, month, compagnie=None):
     queryset_sinistres_reclames_non_regles = FactureCompagnie.par_bureau(bureau)
     queryset_sinistres_regles = Sinistre.par_bureau(bureau)
@@ -3987,6 +4015,7 @@ def get_consumption_per_month(bureau, month, compagnie=None):
     depenses_total_par_mois = int(sinistre_regles + sinistres_reclames)
 
     return depenses_total_par_mois if depenses_total_par_mois else 0
+
 
 def get_treso_per_month(bureau, month, compagnie=None):
 
@@ -4045,6 +4074,7 @@ def prepare_chart_bar_data(bureau, compagnie=None):
     }
     return context
 
+
 def prepare_chart_line_data(bureau, compagnie=None):
 
     sin_regles_data = []
@@ -4082,6 +4112,7 @@ def prepare_chart_line_data(bureau, compagnie=None):
 
     return context
 
+
 @login_required
 def ajax_reglements_apporteurs(request, compagnie_id):
 
@@ -4090,8 +4121,6 @@ def ajax_reglements_apporteurs(request, compagnie_id):
     reglements_compagnies = ReglementReverseCompagnie.objects.filter(quittance__police__in=polices, statut_reversement_compagnie=StatutReversementCompagnie.NON_REVERSE, statut_validite=StatutValidite.VALIDE)
 
     return render(request, 'reglements_a_reverser_by_compagnie.html', {'reglements_compagnies':reglements_compagnies})
-
-
 
 
 @method_decorator(login_required, name='dispatch')
@@ -4189,11 +4218,6 @@ class ExecutionRequeteExcelComptaView(TemplateView):
         }
 
 
-
-
-
-
-
 def alert_consumption():
     try:
         bureaux = Bureau.objects.filter(mailinglist__statut=True).distinct()
@@ -4284,18 +4308,6 @@ def alert_consumption():
     return True
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 def create_periode_comptable(request):
     locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
     email = 'equipedev.os@inov.africa'
@@ -4351,5 +4363,3 @@ def create_periode_comptable(request):
         'message': 'TACHE CRON EXECUTÉE',
     }
     return JsonResponse(response, json_dumps_params={'ensure_ascii': False})
-    
-    

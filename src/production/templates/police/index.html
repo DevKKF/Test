@@ -5,7 +5,7 @@
 {% block content_title %}
     <div class="row mb-2">
           <div class="col-sm-6">
-                <h1 class="m-0">Fiche des détails de la police</h1>
+                <h1 class="m-0">Fiche police</h1>
           </div>
           <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -13,7 +13,7 @@
                       <li class="breadcrumb-item">Production</li>
                       <li class="breadcrumb-item"><a href="{% url 'clients' %}">Clients</a></li>
                       <li class="breadcrumb-item"><a href="{% url 'police.details' police.id %}">Police</a></li>
-                      <li class="breadcrumb-item active">Détails de la police</li>
+                      <li class="breadcrumb-item active">Fiche police</li>
                 </ol>
           </div>
     </div>
@@ -70,7 +70,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_('Branche')}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control">{{ police.produit.branche|default_if_none:"" }}</span>
+                                <span class="form-control">{{ police.produit.branche.nom|default_if_none:"" }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -130,13 +130,13 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_('Renouvellement')}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control" style="font-size:15px">{{ police.mode_renouvellement|default_if_none:"" }}</span>
+                                <span class="form-control" style="font-size:15px">{{ dernier_historique.mode_renouvellement|default_if_none:"" }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_("Date fin police")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control">{{ police.date_fin_police|date:'d/m/Y' }}</span>
+                                <span class="form-control">{{ dernier_historique.date_fin_police|date:'d/m/Y' }}</span>
                                 </div>
                             </div>
                         </div>

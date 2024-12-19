@@ -141,14 +141,14 @@ class UtilisateurVeosAdmin(ImportExportModelAdmin):
     search_fields = ('NOM', 'PRENOM', 'CODE', 'LOGIN', 'EMAIL', 'ID_PRESTA', 'NUM_PRESTA', 'NOM_PRESTA', 'SOCIETE')
     list_per_page = 10
 
-#
-# class UtilisateurGrhVeosAdmin(ImportExportModelAdmin):
-#     list_display = ('NOM', 'LOGIN', 'ADMIN', 'SUPERVUE', 'ACCES_SANTE',
-#                     'NOM_CLIENT', 'CODE_CLIENT')
-#
-#     search_fields = ('NOM', 'LOGIN', 'ADMIN', 'SUPERVUE', 'ACCES_SANTE',
-#                     'NOM_CLIENT', 'CODE_CLIENT')
-#     list_per_page = 10
+
+class UtilisateurGrhVeosAdmin(ImportExportModelAdmin):
+    list_display = ('NOM', 'LOGIN', 'ADMIN', 'SUPERVUE', 'ACCES_SANTE',
+                    'NOM_CLIENT', 'CODE_CLIENT')
+
+    search_fields = ('NOM', 'LOGIN', 'ADMIN', 'SUPERVUE', 'ACCES_SANTE',
+                    'NOM_CLIENT', 'CODE_CLIENT')
+    list_per_page = 10
 
 
 class ChangementFormuleAdmin(ImportExportModelAdmin):
@@ -160,9 +160,9 @@ class ChangementFormuleAdmin(ImportExportModelAdmin):
     list_per_page = 10
 
 
-# class PrescripteurVeosAdmin(ImportExportModelAdmin):
-#     list_display = ('id_per', 'numero', 'nom', 'prenom', 'specialite', 'email',
-#                     'telephone', 'ID_PRESTA', 'NUM_PRESTA', 'NOM_PRESTA')
+class PrescripteurVeosAdmin(ImportExportModelAdmin):
+    list_display = ('id_per', 'numero', 'nom', 'prenom', 'specialite', 'email',
+                    'telephone', 'ID_PRESTA', 'NUM_PRESTA', 'NOM_PRESTA')
     
     search_fields = ('id_per', 'numero', 'nom', 'prenom', 'specialite', 'NUM_PRESTA', 'NOM_PRESTA')
     list_per_page = 10
@@ -283,10 +283,10 @@ class CompagnieAdmin(admin.ModelAdmin):
 class MotifAdmin(admin.ModelAdmin):
     list_display = ('code','libelle',)
 
-# class PrescripteurAdmin(ImportExportModelAdmin):
-#     list_filter = ('nom', 'prenoms', 'numero_ordre')
-#     list_display = ('nom', 'prenoms', 'numero_ordre', 'telephone', 'email',)
-#     search_field = ('nom', 'prenoms', 'numero_ordre')
+class PrescripteurAdmin(ImportExportModelAdmin):
+    list_filter = ('nom', 'prenoms', 'numero_ordre')
+    list_display = ('nom', 'prenoms', 'numero_ordre', 'telephone', 'email',)
+    search_field = ('nom', 'prenoms', 'numero_ordre')
 
 class TypePrestataireSpecialiteInline(admin.TabularInline):
     model = SpecialiteTypePresta
@@ -306,12 +306,12 @@ class PrescripteurPrestataireInline(admin.TabularInline):
     extra = 0
 
 
-# class PrestataireAdmin(ImportExportModelAdmin):
-#     inlines = [TarifPrestataireClientInline, PrescripteurPrestataireInline] #, PrestataireReseauxInline,
-#     list_filter = ('name', 'bureau')
-#     list_display = ('name', 'code', 'telephone', 'fax', 'email', 'addresse', 'bureau','fichier_tarifs',)
-#     search_field = ('name', 'bureau')
-#     list_per_page = 10
+class PrestataireAdmin(ImportExportModelAdmin):
+    inlines = [TarifPrestataireClientInline, PrescripteurPrestataireInline] #, PrestataireReseauxInline,
+    list_filter = ('name', 'bureau')
+    list_display = ('name', 'code', 'telephone', 'fax', 'email', 'addresse', 'bureau','fichier_tarifs',)
+    search_field = ('name', 'bureau')
+    list_per_page = 10
 
 
     # overide save_model method to process other actions
@@ -1151,9 +1151,6 @@ class GarantieFormuleAdmin(admin.ModelAdmin):
 
 admin.site.register(Bureau, BureausAdmin)
 admin.site.register(Compagnie, CompagnieAdmin)
-admin.site.register(Prestataire, PrestataireAdmin)
-admin.site.register(TypePrestataire, TypePrestataireAdmin)
-admin.site.register(Acte, ActeAdmin)
 #admin.site.register(Prescripteur, PrescripteurAdmin)
 # admin.site.register(Prestataire, PrestataireAdmin)
 # admin.site.register(TypePrestataire, TypePrestataireAdmin)
@@ -1164,15 +1161,18 @@ admin.site.register(Acte)
 # admin.site.register(RegroupementActe, RegroupementActeAdmin)
 # admin.site.register(SousRegroupementActe, SousRegroupementActeAdmin)
 # admin.site.register(TypeActe)
+admin.site.register(Prestataire, PrestataireAdmin)
+admin.site.register(TypePrestataire, TypePrestataireAdmin)
+# admin.site.register(Acte)
 admin.site.register(CategorieAffection)
 admin.site.register(Affection)
 admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(Civilite)
-admin.site.register(TypeClient)
 # admin.site.register(TypeAssure)
 # admin.site.register(ReseauSoin, ReseauSoinAdmin)
 # admin.site.register(TypeClient)
 #admin.site.register(SecteurActivite, SecteurActiviteAdmin)
+admin.site.register(TypeClient)
 admin.site.register(TypePersonne)
 # admin.site.register(Langue, LangueAdmin)
 admin.site.register(Pays, PaysAdmin)
@@ -1189,8 +1189,8 @@ admin.site.register(Devise,DeviseAdmin)
 #admin.site.register(Duree,) #à réactiver plus tard
 # admin.site.register(QualiteBeneficiaire,)
 # admin.site.register(TypeAssurance,)
-admin.site.register(Banque)
-admin.site.register(Devise)
+# admin.site.register(Banque)
+# admin.site.register(Devise)
 # admin.site.register(ModeCalcul,)
 # admin.site.register(TypeTarif,)
 #admin.site.register(Medicament, MedicamentAdmin)
@@ -1221,7 +1221,6 @@ admin.site.register(TypeQuittance, TypeQuittanceAdmin)
 #admin.site.register(Quittance)
 # admin.site.register(QuittanceVeos, QuittanceVeosAdmin)
 admin.site.register(KeyValueData, KeyValueDataAdmin)
-# admin.site.register(ApporteurVeos, ApporteurVeosAdmin)
 admin.site.register(TypeApporteur)
 admin.site.register(CompteTresorerie)
 admin.site.register(BackgroundQueryTask, BackgroundQueryTaskAdmin)
@@ -1241,9 +1240,9 @@ admin.site.register(GarantieFormule, GarantieFormuleAdmin)
 
 # admin.site.register(MailingList)
 
-admin.site.register(User, CustomUserAdmin)
 # admin.site.register(PeriodeVeos, PeriodeVeosAdmin)
 # admin.site.register(ComptePrestataireVeos, ComptePrestataireVeosAdmin)
+admin.site.register(User, CustomUserAdmin)
 
 #admin.site.register(ActeWaspito, ActeWaspitoAdmin)
 #admin.site.register(GroupeInter, GroupeInterAdmin)
@@ -1253,6 +1252,10 @@ admin.site.register(User, CustomUserAdmin)
 #admin.site.register(ModeCreation, ModeCreationAdmin)
 #admin.site.register(TypeRemboursement, TypeRemboursementAdmin)
 #admin.site.unregister(User)
+# admin.site.register(User, CustomUserAdmin)
+# admin.site.register(ActeWaspito, ActeWaspitoAdmin)
+admin.site.register(GroupeInter, GroupeInterAdmin)
+# admin.site.register(StatExcelWsBoby, StatExcelWsBobyAdmin)
 #admin.site.register(Retenue, RetenueAdmin)
 #admin.site.register(MailingList)
 #admin.site.register(PeriodeVeos, PeriodeVeosAdmin)
@@ -1295,10 +1298,6 @@ admin.site.register(User, CustomUserAdmin)
 #admin.site.register(ReseauSoin, ReseauSoinAdmin)
 #admin.site.register(SecteurActivite, SecteurActiviteAdmin)
 #admin.site.register(Langue, LangueAdmin)
-admin.site.register(User, CustomUserAdmin)
-# admin.site.register(ActeWaspito, ActeWaspitoAdmin)
-admin.site.register(GroupeInter, GroupeInterAdmin)
-# admin.site.register(StatExcelWsBoby, StatExcelWsBobyAdmin)
 
 #admin.site.register(MarqueVehicule) #à réactiver plus tard
 #admin.site.register(TypeCarosserie) #à réactiver plus tard
@@ -1308,4 +1307,4 @@ admin.site.register(GroupeInter, GroupeInterAdmin)
 #admin.site.register(Mouvement) #à réactiver plus tard
 #admin.site.register(Motif, MotifAdmin) #à réactiver plus tard
 
-admin.site.register(BusinessUnit)
+# admin.site.register(BusinessUnit)
