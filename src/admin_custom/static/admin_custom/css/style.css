@@ -646,3 +646,7 @@ label:not(.form-check-label):not(.custom-file-label) {
   border-color: #5B7641;
   box-shadow: none;
 }
+
+.match {
+  font-weight:bold;
+}

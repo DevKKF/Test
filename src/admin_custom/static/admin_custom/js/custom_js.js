@@ -9884,6 +9884,8 @@ $(document).ready(function () {
         $('#modal_rejeter_prorogation').modal();
 
     });
+
+
     //Rejeter une demande de prorogation
     $(document).on("click", "#btn_rejeter_prorogation", function (e) {
 
@@ -10308,8 +10310,6 @@ $(document).ready(function () {
     //FIN DEMANDE DE REMBOURSEMENT
 
 
-
-
     //afficher le détail d'un sinistre
     $(document).on("click", ".btn-popup_details_sinistre", function (e) {
         e.preventDefault();
@@ -10416,8 +10416,6 @@ $(document).ready(function () {
     }
     );
     // Fin Btn submit marquer la seance comme terminée
-
-
 
 
     //afficher le modal de modification dun sinistre medicament
@@ -10530,7 +10528,6 @@ $(document).ready(function () {
     });
 
 
-
     // Sélectionner/désélectionner | APPROUVER OU REJETER DES ACTES
 
     // button editer date de sortie dans details bulletin de sinistre
@@ -10549,7 +10546,6 @@ $(document).ready(function () {
     <button id="btnSaveEditDateSortie" class="btn btn-sm m-0 p-1 pl-2 bg-success" type="button"><i class="fa fa-check text-white"></i></button>
     `);
     });
-
 
 
     // Mettre a jour la date de sortie
@@ -10723,7 +10719,6 @@ $(document).ready(function () {
     <button id="btnSaveNombreAccorde" class="btn btn-sm m-0 p-1 pl-2 bg-success" type="button"><i class="fa fa-check text-white"></i></button>
     `);
     });
-
 
 
     // Mettre a jour la date de sortie
@@ -10943,10 +10938,6 @@ $(document).ready(function () {
 
     });
     // FIN REJETER LA SELECTION D'UN ACTE
-
-
-
-
 
 
     // APPROUVER LISTE DES ACTES SELECTIONNES
@@ -11281,8 +11272,6 @@ $(document).ready(function () {
         }
 
     });
-
-
 
 
     //Modifier un prestataire modal
@@ -13479,7 +13468,6 @@ $(document).ready(function () {
     });
 });
 
-
 $(document).ready(function () {
 
     function getCSRFToken() {
@@ -13497,7 +13485,7 @@ $(document).ready(function () {
     const csrf_token = getCSRFToken();
 
     // Masquer les onglets spécifiques au chargement
-    $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab').addClass('d-none');
+    $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab, #marchandise-tab').addClass('d-none');
 
     // Gérer le changement de produit
     $("#produit").on('change', function () {
@@ -13507,7 +13495,7 @@ $(document).ready(function () {
         let branche_code = $(this).find('option:selected').data('branche_code');
 
         // Masquer les onglets spécifiques par défaut
-        $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab').addClass('d-none');
+        $('#garantie-tab, #risque-tab, #aliment-tab, #vehicule-tab, #marchandise-tab').addClass('d-none');
 
         // Réinitialiser les champs obligatoires
         $('.aliment_champ_obligatoire').removeAttr('required');
@@ -13520,17 +13508,26 @@ $(document).ready(function () {
             tbody.empty();
 
             $('#garantie-tab').removeClass('d-none');
+
             if (branche_code == 100991) {
                 $('#vehicule-tab').removeClass('d-none');
                 $('.aliment_champ_obligatoire').attr('required', true);
             }
             if (branche_code == 100992) {
                 $('#aliment-tab').removeClass('d-none');
-                $('.aliment_champ_obligatoire').removeAttr('required');
+                $('.aliment_champ_obligatoire').prop('required', false);
+                $('.money_field').prop('disabled', false);
             }
+            if ([101004, 101005].includes(branche_code)) {
+                $('#marchandise-tab').removeClass('d-none');
+                $('.aliment_champ_obligatoire').prop('required', false);
+                $('.money_field').prop('disabled', false);
+            }
+
         } else if (typeproduit_id == 2) {
             $('#risque-tab').removeClass('d-none');
-            $('.aliment_champ_obligatoire').removeAttr('required');
+            $('.aliment_champ_obligatoire').prop('required', false);
+            $('.money_field').prop('disabled', false);
         }
     });
 
@@ -13559,222 +13556,6 @@ $(document).ready(function () {
                 alert('Une erreur est survenue. Veuillez réessayer plus tard.');
             });
     });
-
-
-    /* Bouton pour enregistrer via le fichier d'importation
-    $('#importation_aliment').on('click', function () {
-        // Effacer tout message précédent
-        $('#message-error').text('');
-        $('#message-success').text('');
-        $('#message-warning').text('');
-
-
-        // Récupérer le fichier sélectionné
-        const fichier = $('#fichier_aliment')[0].files[0];
-
-        if (!fichier) {
-            $('#fichier_aliment').addClass('is-invalid');
-            $('#message-error').text('Veuillez sélectionner un fichier à importer.');
-
-            // Temps d'affichage du message
-            setTimeout(function () {
-                $('#message-error').text('');
-            }, 5000);
-
-            return;
-        }
-
-        // Préparer les données du formulaire
-        const formData = new FormData();
-        formData.append('aliments', fichier);
-
-        // Requête Ajax pour envoyer le fichier au backend
-        $.ajax({
-            url: '/production/import-excel-aliments/',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val() // Ajouter le CSRF token
-            },
-            success: function (response) {
-                const tbody = $('#table_liste_aliment tbody');
-                alert(response.success);
-                if (response.success) {
-                    // Ajouter les nouvelles lignes au tableau
-                    response.data.forEach((row, index) => {
-                        tbody.append(`
-                            <tr data-index="${index}">
-                                <td>
-                                    <button class="btn btn-danger btn-sm" onclick="supprimerAliment(${index})"><i class="fa fa-trash-o"></i></button>
-                                </td>
-                                <td>${row.immat || ''}</td>
-                                <td>${row.marque || ''}</td>
-                                <td>${row.modele || ''}</td>
-                                <td>${row.T_categorie_id || ''}</td>
-                                <td>${row.date_entree || ''}</td>
-                                <td>${row.date_sortie || ''}</td>
-                                <td>${row.proprietaire || ''}</td>
-                                <td>${row.chauffeur || ''}</td>
-                            </tr>
-                        `);
-                    });
-
-
-                    // Vider le champ fichier après importation réussie
-                    $('#fichier_aliment').removeClass('is-invalid').val('');
-
-                    // Afficher le message de succès renvoyé par le backend
-                    $('#message-success').text(response.message || 'Importation réussie !').show();
-
-                    // Masquer le message après 5 secondes
-                    setTimeout(function () {
-                        $('#message-success').fadeOut();
-                    }, 5000);
-
-                } else {
-                    // Afficher le message d'erreur renvoyé par le backend
-                    $('#message-error').text(response.message || 'Une erreur est survenue lors de l\'importation.').show();
-                    $('#fichier_aliment').addClass('is-invalid');
-
-                    setTimeout(function () {
-                        $('#message-error').fadeOut();
-                    }, 5000);
-                }
-            },
-            error: function (xhr) {
-                // Récupérer le message d'erreur envoyé par le backend ou afficher un message générique
-                const errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Une erreur est survenue lors de l\'importation.';
-
-                $('#message-warning').text(errorMessage).show();
-                $('#fichier_aliment').addClass('is-invalid');
-
-                setTimeout(function () {
-                    $('#message-warning').fadeOut();
-                }, 5000);
-            }
-        });
-    });
-
-
-    // Bouton pour enregistrer via le formulaire modal
-    $('#btn_save_police_aliment').on('click', function () {
-        // Supprimer les erreurs précédentes
-        $('.mod_aliment_champ_obligatoire').removeClass('is-invalid').removeClass('is-valid');
-        $('#message-error').text('').hide();
-        $('#message-success').text('').hide();
-
-        // Valider les champs obligatoires
-        let valide = true;
-        $('.mod_aliment_champ_obligatoire').each(function () {
-            if (!$(this).val().trim()) {
-                $(this).addClass('is-invalid'); // Ajouter classe invalide
-                valide = false;
-            } else {
-                $(this).removeClass('is-invalid')
-            }
-        });
-
-        if (!valide) {
-            // Afficher un message si un champ obligatoire est vide
-            $('#message-error').text('Veuillez remplir tous les champs obligatoires.').show();
-            setTimeout(() => $('#message-error').fadeOut(), 5000);
-            return;
-        }
-
-        // Récupérer les données du formulaire
-        const formData = new FormData($('#form_add_police_aliment')[0]);
-
-        // Requête Ajax pour envoyer les données au backend
-        $.ajax({
-            url: '/production/import-formulaire-aliments/',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                const tbody = $('#table_liste_aliment tbody');
-                if (response.success) {
-                    // Ajouter les nouvelles lignes au tableau
-                    response.data.forEach((row, index) => {
-                        tbody.append(`
-                            <tr data-index="${index}">
-                                <td>
-                                    <button class="btn btn-danger btn-sm" onclick="supprimerAliment(${index})"><i class="fa fa-trash-o"></i></button>
-                                </td>
-                                <td>${row.immat || ''}</td>
-                                <td>${row.marque || ''}</td>
-                                <td>${row.modele || ''}</td>
-                                <td>${row.T_categorie_id || ''}</td>
-                                <td>${row.date_entree || ''}</td>
-                                <td>${row.date_sortie || ''}</td>
-                                <td>${row.proprietaire || ''}</td>
-                                <td>${row.chauffeur || ''}</td>
-                            </tr>
-                        `);
-                    });
-
-                    // Vider le champ fichier après importation réussie
-                    $('#modal-police_aliment').val('');
-
-                    // Afficher le message de succès renvoyé par le backend
-                    $('#message-success').text(response.message || 'Importation réussie !').show();
-
-                    // Masquer le message après 5 secondes
-                    setTimeout(function () {
-                        $('#message-success').fadeOut();
-                    }, 5000);
-
-                } else {
-                    // Afficher le message d'erreur renvoyé par le backend
-                    $('#message-error').text(response.message || 'Une erreur est survenue lors de l\'importation.').show();
-                    $('#fichier_aliment').addClass('is-invalid');
-
-                    setTimeout(function () {
-                        $('#message-error').fadeOut();
-                    }, 5000);
-                }
-            },
-            error: function (xhr) {
-                // Récupérer le message d'erreur envoyé par le backend ou afficher un message générique
-                const errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Une erreur est survenue lors de l\'importation.';
-
-                $('#message-warning').text(errorMessage).show();
-                $('#fichier_aliment').addClass('is-invalid');
-
-                setTimeout(function () {
-                    $('#message-warning').fadeOut();
-                }, 5000);
-            }
-        });
-    });
-
-
-    $(document).on('click', '.btn-danger', function () {
-        const index = $(this).closest('tr').data('index');
-        supprimerAliment(index);
-    });
-
-    // Fonction pour supprimer un aliment via AJAX en utilisant l'index
-    function supprimerAliment(index) {
-        $.ajax({
-            url: `/production/supprimer_aliment/${index}/`,
-            type: 'POST',
-            headers: {'X-CSRFToken': getCookie('csrftoken')},
-            success: function (response) {
-                if (response.success) {
-                    // Si la suppression est réussie, supprime la ligne correspondante du tableau
-                    $(`tr[data-index="${index}"]`).remove();
-                } else {
-                    console.error(response.error || 'Erreur lors de la suppression.');
-                }
-            },
-            error: function () {
-                console.error('Erreur de communication avec le serveur.');
-            }
-        });
-    } */
 
 
     // Apporteur
@@ -13991,6 +13772,7 @@ $(document).ready(function () {
         return cookieValue;
     }
 
+
     $("#importation_aliment").on("click", function () {
         const inputFichier = $("#fichier_aliment");
         const fichier = inputFichier.prop("files")[0];
@@ -14015,9 +13797,33 @@ $(document).ready(function () {
             headers: {'X-CSRFToken': getCookie('csrftoken')},
             success: function (response) {
                 if (response.success) {
+                    // Réinitialiser tous les champs du formulaire
+                    $("#fichier_aliment").trigger("reset");
                     $("#message-success").text(response.message).show().delay(5000).fadeOut();
-                    // Appeler la fonction pour afficher les aliments dans le tableau
-                    afficherAliments(response.data);
+                    console.log(response.data);
+                    // Mettre à jour le tableau avec les nouvelles données
+                    const tbody = $("#table_liste_aliment tbody");
+                    response.data.forEach((row, index) => {
+                        tbody.append(`
+                            <tr data-index="${index}">
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="supprimerAliment(${index})">
+                                        <i class="fa fa-trash-o"></i>
+                                    </button>
+                                </td>
+                                <td>${row.immat || ''}</td>
+                                <td>${row.marque || ''}</td>
+                                <td>${row.modele || ''}</td>
+                                <td>${row.T_categorie_id || ''}</td>
+                                <td>${row.date_entree || ''}</td>
+                                <td>${row.proprietaire || ''}</td>
+                                <td>${row.conducteur || ''}</td>
+                            </tr>
+                        `);
+                    });
+
+                    $('#fichier_aliment').removeClass('is-valid').removeClass('is-invalid');
+
                 } else {
                     $("#message-warning").text(response.message).delay(5000).fadeOut();
                 }
@@ -14036,6 +13842,7 @@ $(document).ready(function () {
         });
     });
 
+
     $('#btn_save_police_aliment').on('click', function () {
         // Supprimer les erreurs précédentes
         $('.mod_aliment_champ_obligatoire').removeClass('is-invalid').removeClass('is-valid');
@@ -14050,7 +13857,7 @@ $(document).ready(function () {
                 $(this).addClass('is-invalid'); // Ajouter classe invalide
                 valide = false;
             } else {
-                $(this).removeClass('is-invalid')
+                $(this).removeClass('is-invalid').addClass('is-valid'); // Ajouter classe valide
             }
         });
 
@@ -14069,15 +13876,42 @@ $(document).ready(function () {
             url: '/production/import-formulaire-aliments/',
             type: 'POST',
             data: formData,
-            processData: false,
-            contentType: false,
+            processData: false, // Indique que nous envoyons un FormData
+            contentType: false, // Pour ne pas encoder les données
             success: function (response) {
                 if (response.success) {
+                    // Afficher le message de succès
                     $("#message-modal-success").text(response.message).show().delay(5000).fadeOut();
-                    // Appeler la fonction pour afficher les aliments dans le tableau
-                    afficherAliments(response.data);
+
+                    // Mettre à jour le tableau avec les nouvelles données
+                    const tbody = $("#table_liste_aliment tbody");
+                    response.data.forEach((row, index) => {
+                        tbody.append(`
+                            <tr data-index="${index}">
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="supprimerAliment(${index})">
+                                        <i class="fa fa-trash-o"></i>
+                                    </button>
+                                </td>
+                                <td>${row.immat || ''}</td>
+                                <td>${row.marque || ''}</td>
+                                <td>${row.modele || ''}</td>
+                                <td>${row.T_categorie_id || ''}</td>
+                                <td>${row.date_entree || ''}</td>
+                                <td>${row.proprietaire || ''}</td>
+                                <td>${row.conducteur || ''}</td>
+                            </tr>
+                        `);
+                    });
+
+                    // Réinitialiser tous les champs du formulaire
+                    $("#form_add_police_aliment").trigger("reset");
+                    $("#form_add_police_aliment select").prop('selectedIndex', 0);
+                    $('.mod_aliment_champ_obligatoire').removeClass('is-valid').removeClass('is-invalid');
+
                 } else {
-                    $("#message-modal-warning").text(response.message).delay(5000).fadeOut();
+                    // Afficher un message d'avertissement
+                    $("#message-modal-warning").text(response.message).show().delay(5000).fadeOut();
                 }
             },
             error: function (xhr) {
@@ -14094,149 +13928,6 @@ $(document).ready(function () {
         });
     });
 
-
-//---------------------------------BUSINESSUNIT-----------------------------------------------------
-//ajouter un business unit
-
-
-  $(document).on('click', "#btn_save_businessunit", function () {
-
-    let formulaire = $('#form_add_business');
-    let href = formulaire.attr('action');
-
-    $.validator.setDefaults({ ignore: [] });
-
-    let formData = new FormData();
-
-    if (formulaire.valid()) {
-
-        // demander confirmation
-        let n = noty({
-            text: 'Voulez-vous vraiment enregistrer ce client ?',
-            type: 'warning',
-            dismissQueue: true,
-            layout: 'center',
-            theme: 'defaultTheme',
-            buttons: [
-                {
-                    addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
-                        $noty.close();
-
-                        let data_serialized = formulaire.serialize();
-                        $.each(data_serialized.split('&'), function (index, elem) {
-                            let vals = elem.split('=');
-
-                            let key = vals[0];
-                            let valeur = decodeURIComponent(vals[1].replace(/\+/g, ' '));
-
-                            formData.append(key, valeur);
-
-                        });
-
-                        $.ajax({
-                            type: 'post',
-                            url: href,
-                            data: formData,
-                            processData: false,
-                            contentType: false,
-                            success: function (response) {
-
-                                if (response.statut == 1) {
-
-                                    // Vider le formulaire
-                                    resetFields('#' + formulaire.attr('id'));
-
-
-
-                                    // Recharger la liste ou la page
-                                    notifySuccess(response.message, function () {
-                                        location.reload();
-                                    });
-
-
-                                    // Fermer le modal
-                                    $('#modal-business').modal('hide');
-
-                                } else {
-
-                                    let errors = JSON.parse(JSON.stringify(response.errors));
-                                    let errors_list_to_display = '';
-                                    for (field in errors) {
-                                        errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
-                                    }
-
-                                    $('#modal-business .alert .message').html(errors_list_to_display);
-
-                                    $('#modal-business .alert').fadeTo(2000, 500).slideUp(500, function () {
-                                        $(this).slideUp(500);
-                                    }).removeClass('alert-success').addClass('alert-warning');
-
-                                }
-
-                            },
-                            error: function (request, status, error) {
-                                notifyWarning("Erreur lors de l'enregistrement");
-                            }
-
-                        });
-
-                        // fin confirmation obtenue
-
-                    }
-                },
-                {
-                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
-                        // confirmation refusée
-                        $noty.close();
-
-                    }
-                }
-            ]
-        });
-        // fin demande confirmation
-
-    } else {
-
-        $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
-
-        let validator = formulaire.validate();
-
-        $.each(validator.errorMap, function (index, value) {
-
-            console.log('Id: ' + index + ' Message: ' + value);
-
-        });
-
-        notifyWarning('Veuillez renseigner correctement le formulaire');
-    }
-
-});
-
-
-
-
-    // Fonction pour afficher les aliments dans le tableau
-    function afficherAliments(aliments) {
-        const $table = $("#table_liste_aliment tbody"); // Sélecteur du tableau
-        $table.empty(); // Vider les anciennes données
-
-        aliments.forEach((aliment, index) => {
-            const row = `
-                <tr>
-                    <td><button class="btn btn-danger btn-sm" onclick="supprimerAliment(${index + 1})"><i class="fa fa-trash-o"></i></button></td>
-                    <td>${aliment.immat || ""}</td>
-                    <td>${aliment.marque || ""}</td>
-                    <td>${aliment.modele || ""}</td>
-                    <td>${aliment.T_categorie_id || ""}</td>
-                    <td>${aliment.date_entree || ""}</td>
-                    <td>${aliment.date_sortie || ""}</td>
-                    <td>${aliment.proprietaire || ""}</td>
-                    <td>${aliment.chauffeur || ""}</td>
-                </tr>
-            `;
-            $table.append(row); // Ajouter la ligne au tableau
-        });
-    }
 
     $(document).on('click', '.btn-danger', function () {
         const index = $(this).closest('tr').data('index');
@@ -14329,4 +14020,197 @@ $(document).ready(function () {
         }
     });
 
+    // Calcul des montants sur la marchandises
+    function calculerPrimes() {
+        const valeur_assuree_input = $("#valeur_assuree").val().replace(/\s/g, '');
+        const valeur_assuree = parseFloat(valeur_assuree_input) || 0;
+
+        // Activer/désactiver les champs en fonction de la valeur assurée
+        const calcul_champs = $("#taux_risque_ordinaire, #taux_risque_guerre, #taux_supprime, #taux_reduction_commerciale, #taux_taxe, #accessoires, #autres_frais");
+        if (valeur_assuree_input !== "") {
+            calcul_champs.prop("disabled", false);
+        } else {
+            calcul_champs.prop("disabled", true);
+            //Vider les champs de calcul
+            $("#taux_risque_ordinaire, #taux_risque_guerre, #taux_supprime, #taux_reduction_commerciale, #taux_taxe, #accessoires, #autres_frais, .prime_risque_ordinaire, .prime_risque_guerre, .prime_supprime, .prime_brut, .total_taxe, .prime_ttc_mar").val('');
+            return; // Important : arrêter le calcul si la valeur assurée est vide
+        }
+
+        const taux_risque_ordinaire = parseFloat($("#taux_risque_ordinaire").val().replace(',', '.')) / 100 || 0;
+        const taux_risque_guerre = parseFloat($("#taux_risque_guerre").val().replace(',', '.')) / 100 || 0;
+        const taux_supprime = parseFloat($("#taux_supprime").val().replace(',', '.')) / 100 || 0;
+        const taux_reduction_commerciale = parseFloat($("#taux_reduction_commerciale").val().replace(',', '.')) / 100 || 0;
+        const accessoires = parseFloat($("#accessoires").val().replace(/\s/g, '')) || 0;
+        const autres_frais = parseFloat($("#autres_frais").val().replace(/\s/g, '')) || 0;
+        const taux_taxe = parseFloat($("#taux_taxe").val().replace(',', '.')) / 100 || 0;
+
+        const prime_risque_ordinaire = valeur_assuree * taux_risque_ordinaire;
+        const prime_risque_guerre = valeur_assuree * taux_risque_guerre;
+        const prime_supprime = valeur_assuree * taux_supprime;
+        const prime_brut = prime_risque_ordinaire + prime_risque_guerre + prime_supprime;
+        let montant_reduction = 0;
+        if (taux_reduction_commerciale) {
+          montant_reduction = taux_reduction_commerciale * prime_brut;
+        }
+
+        const total_taxe = prime_brut * taux_taxe;
+        let prime_ttc_mar = 0;
+        if(taux_reduction_commerciale){
+            prime_ttc_mar = prime_brut - montant_reduction + accessoires + autres_frais + total_taxe;
+        }else{
+            prime_ttc_mar = prime_brut + accessoires + autres_frais + total_taxe;
+        }
+
+        $(".prime_risque_ordinaire").val(prime_risque_ordinaire.toLocaleString('fr-FR'));
+        $(".prime_risque_guerre").val(prime_risque_guerre.toLocaleString('fr-FR'));
+        $(".prime_supprime").val(prime_supprime.toLocaleString('fr-FR'));
+        $(".prime_brut").val(prime_brut.toLocaleString('fr-FR'));
+        $(".total_taxe").val(total_taxe.toLocaleString('fr-FR'));
+        $(".prime_ttc_mar").val(prime_ttc_mar.toLocaleString('fr-FR'));
+
+        // Affichage des résultats (console et champs)
+        console.log("valeur_assuree:", valeur_assuree);
+        console.log("taux_risque_ordinaire:", taux_risque_ordinaire);
+        console.log("taux_risque_guerre:", taux_risque_guerre);
+        console.log("taux_supprime:", taux_supprime);
+        console.log("taux_reduction_commerciale:", taux_reduction_commerciale);
+        console.log("accessoires:", accessoires);
+        console.log("autres_frais:", autres_frais);
+        console.log("taux_taxe:", taux_taxe);
+
+        console.log("prime_risque_ordinaire:", prime_risque_ordinaire);
+        console.log("prime_risque_guerre:", prime_risque_guerre);
+        console.log("prime_supprime:", prime_supprime);
+        console.log("prime_brut:", prime_brut);
+        console.log("total_taxe:", total_taxe);
+        console.log("prime_ttc_mar:", prime_ttc_mar);
+    }
+
+    $(document).ready(function () {
+        // Événements de changement sur les champs de saisie
+        $("#valeur_assuree, #taux_risque_ordinaire, #taux_risque_guerre, #taux_supprime, #taux_reduction_commerciale, #accessoires, #autres_frais, #taux_taxe").on("input", calculerPrimes);
+
+        // Initialisation : désactiver les champs au chargement de la page si valeur_assuree est vide
+        if ($("#valeur_assuree").val() === "") {
+            $("#taux_risque_ordinaire, #taux_risque_guerre, #taux_supprime, #taux_reduction_commerciale, #taux_taxe, #accessoires, #autres_frais").prop("disabled", true);
+        }
+
+        // Calcul initial au chargement de la page (si des valeurs sont déjà présentes)
+        calculerPrimes();
+    });
+
+
+    //---------------------------------BUSINESSUNIT-----------------------------------------------------
+    //ajouter un business unit
+    $(document).on('click', "#btn_save_businessunit", function () {
+
+        let formulaire = $('#form_add_business');
+        let href = formulaire.attr('action');
+
+        $.validator.setDefaults({ ignore: [] });
+
+        let formData = new FormData();
+
+        if (formulaire.valid()) {
+
+            // demander confirmation
+            let n = noty({
+                text: 'Voulez-vous vraiment enregistrer ce client ?',
+                type: 'warning',
+                dismissQueue: true,
+                layout: 'center',
+                theme: 'defaultTheme',
+                buttons: [
+                    {
+                        addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                            $noty.close();
+
+                            let data_serialized = formulaire.serialize();
+                            $.each(data_serialized.split('&'), function (index, elem) {
+                                let vals = elem.split('=');
+
+                                let key = vals[0];
+                                let valeur = decodeURIComponent(vals[1].replace(/\+/g, ' '));
+
+                                formData.append(key, valeur);
+
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: href,
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function (response) {
+
+                                    if (response.statut == 1) {
+
+                                        // Vider le formulaire
+                                        resetFields('#' + formulaire.attr('id'));
+
+
+
+                                        // Recharger la liste ou la page
+                                        notifySuccess(response.message, function () {
+                                            location.reload();
+                                        });
+
+
+                                        // Fermer le modal
+                                        $('#modal-business').modal('hide');
+
+                                    } else {
+
+                                        let errors = JSON.parse(JSON.stringify(response.errors));
+                                        let errors_list_to_display = '';
+                                        for (field in errors) {
+                                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                        }
+
+                                        $('#modal-business .alert .message').html(errors_list_to_display);
+
+                                        $('#modal-business .alert').fadeTo(2000, 500).slideUp(500, function () {
+                                            $(this).slideUp(500);
+                                        }).removeClass('alert-success').addClass('alert-warning');
+
+                                    }
+
+                                },
+                                error: function (request, status, error) {
+                                    notifyWarning("Erreur lors de l'enregistrement");
+                                }
+
+                            });
+
+                            // fin confirmation obtenue
+
+                        }
+                    },
+                    {
+                        addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                            // confirmation refusée
+                            $noty.close();
+
+                        }
+                    }
+                ]
+            });
+            // fin demande confirmation
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le formulaire');
+        }
+    });
 });

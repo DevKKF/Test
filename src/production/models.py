@@ -16,7 +16,7 @@ from configurations.models import Banque, Bureau, Civilite, Compagnie, Fractionn
     QualiteBeneficiaire, TypeAssurance, Devise, Profession, ModeCalcul, Taxe, Apporteur, BaseCalcul, TypeQuittance, \
     NatureQuittance, TypeCarosserie, CategorieVehicule, MarqueVehicule, NatureOperation, Prestataire, TypeTarif, Acte, \
     Rubrique, Periodicite, RegroupementActe, SousRubrique, TypePrefinancement, ReseauSoin, CompteTresorerie, \
-    SousRegroupementActe, Secteur, GroupeInter, Carosserie, Formule, Usage, Carburant, BusinessUnit, Garantie
+    SousRegroupementActe, Secteur, GroupeInter, Carosserie, Formule, Usage, Carburant, BusinessUnit, Garantie, ConditionsAssurance, MoyensTransport
 from shared.enum import Genre, Statut, StatutRelation, StatutFamilial, OptionYesNo, PlacementEtGestion, \
     ModeRenouvellement, TypeEncaissementCommission, TypeMajorationContrat, CalculTM, StatutContrat, StatutPolice, \
     StatutQuittance, \
@@ -25,7 +25,6 @@ from shared.enum import Genre, Statut, StatutRelation, StatutFamilial, OptionYes
 
 
 # Create your models here.
-
 class Monnaie(models.Model):
     code = models.CharField(max_length=5, blank=False, null=False)
     libelle = models.CharField(max_length=100, blank=False, null=False)
@@ -539,6 +538,7 @@ class AutreRisque(models.Model):
     updated_by = models.ForeignKey(User, related_name="autr_updated_by", null=True, on_delete=models.RESTRICT)
     libelle = models.TextField(null=True)
     description = models.TextField(null=True)
+    date_du_jour = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -571,8 +571,76 @@ class Vehicule(models.Model):
         verbose_name_plural = 'Véhicules'
 
 
+class Marchandise(models.Model):
+    conditions_assurance = models.ForeignKey(ConditionsAssurance, on_delete=models.RESTRICT, null=True)
+    moyens_transport = models.ForeignKey(MoyensTransport, on_delete=models.RESTRICT, null=True)
+    devise = models.ForeignKey(Devise, null=True, on_delete=models.RESTRICT)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
+    updated_by = models.ForeignKey(User, related_name="marchandise_updated_by", null=True,on_delete=models.RESTRICT)
+
+    #Informations Générales
+    num_certificat = models.CharField(max_length=50, null=True, blank=True)
+    num_fact_fournisseur = models.CharField(max_length=50, null=True, blank=True)
+    ref_dai = models.CharField(max_length=50, null=True, blank=True)
+    date_commande = models.DateField(null=True)
+    nombre_colis = models.CharField(max_length=100, blank=True, null=True)
+    poids_brut = models.CharField(max_length=100, blank=True, null=True)
+    plein_souscription = models.CharField(max_length=100, blank=True, null=True)
+    immatriculation = models.CharField(max_length=100, blank=True, null=True)
+    pavillon_cie_prest = models.CharField(max_length=100, blank=True, null=True)
+    destination = models.CharField(max_length=100, blank=True, null=True)
+    lieu_transit_transbordement = models.CharField(max_length=100, blank=True, null=True)
+    date_emmision_certificat = models.DateField(null=True)
+    date_sortie = models.DateField(null=True)
+    num_commande = models.CharField(max_length=100, blank=True, null=True)
+    marchandises_description = models.TextField(null=True)
+    poids_net = models.CharField(max_length=100, blank=True, null=True)
+    valeur_assuree = models.FloatField(null=True)
+    marque_modele_type = models.CharField(max_length=100, blank=True, null=True)
+    debut_voyage = models.DateField(null=True)
+    lieu_depart = models.CharField(max_length=100, blank=True, null=True)
+
+    #Commissaire d'avaries
+    nom_commissaire = models.CharField(max_length=100, blank=True, null=True)
+    telephone_commissaire = models.CharField(max_length=100, blank=True, null=True)
+    code_commissaire = models.CharField(max_length=100, blank=True, null=True)
+    adresse_commissaire = models.CharField(max_length=100, blank=True, null=True)
+    courriel_commissaire = models.CharField(max_length=100, blank=True, null=True)
+
+    #Taux et autres
+    taux_risque_ordinaire = models.FloatField(null=True)
+    taux_risque_guerre = models.FloatField(null=True)
+    taux_supprime = models.FloatField(null=True)
+    taux_taxe = models.FloatField(null=True)
+    accessoires = models.IntegerField(null=True, blank=True)
+    autres_frais = models.IntegerField(null=True, blank=True)
+
+    #Calcul
+    prime_risque_ordinaire = models.BigIntegerField(null=True)
+    prime_risque_guerre = models.BigIntegerField(null=True)
+    prime_supprime = models.BigIntegerField(null=True)
+    prime_brut = models.BigIntegerField(null=True)
+    total_taxe = models.BigIntegerField(null=True)
+    prime_ttc_mar = models.BigIntegerField(null=True)
+
+    statut = models.fields.CharField(choices=StatutPolice.choices, default=StatutPolice.ACTIF, max_length=15, null=True)
+
+    date_liaison = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.num_certificat}'
+
+    class Meta:
+        db_table = 'marchandises'
+        verbose_name = 'Marchandises'
+        verbose_name_plural = 'Marchandises'
+
+
 class AlimentPolice(models.Model):
     vehicule = models.ForeignKey(Vehicule, on_delete=models.RESTRICT, null=True)
+    marchandise = models.ForeignKey(Marchandise, on_delete=models.RESTRICT, null=True)
     usage = models.ForeignKey(Usage, on_delete=models.RESTRICT, null=True)
     historique_police = models.ForeignKey(HistoriquePolice, on_delete=models.RESTRICT, null=True)
     police = models.ForeignKey(Police, on_delete=models.RESTRICT, null=True)

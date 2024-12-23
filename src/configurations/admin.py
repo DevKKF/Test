@@ -1148,6 +1148,19 @@ class GarantieFormuleAdmin(admin.ModelAdmin):
     get_garanties.short_description = "Garanties"
 
 
+class ConditionsAssuranceAdmin(admin.ModelAdmin):
+    list_filter = ('libelle',)
+    list_display = ('libelle','code', 'status')
+    search_field = ('libelle', 'code', 'status')
+    list_per_page = 20
+
+
+class MoyensTransportAdmin(admin.ModelAdmin):
+    list_filter = ('libelle',)
+    list_display = ('libelle','code', 'status')
+    search_field = ('libelle', 'code', 'status')
+    list_per_page = 20
+
 
 admin.site.register(Bureau, BureausAdmin)
 admin.site.register(Compagnie, CompagnieAdmin)
@@ -1189,7 +1202,6 @@ admin.site.register(Devise,DeviseAdmin)
 #admin.site.register(Duree,) #à réactiver plus tard
 # admin.site.register(QualiteBeneficiaire,)
 # admin.site.register(TypeAssurance,)
-# admin.site.register(Banque)
 # admin.site.register(Devise)
 # admin.site.register(ModeCalcul,)
 # admin.site.register(TypeTarif,)
@@ -1236,6 +1248,8 @@ admin.site.register(Garantie)
 admin.site.register(GarantieBranche, GarantieBrancheAdmin)
 admin.site.register(Formule)
 admin.site.register(GarantieFormule, GarantieFormuleAdmin)
+admin.site.register(ConditionsAssurance, ConditionsAssuranceAdmin)
+admin.site.register(MoyensTransport, MoyensTransportAdmin)
 # admin.site.register(Retenue, RetenueAdmin)
 
 # admin.site.register(MailingList)
@@ -1254,7 +1268,7 @@ admin.site.register(User, CustomUserAdmin)
 #admin.site.unregister(User)
 # admin.site.register(User, CustomUserAdmin)
 # admin.site.register(ActeWaspito, ActeWaspitoAdmin)
-admin.site.register(GroupeInter, GroupeInterAdmin)
+#admin.site.register(GroupeInter, GroupeInterAdmin)
 # admin.site.register(StatExcelWsBoby, StatExcelWsBobyAdmin)
 #admin.site.register(Retenue, RetenueAdmin)
 #admin.site.register(MailingList)

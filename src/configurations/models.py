@@ -2623,4 +2623,34 @@ class GarantieFormule(models.Model):
         verbose_name_plural = 'Garanties / Formules'
 
 
+class ConditionsAssurance(models.Model):
+    code = models.CharField(max_length=10, blank=True, null=True)
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.code} - {self.libelle} - {self.status} - {self.created_at}'
+
+    class Meta:
+        db_table = 'conditions_assurance'
+        verbose_name = "Conditions d'assurance"
+        verbose_name_plural = "Conditions d'assurance"
+
+
+class MoyensTransport(models.Model):
+    code = models.CharField(max_length=10, blank=True, null=True)
+    libelle = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.code} - {self.libelle} - {self.status} - {self.created_at}'
+
+    class Meta:
+        db_table = 'moyens_transport'
+        verbose_name = 'Moyens de transport'
+        verbose_name_plural = 'Moyens de transport'
 

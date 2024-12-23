@@ -19,6 +19,7 @@
 						<li class="nav-item"><a class="nav-link" id="intermediaire-tab" data-toggle="tab" href="#intermediaire" role="tab" aria-controls="intermediaire" aria-selected="false">{{_('APPORTEURS')}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="garantie-tab" data-toggle="tab" href="#garantie" role="tab" aria-controls="garantie" aria-selected="false">{{_('GARANTIE')}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="risque-tab" data-toggle="tab" href="#risque" role="tab" aria-controls="risque" aria-selected="false">{{_('RISQUE')}}</a></li>
+						<li class="nav-item"><a class="nav-link" id="marchandise-tab" data-toggle="tab" href="#marchandise" role="tab" aria-controls="marchandise" aria-selected="false">{{_('MARCHANDISES TRANSPORTEES')}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="aliment-tab" data-toggle="tab" href="#aliment" role="tab" aria-controls="aliment" aria-selected="false">{{_('ALIMENTS')}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="vehicule-tab" data-toggle="tab" href="#vehicule" role="tab" aria-controls="vehicule" aria-selected="false">{{_('VEHICULE')}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="facturation-tab" data-toggle="tab" href="#facturation" role="tab" aria-controls="facturation" aria-selected="false">{{_('FACTURATION')}}</a></li>
@@ -298,7 +299,7 @@
 								<div class="vl"></div>
 								<div class="col-md-5 d-flex">
 									<input type="file" accept=".xlsx" class="form-control mr-3" name="fichier_aliment" id="fichier_aliment" style="width:300px">
-									<button type="button" id="importation_aliment" class="btn btn-warning"><i class="fa fa-download"></i> {{_("Importation")}}</button>
+									<button type="button" id="importation_aliment" class="btn btn-warning"><i class="fa fa-download"></i> {{_("Importer")}}</button>
 								</div>
 								<div class="vl"></div>
 								<div class="col-md-3">
@@ -310,9 +311,9 @@
 							<div id="message-success" class="alert alert-success" style="display:none;"></div>
 							<div id="message-warning" class="alert alert-warning" style="display:none;"></div>
 							<div id="message-error" class="alert alert-danger" style="display:none;"></div>
-							<div class="row" style="max-height:500px;">
-								<div class="col-md-12">
-									<table id="table_liste_aliment" class="table table-bordered table-striped dataTable dtr-inline">
+							<div class="row">
+								<div class="col-md-12" style="max-height:500px;">
+									<table id="table_liste_aliment" class="table table-bordered table-striped dtr-inline">
 										  <thead>
 											  <tr>
 													<th class="text-center" style="width:5%">##</th>
@@ -321,7 +322,6 @@
 													<th>{{_("Modèle")}}</th>
 													<th>{{_("Catégorie")}}</th>
 													<th>{{_("Entrée")}}</th>
-													<th>{{_("Sortie")}}</th>
 													<th>{{_("Propriétaire")}}</th>
 													<th>{{_("Conducteur")}}</th>
 											  </tr>
@@ -339,19 +339,19 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("N° immat")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="immatriculation" required/>
+											<input type="text" class="form-control aliment_champ_obligatoire" name="immatriculation"/>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("N° série")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="num_serie" value="" required/>
+											<input type="text" class="form-control aliment_champ_obligatoire" name="num_serie" value=""/>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Marque')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="marque" required>
+											<input type="text" class="form-control aliment_champ_obligatoire" name="marque">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -363,7 +363,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Energie')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control tags-multiple" name="carburant_id" id="carburant_id" autocomplete="off">
+											<select class="form-control tags-multiple aliment_champ_obligatoire" name="carburant_id" id="carburant_id" autocomplete="off">
 												<option value="">{{_('Choisir')}}</option>
 												{% for cab in carburants %}
 													<option value="{{ cab.id }}">{{ cab.libelle }}</option>
@@ -380,7 +380,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Place')}}</label>
 										<div class="col-sm-7">
-											<input type="text" min="1" max="100" class="form-control money_field" name="places_assises"/>
+											<input type="text" class="form-control money_field" name="places_assises" value="">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -419,7 +419,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Catégorie véhicule")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control tags-multiple" name="categorie_id" id="categorie_id" autocomplete="off">
+											<select class="form-control tags-multiple aliment_champ_obligatoire" name="categorie_id" id="categorie_id" autocomplete="off">
 												<option value="">{{_('Choisir')}}</option>
 												{% for cat in catgories %}
 													<option value="{{ cat.id }}">{{ cat.libelle }}</option>
@@ -430,7 +430,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Usage")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control tags-multiple" name="usage_id" id="usage_id" autocomplete="off" required>
+											<select class="form-control tags-multiple aliment_champ_obligatoire" name="usage_id" id="usage_id" autocomplete="off">
 												<option value="">{{_('Choisir')}}</option>
 												{% for u in usages %}
 													<option value="{{ u.id }}">{{ u.libelle }}</option>
@@ -452,19 +452,19 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Date d'entrée")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_entree" value="" required>
+											<input type="date" class="form-control aliment_champ_obligatoire" name="date_entree" value="">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Mise en circulation")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_mise_circulation" value="" required>
+											<input type="date" class="form-control aliment_champ_obligatoire" name="date_mise_circulation" value="">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Puissance')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="puissance_fiscale" required>
+											<input type="text" class="form-control money_field aliment_champ_obligatoire" name="puissance_fiscale">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -482,13 +482,292 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Propriétaire")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="proprietaire" value="" required>
+											<input type="text" class="form-control aliment_champ_obligatoire" name="proprietaire" value="">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Commentaire")}}</label>
 										<div class="col-sm-7">
 											<input type="text" class="form-control" name="commentaire" value="">
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="tab-pane fade mt-3" id="marchandise" role="tabpanel" aria-labelledby="marchandise-tab">
+							<div class="row" style="max-height:550px;">
+								<div class="col-md-12 text-uppercase" style="margin-bottom:10px !important; border-top:2px solid #F16623">
+									<h6><mark class="match">Informations générales</mark></h6>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("N° de certificat")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" value="" name="num_certificat" id="num_certificat">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("N° Fact fournisseur")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="num_fact_fournisseur" id="num_fact_fournisseur" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Ref DAI")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="ref_dai" id="ref_dai" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Date de commande")}}</label>
+										<div class="col-sm-7">
+											<input type="date" class="form-control" name="date_commande" id="date_commande" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Nombre de colis")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field" name="nombre_colis" id="nombre_colis" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Poids Brut")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field" name="poids_brut" id="poids_brut" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Plein de souscription")}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field aliment_champ_obligatoire" name="plein_souscription" id="plein_souscription" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Immatriculation")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="immatriculation" id="immatriculation" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Pavillon, Cie, Prest.")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="pavillon_cie_prest" id="pavillon_cie_prest" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Destination")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="destination" id="destination" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Lieu de transit/transbordement")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="lieu_transit_transbordement" id="lieu_transit_transbordement" value="">
+										</div>
+									</div>
+								</div>
+								<div class="vl"></div>
+								<div class="col-md-5" style="border-left:0px;">
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Date émission certificat")}} <span class="required">*</span></label>
+										<div class="col-sm-7">
+											<input type="date" class="form-control aliment_champ_obligatoire" name="date_emmision_certificat" id="date_emmision_certificat" value="{{ today|date:'Y-m-d'|default_if_none:"" }}">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Date de sortie")}}</label>
+										<div class="col-sm-7">
+											<input type="date" class="form-control" name="date_sortie_march" id="date_sortie_march" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("N° de commande")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="num_commande" id="num_commande" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Marchandises")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="marchandises_description" id="marchandises_description" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Poids Net")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field" name="poids_net" id="poids_net" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Valeur assurée")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field valeur_assuree" name="valeur_assuree" id="valeur_assuree" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Moyen de transport")}}</label>
+										<div class="col-sm-7">
+											<select class="form-control tags-multiple" name="moyens_transport_id" id="moyens_transport_id" autocomplete="off">
+												<option value="">{{_('Choisir')}}</option>
+												{% for moyens_transport in moyens_transports %}
+													<option value="{{ moyens_transport.id }}">{{ moyens_transport.libelle }}</option>
+												{% endfor %}
+											</select>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Marque, Modèle, Type")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="marque_modele_type" id="marque_modele_type" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Début voyage")}}</label>
+										<div class="col-sm-7">
+											<input type="date" class="form-control" name="debut_voyage" id="debut_voyage" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Lieu de départ")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" name="lieu_depart" id="lieu_depart" value="">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Conditions d'assurance")}}</label>
+										<div class="col-sm-7">
+											<select class="form-control tags-multiple" name="conditions_aussurance_id" id="conditions_aussurance_id" autocomplete="off">
+												<option value="">{{_('Choisir')}}</option>
+												{% for conditions_aussurance in conditions_aussurances %}
+													<option value="{{ conditions_aussurance.id }}">{{ conditions_aussurance.libelle }}</option>
+												{% endfor %}
+											</select>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-12 text-uppercase" style="margin-bottom:10px !important; border-top:2px solid #F16623">
+									<h6><mark class="match">Commissaire d'avaries</mark></h6>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Nom")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" value="" name="nom" id="nom">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Code")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" value="" name="code" id="code">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Adresse")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" value="" name="adresse" id="adresse">
+										</div>
+									</div>
+								</div>
+								<div class="vl"></div>
+								<div class="col-md-5" style="border-left:0px;">
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Téléphone")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control" value="" name="telephone" id="telephone" onkeypress="isInputNumber(event)">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Email")}}</label>
+										<div class="col-sm-7">
+											<input type="email" class="form-control" value="" name="email" id="email">
+										</div>
+									</div>
+								</div>
+								<div class="col-md-12 text-uppercase" style="margin-bottom:10px !important; border-top:2px solid #F16623">
+									<h6><mark class="match">Calculs</mark></h6>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Taux risque ordinaire")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field_avec_virgule taux_risque_ordinaire" value="" name="taux_risque_ordinaire" id="taux_risque_ordinaire">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Taux risque guerre")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field_avec_virgule taux_risque_guerre" value="" name="taux_risque_guerre" id="taux_risque_guerre">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Taux supprime")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field_avec_virgule taux_supprime" value="" name="taux_supprime" id="taux_supprime">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Taux réduc. commerciale")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field_avec_virgule taux_reduction_commerciale" value="" name="taux_reduction_commerciale" id="taux_reduction_commerciale">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Taux de la taxe")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field_avec_virgule taux_taxe" value="" name="taux_taxe" id="taux_taxe">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Accessoires")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field accessoires" value="" name="accessoires" id="accessoires">
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Autres frais")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field autres_frais" value="" name="autres_frais" id="autres_frais">
+										</div>
+									</div>
+								</div>
+								<div class="vl"></div>
+								<div class="col-md-5" style="border-left:0px;">
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Prime risque ordinaire")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field prime_risque_ordinaire" value="" name="prime_risque_ordinaire" id="prime_risque_ordinaire" readonly>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Prime risque guerre")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field prime_risque_guerre" value="" name="prime_risque_guerre" id="prime_risque_guerre" readonly>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Prime supprime")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field prime_supprime" value="" name="prime_supprime" id="prime_supprime" readonly>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Prime brut")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field prime_brut" value="" name="prime_brut" id="prime_brut" readonly>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Total taxe")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field total_taxe" value="" name="total_taxe" id="total_taxe" readonly>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Prime TTC")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field prime_ttc_mar" value="" name="prime_ttc_mar" id="prime_ttc_mar" readonly>
 										</div>
 									</div>
 								</div>
@@ -672,20 +951,4 @@
             evt.preventDefault();
         }
     }
-
-    function formatMontant(input) {
-		// Supprimez d'abord tous les caractères non numériques
-		var montant = input.value.replace(/\D/g, '');
-
-		// Ajoutez un espace comme séparateur pour les milliers
-		montant = addSpacesForThousands(montant);
-
-		// Mettez à jour la valeur de l'input
-		input.value = montant;
-	}
-
-	// Fonction pour ajouter un espace comme séparateur pour les milliers
-	function addSpacesForThousands(x) {
-		return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-	}
 </script>
