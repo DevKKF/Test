@@ -14008,11 +14008,10 @@ $(document).ready(function () {
 //---------------------------------BUSINESSUNIT-----------------------------------------------------
 //ajouter un business unit
 
+$(document).on('click', "#btn_save_businessunit", function () {
 
-  $(document).on('click', "#btn_save_businessunit", function () {
-
-    let formulaire = $('#form_add_business');
-    let href = formulaire.attr('action');
+    let formulaire = $('#form_add_business');  // Ton formulaire
+    let href = formulaire.attr('action');      // L'URL d'action
 
     $.validator.setDefaults({ ignore: [] });
 
@@ -14020,9 +14019,9 @@ $(document).ready(function () {
 
     if (formulaire.valid()) {
 
-        // demander confirmation
+        // Demander confirmation
         let n = noty({
-            text: 'Voulez-vous vraiment enregistrer ce client ?',
+            text: 'Voulez-vous vraiment enregistrer cette Business Unit ?',
             type: 'warning',
             dismissQueue: true,
             layout: 'center',
@@ -14035,12 +14034,10 @@ $(document).ready(function () {
                         let data_serialized = formulaire.serialize();
                         $.each(data_serialized.split('&'), function (index, elem) {
                             let vals = elem.split('=');
-
                             let key = vals[0];
                             let valeur = decodeURIComponent(vals[1].replace(/\+/g, ' '));
 
                             formData.append(key, valeur);
-
                         });
 
                         $.ajax({
@@ -14052,26 +14049,22 @@ $(document).ready(function () {
                             success: function (response) {
 
                                 if (response.statut == 1) {
-
-                                    // Vider le formulaire
-                                    resetFields('#' + formulaire.attr('id'));
-
-
-
-                                    // Recharger la liste ou la page
-                                    notifySuccess(response.message, function () {
-                                        location.reload();
-                                    });
-
+                                       console.log("Succès détecté. Rechargement en cours...");
+                                    // Réinitialiser le formulaire
+                                    document.getElementById(formulaire.attr('id')).reset();
 
                                     // Fermer le modal
                                     $('#modal-business').modal('hide');
 
-                                } else {
+                                    // Notification de succès
+                                    location.reload();
 
+
+                                } else {
+                                    // Afficher les erreurs renvoyées par le backend
                                     let errors = JSON.parse(JSON.stringify(response.errors));
                                     let errors_list_to_display = '';
-                                    for (field in errors) {
+                                    for (let field in errors) {
                                         errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
                                     }
 
@@ -14080,47 +14073,174 @@ $(document).ready(function () {
                                     $('#modal-business .alert').fadeTo(2000, 500).slideUp(500, function () {
                                         $(this).slideUp(500);
                                     }).removeClass('alert-success').addClass('alert-warning');
-
                                 }
 
                             },
                             error: function (request, status, error) {
+                                // Gestion des erreurs AJAX
                                 notifyWarning("Erreur lors de l'enregistrement");
                             }
-
                         });
-
-                        // fin confirmation obtenue
-
                     }
                 },
                 {
                     addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
-                        // confirmation refusée
+                        // Confirmation refusée
                         $noty.close();
-
                     }
                 }
             ]
         });
-        // fin demande confirmation
+        // Fin demande confirmation
 
     } else {
-
-        $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
-
+        // Afficher les erreurs de validation
         let validator = formulaire.validate();
-
         $.each(validator.errorMap, function (index, value) {
-
             console.log('Id: ' + index + ' Message: ' + value);
-
         });
 
         notifyWarning('Veuillez renseigner correctement le formulaire');
     }
 
 });
+
+
+
+//Modifier businessunit
+
+  //ouverture du dialog
+    $(document).on("click", ".btn-modal-modifier_business", function () {
+
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+
+
+            $('#modal-business-update').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-business-update').find('.modal-dialog').addClass('modal-m');
+
+            $('#modal_business_update').modal();
+        });
+
+    });
+
+    //Valider les modifications
+
+//modification proprement dite
+    $(document).on("click", "#btn_update_businessunit", function () {
+
+        let formulaire = $(this).closest('form');
+        let href = formulaire.attr('action');
+
+        if (formulaire.valid()) {
+
+            $.ajax({
+                type: 'post',
+                url: href,
+                data: formulaire.serialize(),
+                success: function (response) {
+
+                    if (response.statut == 1) {
+
+                        business = response.data;
+
+                        //Vider le formulaire
+                        resetFields('#' + formulaire.attr('id'));
+
+                        notifySuccess(response.message, function () {
+                            location.reload();
+                        });
+
+                    } else {
+
+                        let errors = JSON.parse(JSON.stringify(response.errors));
+                        let errors_list_to_display = '';
+                        for (field in errors) {
+                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                        }
+
+                        $('#modal-business .alert .message').html(errors_list_to_display);
+
+                        $('#modal-business .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                            $(this).slideUp(500);
+                        }).removeClass('alert-success').addClass('alert-warning');
+
+                    }
+
+                },
+                error: function (request, status, error) {
+
+                    notifyWarning("Erreur lors de l'enregistrement");
+                }
+
+            });
+
+        } else {
+
+            $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+            let validator = formulaire.validate();
+
+            $.each(validator.errorMap, function (index, value) {
+
+                console.log('Id: ' + index + ' Message: ' + value);
+
+            });
+
+            notifyWarning('Veuillez renseigner correctement le formulaire');
+        }
+
+    });
+
+
+
+
+//Suppression d'un businessunit
+ $(document).on('click', '.btn_supprimer_business', function () {
+        let business_id = $(this).data('business_id');
+
+        let n = noty({
+            text: 'Voulez-vous vraiment supprimer ce businessunit ?',
+            type: 'warning',
+            dismissQueue: true,
+            layout: 'center',
+            theme: 'defaultTheme',
+            buttons: [
+                {
+                    addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                        $noty.close();
+
+                        //effectuer la suppression
+                        $.ajax({
+                            url: '/configurations/businessunit/delete',
+                            type: 'post',
+                            data: { business_id: business_id },
+                            success: function (e) {
+
+                                location.reload();
+
+                            },
+                            error: function () {
+                                notifyWarning('Erreur lors de la suppression');
+                            }
+                        });
+
+                    }
+                },
+                {
+                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                        //annuler la suppression
+                        $noty.close();
+                    }
+                }
+            ]
+        });
+
+
+    });
 
 
 

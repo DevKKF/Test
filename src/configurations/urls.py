@@ -55,6 +55,8 @@ urlpatterns = [
     #
     path('businessunit/', businessView.as_view(), name='business_unit'),
     path("businessunit/add_business", views.add_business, name='add_business'),
+    path("businessunit/delete", views.supprimer_business, name='supprimer_business'),
+    path('businessunit/<int:business_id>', views.modifier_businessunit, name='modifier_business'),
     #
     path('branche/',brancheView.as_view(), name='branche'),
     #

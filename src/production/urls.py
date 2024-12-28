@@ -114,6 +114,7 @@ urlpatterns = [
     path('police/<int:police_id>/courrier/add_courrier', views.add_courrier, name='add_courrier'),
     path('courrier/<int:courrier_id>/modifier_courrier', views.modifier_courrier, name='modifier_courrier'),
     path("courrier/delete", views.supprimer_courrier, name='supprimer_courrier'),
+    path('police/<int:police_id>/courrier/<int:courrier_id>/pdf/', views.generer_courrier, name='generer_pdf'),
 
 
     path('formules_universelles', FormulesUniversellesView.as_view(), name='formules_universelles'),

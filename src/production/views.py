@@ -7,9 +7,12 @@ import uuid
 from ast import literal_eval
 from io import BytesIO
 from pprint import pprint
+from fpdf import FPDF
 import math
+from django.template.loader import render_to_string
 from sqlite3 import Date
-from datetime import date
+from datetime import date,datetime
+import re
 from venv import create
 
 from django.db.models import Max
@@ -63,7 +66,7 @@ from inov import settings
 from production.forms import ContactForm, FilialeForm, AcompteForm, DocumentForm, PoliceForm, PhotoUploadForm
 from production.helper_production import create_alimet_helper
 from production.models import FormuleRubriquePrefinance, ModePrefinancement, Motif, Mouvement, Aliment, Client, Police, \
-    Acompte, Document, Filiale, Courrier,\
+    Acompte, Document, Filiale, Courrier, TypeCourrier,HistoriquePolice,\
     Acompte, Document, Filiale, AutreRisque, PoliceGarantie, AlimentPolice,  \
     Contact, Quittance, SecteurActivite, TypeDocument, AlimentFormule, Statut, FormuleGarantie, MouvementPolice, StatutQuittance, \
     Genre, StatutFamilial, PlacementEtGestion, ModeRenouvellement, CalculTM, ApporteurPolice, TaxePolice, \
@@ -6444,7 +6447,7 @@ def add_client(request):
                                        sexe=request.POST.get('sexe'),
                                        created_by_id=request.user.id,
                                        #created_at=datetime.datetime.now(tz=timezone.utc),
-                                       updated_at = timezone.now(),
+                                       # updated_at = timezone.now(),
                                        pays_id=request.POST.get('pays_id'),
                                        type_personne_id=request.POST.get('type_personne_id'),
                                        )
@@ -7248,11 +7251,9 @@ def modifier_courrier(request, courrier_id):
     else:
         courriers = Courrier.objects.all()  # Options pour les services et statuts
         produits = Produit.objects.all()
-        today = datetime.datetime.now(tz=timezone.utc)
         return render(request, 'police/modal_courrier_update.html', {
             'courrier': courrier,
             'produits': produits,
-            'today': today,
         })
 
 
@@ -8732,3 +8733,78 @@ class AnnulerQuittanceView(TemplateView):
             "opts": self.model._meta,
         }
 
+
+
+
+class PDFGenerator(FPDF):
+    def header(self):
+        # Exemple d'entête de document
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, 'FBFR Courtage', align='C', ln=True)
+
+    def footer(self):
+        # Exemple de pied de page
+        self.set_y(-15)
+        self.set_font('Arial', 'I', 8)
+        self.cell(0, 10, f'Page {self.page_no()}', align='C')
+
+
+def generer_courrier(request, police_id, courrier_id):
+
+# Vérifie que la police existe
+    police = get_object_or_404(Police, id=police_id)
+    courrier = get_object_or_404(Courrier, id=courrier_id)
+    historique_police = get_object_or_404(HistoriquePolice, id=police_id)
+
+    date_du_jour = datetime.now().strftime('%d/%m/%Y')
+
+# Vérifier si le type de courrier a un template associé
+    if not courrier.type_courrier:
+        return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
+
+    # Utilisation du système de templates Django pour charger un fichier HTML
+    template_name = f"police/generation/{courrier.type_courrier.nom.lower().replace(' ', '_')}.html"
+    try:
+        template_content = render_to_string(template_name, {
+            'nom_client': historique_police.client,
+            'numero_police':historique_police.numero,
+            'nom_produit': historique_police.produit,
+            'date_debut_effet':historique_police.date_debut_effet,
+            'date_fin_effet':historique_police.date_fin_effet,
+            'montant_renouvellement': '240000',
+            'date_jour': date_du_jour,
+            'responsable': "La Responsable Production",
+        })
+    except FileNotFoundError:
+        return HttpResponse(f"Erreur : Le template '{template_name}' est introuvable.", status=404)
+
+
+        # Nettoyer le HTML pour éviter d'afficher les balises
+    def clean_html(raw_html):
+        # Supprime toutes les balises HTML
+        clean_text = re.sub('<[^<]+?>', '', raw_html)
+        return clean_text
+
+    cleaned_content = clean_html(template_content)
+
+
+
+# Initialisation du PDF
+    pdf = PDFGenerator()
+    pdf.add_page()
+    pdf.set_font('Arial', '', 12)
+
+
+# Ajout du contenu nettoyé au PDF
+    for line in cleaned_content.splitlines():
+        if line.strip():  # Ignorer les lignes vides
+            pdf.multi_cell(0, 10, line)
+
+
+
+# Retourner le PDF comme réponse HTTP
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.pdf"'
+    pdf.output(dest='S')  # Sauvegarde temporaire pour output
+    response.write(pdf.output(dest='S').encode('latin1'))
+    return response

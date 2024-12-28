@@ -1917,26 +1917,19 @@ class CarteDigitalDematerialisee(models.Model):
 
 
 
+class TypeCourrier(models.Model):
+    nom = models.CharField(max_length=100, unique=True)
 
-# Les choix pour le champ service
-SERVICE_CHOICES = [
-    ('production', 'Production'),
-    ('sinistre', 'Sinistre'),
-    ('comptabilite', 'Comptabilité'),
-]
-
-# Les choix pour le champ status
-STATUS_CHOICES = [
-    ('Actif', 'Actif'),
-    ('Inactive', 'Inactive'),
-]
+    class Meta:
+        db_table = 'production_typecourrier'
 
 class Courrier(models.Model):
     designation = models.CharField(max_length=255)
     lien_fichier = models.CharField(max_length=50, blank=True, null=True)
-    service = models.CharField(max_length=50, choices=SERVICE_CHOICES)
+    service = models.CharField(max_length=50, )
     produit = models.ForeignKey(Produit, blank=True, null=True, on_delete=models.RESTRICT)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Inactif')
+    status = models.CharField(max_length=10, default='Inactif')
+    type_courrier = models.ForeignKey(TypeCourrier, blank=True, null=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1946,3 +1939,5 @@ class Courrier(models.Model):
 
     class Meta:
         db_table = "production_courrier"
+
+

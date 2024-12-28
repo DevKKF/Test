@@ -20,7 +20,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.forms import model_to_dict
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.template.backends.django import Template
 from django.urls import reverse
 from django.utils import timezone
@@ -3904,6 +3904,75 @@ def add_business(request):
 
         return JsonResponse(response)
 
+
+
+
+def modifier_businessunit(request, business_id):
+    business = get_object_or_404(BusinessUnit, id=business_id)
+
+    if request.method == 'POST':
+
+        business_before = business
+        pprint(business_before)
+
+        # Récupérer les champs envoyés par le formulaire
+        libelle = request.POST.get('libelle')
+        status = request.POST.get('status')
+
+        # Mettre à jour les champs
+        business.libelle = libelle
+        business.status = status
+
+        # Sauvegarder les modifications
+        business.save()
+
+        # Log d'action (si nécessaire)
+        ActionLog.objects.create(
+            done_by=request.user,
+            action="update",
+            description="Modification d'un businessunit",
+            table="business",
+            row=business.pk
+        )
+
+        # Retourner une réponse JSON pour AJAX
+        return JsonResponse({
+            'statut': 1,
+            'message': "Courrier modifié avec succès !"
+        })
+
+    else:
+        business = BusinessUnit.objects.all()  # Options pour les services et statuts
+        return render(request, 'BusinessUnit/modal_modifier_business.html', {
+            'business': business,
+        })
+
+
+
+
+@login_required()
+def supprimer_business(request):
+    if request.method == "POST":
+        business_id = request.POST.get('business_id')
+
+        try:
+            business = BusinessUnit.objects.get(id=business_id)
+            business.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Businessunit supprimé avec succès !",
+            }
+
+        except BusinessUnit.DoesNotExist:
+            response = {
+                'statut': 0,
+                'message': "businessunit introuvable !",
+            }
+
+        return JsonResponse(response)
+
+    return JsonResponse({'statut': 0, 'message': "Requête invalide !"}, status=400)
 
 
 

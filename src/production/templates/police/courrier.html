@@ -53,7 +53,7 @@
                          <td>
                             <span class="btn badge btn-sm btn-complement-rouge rounded-pill btn-modal-modifier_courrier" title="Modifier" data-href="{% url 'modifier_courrier' courrier.id %}" style="color:white;font-weight:normal;"><i class="fa fa-pencil"></i> {{_('Modifier')}}</span>&nbsp;&nbsp;&nbsp;
                              <span class="badge badge-danger btn_supprimer_courrier" data-courrier_id="{{ courrier.id }}" style="cursor:pointer;"><i class="fa fa-trash"></i> </span>&nbsp;
-
+                              <a class="badge badge-primary btn_pdf_courrier" style="cursor:pointer;" href="{% url 'generer_pdf' police.id courrier.id %}"><i class="fa fa-file-pdf-o"></i> Télécharger PDF</a>&nbsp;
                         </td>
                     </tr>
                   {% endfor %}
