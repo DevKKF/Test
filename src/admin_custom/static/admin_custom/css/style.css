@@ -589,17 +589,17 @@ article .shimmer{
 }
 
 .bg-inov-vive{
-    background: #EF6630;
+    background: #DC985D;
     color: #fff;
 }
 
 .bg-inov-elegante{
-    background: #6B726A;
+    background: #FFA500;
     color: #fff;
 }
 
 .bg-inov-variation{
-    background:  #658348 ;
+    background:  #639A88;
     color: #fff;
 }
 
@@ -642,11 +642,31 @@ label:not(.form-check-label):not(.custom-file-label) {
 
 .btn-warning{
   color: #fff;
-  background-color: #5B7641;
-  border-color: #5B7641;
+  background-color: #AD4E09;
+  border-color: #AD4E09;
   box-shadow: none;
 }
 
-.match {
+.match{
   font-weight:bold;
+}
+
+#suggestions {
+    z-index: 1000;
+    background-color: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#suggestions .list-group-item {
+    cursor: pointer;
+}
+
+#suggestions .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.text-italic {
+    font-style: italic !important;
 }

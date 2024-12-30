@@ -2178,10 +2178,12 @@ $(document).ready(function () {
     });
 
 
-    /*
-    $(document).on('click', "#btn_save_vehicule", function () {
+    $("#btn_save_marchandise").on('click', function () {
+        let btn_submit = $(this);
 
-        let formulaire = $('#form_add_vehicule');
+        btn_submit.attr('disabled', true);
+
+        let formulaire = $('#form_add_marchandise');
         let href = formulaire.attr('action');
 
         $.validator.setDefaults({ ignore: [] });
@@ -2190,6 +2192,7 @@ $(document).ready(function () {
 
         if (formulaire.valid()) {
 
+            // Enregistrement direct sans confirmation
             let data_serialized = formulaire.serialize();
             $.each(data_serialized.split('&'), function (index, elem) {
                 let vals = elem.split('=');
@@ -2198,7 +2201,6 @@ $(document).ready(function () {
                 let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
 
                 formData.append(key, valeur);
-
             });
 
             $.ajax({
@@ -2209,33 +2211,23 @@ $(document).ready(function () {
                 contentType: false,
                 success: function (response) {
 
+                    btn_submit.removeAttr('disabled');
+
                     if (response.statut == 1) {
 
-                        let vehicule = response.data;
+                        let police = response.data;
 
-                        let t = $('#table_vehicules').DataTable();
-
-                        t.row.add([
-                            vehicule.numero_immatriculation,
-                            vehicule.marque,
-                            vehicule.modele,
-                            vehicule.modele,
-                            vehicule.numero_serie,
-                            vehicule.conducteur,
-                            vehicule.valeur_neuve,
-                            vehicule.valeur_actuelle,
-                            vehicule.date_mis_en_circulation,
-                            vehicule.carosserie.libelle,
-                            vehicule.place,
-                            vehicule.poids_a_vide,
-                        ])
-                            .draw(false);
-
-                        //Vider le formulaire
+                        // Vider le formulaire
                         resetFields('#' + formulaire.attr('id'));
 
-                        notifySuccess(response.message);
-                        location.reload();
+                        notifySuccess(response.message, function () {
+                            location.reload();
+                        });
+
+                    }
+                    if (response.statut == 2) {
+
+                        notifyWarning(response.message);
 
                     } else {
 
@@ -2247,148 +2239,31 @@ $(document).ready(function () {
 
                         $('#modal-vehicule .alert .message').html(errors_list_to_display);
 
-                        $('#modal-vehicule .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                            $(this).slideUp(500);
+                        $('#modal-vehicule .alert').fadeTo(5000, 2000).slideUp(2000, function () {
+                            $(this).slideUp(2000);
                         }).removeClass('alert-success').addClass('alert-warning');
-
                     }
-
                 },
                 error: function (request, status, error) {
-
-                    notifyWarning("Erreur lors de l'enregistrement");
+                    btn_submit.removeAttr('disabled');
+                    notifyWarning("Erreur lors de l'enregistrement ");
                 }
-
             });
 
         } else {
+            // Validation échouée
+            btn_submit.removeAttr('disabled');
 
             $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
 
             let validator = formulaire.validate();
 
             $.each(validator.errorMap, function (index, value) {
-
                 console.log('Id: ' + index + ' Message: ' + value);
-
             });
 
             notifyWarning('Veuillez renseigner tous les champs obligatoires');
         }
-
-
-    });*/
-
-
-
-    //modification de beneficiaire
-    $(document).on('click', '.btn_modifier_vehicule', function () {
-
-        let model_name = $(this).attr('data-model_name');
-        let modal_title = $(this).attr('data-modal_title');
-        let href = $(this).attr('data-href');
-
-        $('#olea_std_dialog_box').load(href, function () {
-
-            //appliquer le mask de saisie sur les champs montant
-            AppliquerMaskSaisie();
-
-            $('#modal-modification_vehicule').attr('data-backdrop', 'static').attr('data-keyboard', false);
-
-            $('#modal-modification_vehicule').find('.modal-title').text(modal_title);
-            $('#modal-modification_vehicule').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
-            $('#modal-modification_vehicule').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
-
-            //
-            $('#modal-modification_vehicule').modal();
-
-            //gestion du clique sur valider les modifications
-            $("#btn_save_modification_vehicule").on('click', function () {
-
-                let formulaire = $('#form_update_vehicule');
-                let href = formulaire.attr('action');
-
-                $.validator.setDefaults({ ignore: [] });
-
-                let formData = new FormData();
-
-                if (formulaire.valid()) {
-
-                    let data_serialized = formulaire.serialize();
-                    $.each(data_serialized.split('&'), function (index, elem) {
-                        let vals = elem.split('=');
-
-                        let key = vals[0];
-                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
-
-                        formData.append(key, valeur);
-
-                    });
-
-                    $.ajax({
-                        type: 'post',
-                        url: href,
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function (response) {
-
-                            if (response.statut == 1) {
-
-                                notifySuccess(response.message);
-                                location.reload();
-
-                            }
-                             if (response.statut == 2) {
-
-                                notifyWarning(response.message);
-
-                            } else {
-
-                                let errors = JSON.parse(JSON.stringify(response.errors));
-                                let errors_list_to_display = '';
-                                for (field in errors) {
-                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
-                                }
-
-                                $('#modal-vehicule .alert .message').html(errors_list_to_display);
-
-                                $('#modal-vehicule .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                                    $(this).slideUp(500);
-                                }).removeClass('alert-success').addClass('alert-warning');
-
-                            }
-
-                        },
-                        error: function (request, status, error) {
-
-                            notifyWarning("Erreur lors de l'enregistrement");
-                        }
-
-                    });
-
-                } else {
-
-                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
-
-                    let validator = formulaire.validate();
-
-                    $.each(validator.errorMap, function (index, value) {
-
-                        console.log('Id: ' + index + ' Message: ' + value);
-
-                    });
-
-                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
-                }
-
-
-            });
-
-
-        });
-
-
     });
 
 
@@ -2807,6 +2682,7 @@ $(document).ready(function () {
         });
 
     });
+
 
     //gestion détails carte
     $(document).on("click", "#btn_save_carte", function (e) {
@@ -3268,6 +3144,7 @@ $(document).ready(function () {
         // $('#addBookDialog').modal('show');
     });
 
+
     $(document).on("click", "#btn_save_sortie_police", function (e) {
 
         e.stopPropagation();
@@ -3365,7 +3242,6 @@ $(document).ready(function () {
     });
 
 
-
     //DETAILS de vehicule
     $(document).on("click", ".btn_details_vehicule", function () {
 
@@ -3413,6 +3289,118 @@ $(document).ready(function () {
 
 
     });
+
+
+    //Modification de véhicule
+    $(document).on('click', '.btn_modifier_vehicule', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_vehicule').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_vehicule').find('.modal-title').text(modal_title);
+            $('#modal-modification_vehicule').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_vehicule').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-modification_vehicule').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_vehicule").on('click', function () {
+
+                let formulaire = $('#form_update_vehicule');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+
+                    let data_serialized = formulaire.serialize();
+                    $.each(data_serialized.split('&'), function (index, elem) {
+                        let vals = elem.split('=');
+
+                        let key = vals[0];
+                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                        formData.append(key, valeur);
+
+                    });
+
+                    $.ajax({
+                        type: 'post',
+                        url: href,
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+
+                            if (response.statut == 1) {
+
+                                notifySuccess(response.message);
+                                location.reload();
+
+                            }
+                             if (response.statut == 2) {
+
+                                notifyWarning(response.message);
+
+                            } else {
+
+                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                let errors_list_to_display = '';
+                                for (field in errors) {
+                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                }
+
+                                $('#modal-vehicule .alert .message').html(errors_list_to_display);
+
+                                $('#modal-vehicule .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                    $(this).slideUp(500);
+                                }).removeClass('alert-success').addClass('alert-warning');
+
+                            }
+
+                        },
+                        error: function (request, status, error) {
+
+                            notifyWarning("Erreur lors de l'enregistrement");
+                        }
+
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+
+
+            });
+
+
+        });
+
+
+    });
+
 
     //DETAILS de l'historique du vehicule
     $(document).on("click", ".btn_details_historique_vehicule", function () {
@@ -3496,17 +3484,9 @@ $(document).ready(function () {
 
                     } else {
 
-                        let errors = JSON.parse(JSON.stringify(response.errors));
-                        let errors_list_to_display = '';
-                        for (field in errors) {
-                            errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
-                        }
-
-                        $('#modal-import_vehicules .alert .message').html(errors_list_to_display);
-
-                        $('#modal-import_vehicules .alert ').fadeTo(2000, 500).slideUp(500, function () {
-                            $(this).slideUp(500);
-                        }).removeClass('alert-success').addClass('alert-warning');
+                        notifyWarning(response.message, function () {
+                            //location.reload();
+                        });
 
                     }
 
@@ -3523,10 +3503,252 @@ $(document).ready(function () {
 
     });
 
+    //DETAILS de marchandise
+    $(document).on("click", ".btn_details_marchandise", function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        //let dialog_box = $("<div>").addClass('olea_std_dialog_box').appendTo('body');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-details_marchandise .dataTable:not(.customDataTable_)').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+                },
+                order: [[0, 'desc']],
+                lengthMenu: [
+                    [100],
+                    [100],
+                ],
+                searching: false,
+                lengthChange: false,
+            });
+
+            let i = 0;
+            $('.dropzone_area').each(function (myElement) {
+                let zone_id = $(this).attr('id');
+                let href = $(this).attr('action');
+
+                let dropzone = new Dropzone("#" + zone_id, { url: href, dictDefaultMessage: "" });
+
+            });
+
+            $('#modal-details_marchandise').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-details_marchandise').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-details_marchandise').modal();
+
+        });
+    });
+
+
+    //Modification de marchandise
+    $(document).on('click', '.btn_modifier_marchandise', function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-modification_marchandise').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-modification_marchandise').find('.modal-title').text(modal_title);
+            $('#modal-modification_marchandise').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-modification_marchandise').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-modification_marchandise').modal();
+
+            //gestion du clique sur valider les modifications
+            $("#btn_save_modification_marchandise").on('click', function () {
+
+                let formulaire = $('#form_update_marchandise');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                let formData = new FormData();
+
+                if (formulaire.valid()) {
+
+                    let data_serialized = formulaire.serialize();
+                    $.each(data_serialized.split('&'), function (index, elem) {
+                        let vals = elem.split('=');
+
+                        let key = vals[0];
+                        let valeur = decodeURIComponent(vals[1].replace(/\+/g, '  '));
+
+                        formData.append(key, valeur);
+
+                    });
+
+                    $.ajax({
+                        type: 'post',
+                        url: href,
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+
+                            if (response.statut == 1) {
+
+                                notifySuccess(response.message);
+                                location.reload();
+
+                            }
+                             if (response.statut == 2) {
+
+                                notifyWarning(response.message);
+
+                            } else {
+
+                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                let errors_list_to_display = '';
+                                for (field in errors) {
+                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                }
+
+                                $('#modal-vehicule .alert .message').html(errors_list_to_display);
+
+                                $('#modal-vehicule .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                    $(this).slideUp(500);
+                                }).removeClass('alert-success').addClass('alert-warning');
+
+                            }
+
+                        },
+                        error: function (request, status, error) {
+
+                            notifyWarning("Erreur lors de l'enregistrement");
+                        }
+
+                    });
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                }
+            });
+        });
+    });
+
+    //Suppression de marchandise
+    $(document).on('click', ".btn_supprimer_marchandise", function () {
+
+        let police_id = $(this).data('police_id');
+        let marchandise_id = $(this).data('marchandise_id');
+        let href = $(this).data('href');
+        //alert(href);
+        let n = noty({
+            text: 'Voulez-vous vraiment supprimer cette marchandise ?',
+            type: 'warning',
+            dismissQueue: true,
+            layout: 'center',
+            theme: 'defaultTheme',
+            buttons: [
+                {
+                    addClass: 'btn btn-primary', text: 'Supprimer', onClick: function ($noty) {
+                        $noty.close();
+
+                        //effectuer la suppression
+                        $.ajax({
+                            url: href,
+                            type: 'post',
+                            data: { police_id: police_id, marchandise_id: marchandise_id },
+                            success: function (e) {
+                                notifySuccess("Marchandise non trouvée !");
+                                location.reload();
+                            },
+                            error: function () {
+                                notifyWarning('Erreur lors de la suppression de la marchandise');
+                            }
+                        });
+
+                    }
+                },
+                {
+                    addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                        //annuler la suppression
+                        $noty.close();
+                    }
+                }
+            ]
+        });
+
+
+
+    });
+
+
+    //DETAILS de l'historique de la marchandise
+    $(document).on("click", ".btn_details_histo_marchandise", function () {
+
+        let model_name = $(this).attr('data-model_name');
+        let modal_title = $(this).attr('data-modal_title');
+        let href = $(this).attr('data-href');
+
+        //let dialog_box = $("<div>").addClass('olea_std_dialog_box').appendTo('body');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-details_marchandise_histo .dataTable:not(.customDataTable_)').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+                },
+                order: [[0, 'desc']],
+                lengthMenu: [
+                    [100],
+                    [100],
+                ],
+                searching: false,
+                lengthChange: false,
+            });
+
+            let i = 0;
+            $('.dropzone_area').each(function (myElement) {
+                let zone_id = $(this).attr('id');
+                let href = $(this).attr('action');
+
+                let dropzone = new Dropzone("#" + zone_id, { url: href, dictDefaultMessage: "" });
+
+            });
+
+            $('#modal-details_marchandise_histo').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-details_marchandise_histo').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-details_marchandise_histo').modal();
+
+        });
+    });
+
     //fin modification de beneficiaire
-
-
-
 
 
     //ajout d'un avenant sur une police
@@ -3635,6 +3857,7 @@ $(document).ready(function () {
 
     });
 
+
     //Changement de mouvement, charger les motifs liés
     $('#mouvement').on('change', function () {
 
@@ -3739,6 +3962,7 @@ $(document).ready(function () {
 
 
     });
+
 
     //ajout d'une formule sur une police
     $(document).on("click", "#btn_save_formule", function () {
@@ -3847,6 +4071,7 @@ $(document).ready(function () {
 
     });
 
+
     //ouverture du dialog pour assurance universelle
     $(document).on("click", ".btn-modal-modifier_formule_universelle", function () {
 
@@ -3864,6 +4089,7 @@ $(document).ready(function () {
         });
 
     });
+
 
     //modification proprement dite
     $(document).on("click", "#btn_update_formule_universelle", function () {
@@ -3931,6 +4157,7 @@ $(document).ready(function () {
 
     });
 
+
     //modification proprement dite
     $(document).on("click", "#btn_update_formule", function () {
 
@@ -3997,6 +4224,7 @@ $(document).ready(function () {
 
     });
 
+
     //desactivation d'une formule de garantie
     $(document).on("click", ".btn-modal-formule-desactivate", function () {
         let href = $(this).data('href');
@@ -4024,11 +4252,11 @@ $(document).ready(function () {
 
 
     //Added on 10102023: ajout d'un bouton pour afficher la zone de modification de l'affection
-
     $(document).on('click', '#btn_show_form_update_affection', function () {
         $('#form_Add_affection_hopit').show();
         $(this).hide();
     });
+
 
     //showing selon choix type prefinancement
     $(document).on('change', '#option_mode_prefinancement, #option_mode_prefinancement_update', function () {
@@ -4049,12 +4277,14 @@ $(document).ready(function () {
 
     });
 
+
     //showing selon choix type prefinancement
     $(document).on('change', '#formule_rubriques, #formule_rubriques_update', function () {
 
         $(".select2-selection__choice__display").css("color", "#000");
 
     });
+
 
     $(document).on('click', '#btnAddAffectionToDossierSinistre', function () {
         let formulaire = $('#form_Add_affection_hopit');
@@ -4082,6 +4312,7 @@ $(document).ready(function () {
 
         });
     })
+
 
     $(document).on("click", "#btn_save_bareme", function () {
 
@@ -7788,7 +8019,7 @@ $(document).ready(function () {
 
                     //demander confirmation
                     let n = noty({
-                        text: 'Voulez-vous vraiment effectuer ce règlement compagnie?',
+                        text: "Voulez-vous vraiment effectuer ce règlement de l'assureur ?",
                         type: 'warning',
                         dismissQueue: true,
                         layout: 'center',
@@ -9003,28 +9234,28 @@ $(document).ready(function () {
 
         let montant_total_reglements_coches = 0;
         let montant_total_a_regler_compagnie = 0;
-        let montant_total_com_gestion = 0;
+        //let montant_total_com_gestion = 0;
         let montant_total_com_courtage = 0;
 
         $('.input_stock').each(function (element) { // on parcours les champs hidden qui stock les valeurs stocké lors du check des case à cocher
 
             let montant_reglement = parseFloat($("#input_stock_" + $(this).val()).data('reglement_montant'));
             let montant_compagnie = parseFloat($("#input_stock_" + $(this).val()).data('reglement_montant_compagnie'));
-            let montant_com_gestion = parseFloat($("#input_stock_" + $(this).val()).data('reglement_montant_com_gestion'));
+            //let montant_com_gestion = parseFloat($("#input_stock_" + $(this).val()).data('reglement_montant_com_gestion'));
             let montant_com_courtage = parseFloat($("#input_stock_" + $(this).val()).data('reglement_montant_com_courtage'));
 
             montant_total_reglements_coches = montant_total_reglements_coches + montant_reglement;
             montant_total_a_regler_compagnie = montant_total_a_regler_compagnie + montant_compagnie;
-            montant_total_com_gestion = montant_total_com_gestion + montant_com_gestion;
+            //montant_total_com_gestion = montant_total_com_gestion + montant_com_gestion;
             montant_total_com_courtage = montant_total_com_courtage + montant_com_courtage;
 
         });
 
         $('.montant_total_reglements_coches').val(montant_total_reglements_coches);
         $('.montant_total_a_regler_compagnie').val(montant_total_a_regler_compagnie);
-        $('.montant_total_com_gestion').val(montant_total_com_gestion);
+        //$('.montant_total_com_gestion').val(montant_total_com_gestion);
         $('.montant_total_com_courtage').val(montant_total_com_courtage);
-        $('.montant_total_com').val(montant_total_com_gestion + montant_total_com_courtage);
+        $('.montant_total_com').val(montant_total_com_courtage);
 
         if (montant_total_a_regler_compagnie > 0) {
             $('#btn_save_reglement_compagnie').removeAttr('disabled');
@@ -13499,6 +13730,7 @@ $(document).ready(function () {
 
         // Réinitialiser les champs obligatoires
         $('.aliment_champ_obligatoire').removeAttr('required');
+        $('.marchandise_champ_obligatoire').removeAttr('required');
 
         // Logique pour afficher les onglets en fonction des conditions
         if (typeproduit_id == 1) {
@@ -13520,7 +13752,7 @@ $(document).ready(function () {
             }
             if ([101004, 101005].includes(branche_code)) {
                 $('#marchandise-tab').removeClass('d-none');
-                $('.aliment_champ_obligatoire').prop('required', false);
+                $('.marchandise_champ_obligatoire').prop('required', false);
                 $('.money_field').prop('disabled', false);
             }
 
@@ -13713,7 +13945,6 @@ $(document).ready(function () {
             chargementGarantiesFormuleTable(formuleId);
         }
     });
-
 
     // Surveiller les changements des cases à cocher
     $(document).on('change', '.garantie-checkbox', function () {
@@ -14020,85 +14251,318 @@ $(document).ready(function () {
         }
     });
 
-    // Calcul des montants sur la marchandises
-    function calculerPrimes() {
-        const valeur_assuree_input = $("#valeur_assuree").val().replace(/\s/g, '');
-        const valeur_assuree = parseFloat(valeur_assuree_input) || 0;
+    $(document).on("keyup change", "#modal-police .calculs_marchandise_montant_police", function (event) {
 
-        // Activer/désactiver les champs en fonction de la valeur assurée
-        const calcul_champs = $("#taux_risque_ordinaire, #taux_risque_guerre, #taux_supprime, #taux_reduction_commerciale, #taux_taxe, #accessoires, #autres_frais");
-        if (valeur_assuree_input !== "") {
-            calcul_champs.prop("disabled", false);
-        } else {
-            calcul_champs.prop("disabled", true);
-            //Vider les champs de calcul
-            $("#taux_risque_ordinaire, #taux_risque_guerre, #taux_supprime, #taux_reduction_commerciale, #taux_taxe, #accessoires, #autres_frais, .prime_risque_ordinaire, .prime_risque_guerre, .prime_supprime, .prime_brut, .total_taxe, .prime_ttc_mar").val('');
-            return; // Important : arrêter le calcul si la valeur assurée est vide
+        if (event.which == 13) {
+            event.preventDefault();
         }
 
-        const taux_risque_ordinaire = parseFloat($("#taux_risque_ordinaire").val().replace(',', '.')) / 100 || 0;
-        const taux_risque_guerre = parseFloat($("#taux_risque_guerre").val().replace(',', '.')) / 100 || 0;
-        const taux_supprime = parseFloat($("#taux_supprime").val().replace(',', '.')) / 100 || 0;
-        const taux_reduction_commerciale = parseFloat($("#taux_reduction_commerciale").val().replace(',', '.')) / 100 || 0;
-        const accessoires = parseFloat($("#accessoires").val().replace(/\s/g, '')) || 0;
-        const autres_frais = parseFloat($("#autres_frais").val().replace(/\s/g, '')) || 0;
-        const taux_taxe = parseFloat($("#taux_taxe").val().replace(',', '.')) / 100 || 0;
+        calculer_montant_marchandise_police();
 
-        const prime_risque_ordinaire = valeur_assuree * taux_risque_ordinaire;
-        const prime_risque_guerre = valeur_assuree * taux_risque_guerre;
-        const prime_supprime = valeur_assuree * taux_supprime;
-        const prime_brut = prime_risque_ordinaire + prime_risque_guerre + prime_supprime;
-        let montant_reduction = 0;
-        if (taux_reduction_commerciale) {
-          montant_reduction = taux_reduction_commerciale * prime_brut;
-        }
-
-        const total_taxe = prime_brut * taux_taxe;
-        let prime_ttc_mar = 0;
-        if(taux_reduction_commerciale){
-            prime_ttc_mar = prime_brut - montant_reduction + accessoires + autres_frais + total_taxe;
-        }else{
-            prime_ttc_mar = prime_brut + accessoires + autres_frais + total_taxe;
-        }
-
-        $(".prime_risque_ordinaire").val(prime_risque_ordinaire.toLocaleString('fr-FR'));
-        $(".prime_risque_guerre").val(prime_risque_guerre.toLocaleString('fr-FR'));
-        $(".prime_supprime").val(prime_supprime.toLocaleString('fr-FR'));
-        $(".prime_brut").val(prime_brut.toLocaleString('fr-FR'));
-        $(".total_taxe").val(total_taxe.toLocaleString('fr-FR'));
-        $(".prime_ttc_mar").val(prime_ttc_mar.toLocaleString('fr-FR'));
-
-        // Affichage des résultats (console et champs)
-        console.log("valeur_assuree:", valeur_assuree);
-        console.log("taux_risque_ordinaire:", taux_risque_ordinaire);
-        console.log("taux_risque_guerre:", taux_risque_guerre);
-        console.log("taux_supprime:", taux_supprime);
-        console.log("taux_reduction_commerciale:", taux_reduction_commerciale);
-        console.log("accessoires:", accessoires);
-        console.log("autres_frais:", autres_frais);
-        console.log("taux_taxe:", taux_taxe);
-
-        console.log("prime_risque_ordinaire:", prime_risque_ordinaire);
-        console.log("prime_risque_guerre:", prime_risque_guerre);
-        console.log("prime_supprime:", prime_supprime);
-        console.log("prime_brut:", prime_brut);
-        console.log("total_taxe:", total_taxe);
-        console.log("prime_ttc_mar:", prime_ttc_mar);
-    }
-
-    $(document).ready(function () {
-        // Événements de changement sur les champs de saisie
-        $("#valeur_assuree, #taux_risque_ordinaire, #taux_risque_guerre, #taux_supprime, #taux_reduction_commerciale, #accessoires, #autres_frais, #taux_taxe").on("input", calculerPrimes);
-
-        // Initialisation : désactiver les champs au chargement de la page si valeur_assuree est vide
-        if ($("#valeur_assuree").val() === "") {
-            $("#taux_risque_ordinaire, #taux_risque_guerre, #taux_supprime, #taux_reduction_commerciale, #taux_taxe, #accessoires, #autres_frais").prop("disabled", true);
-        }
-
-        // Calcul initial au chargement de la page (si des valeurs sont déjà présentes)
-        calculerPrimes();
     });
 
+    function calculer_montant_marchandise_police() {
+
+        // Récupération des valeurs saisies
+        let valeur_assuree = parseInt($('#modal-police #valeur_assuree').val().replaceAll(' ', ''));
+        let taux_risque_ordinaire = parseInt($('#modal-police #taux_risque_ordinaire').val().replaceAll(' ', ''));
+        let taux_risque_guerre = parseInt($('#modal-police #taux_risque_guerre').val().replaceAll(' ', ''));
+        let taux_supprime = parseInt($('#modal-police #taux_supprime').val().replaceAll(' ', ''));
+        let taux_reduction_commerciale = parseInt($('#modal-police #taux_reduction_commerciale').val().replaceAll(' ', ''));
+        let taux_taxe = parseInt($('#modal-police #taux_taxe').val().replaceAll(' ', ''));
+        let accessoires = parseInt($('#modal-police #accessoires').val().replaceAll(' ', ''));
+        let autres_frais = parseInt($('#modal-police #autres_frais').val().replaceAll(' ', ''));
+
+        if (isNaN(valeur_assuree)) { valeur_assuree = 0; }
+        if (isNaN(taux_risque_ordinaire)) { taux_risque_ordinaire = 0; }
+        if (isNaN(taux_risque_guerre)) { taux_risque_guerre = 0; }
+        if (isNaN(taux_supprime)) { taux_supprime = 0; }
+        if (isNaN(taux_reduction_commerciale)) { taux_reduction_commerciale = 0; }
+        if (isNaN(taux_taxe)) { taux_taxe = 0; }
+        if (isNaN(accessoires)) { accessoires = 0; }
+        if (isNaN(autres_frais)) { autres_frais = 0; }
+
+        // Calcul des valeurs saisies
+        let prime_risque_ordinaire = (taux_risque_ordinaire / 100) * valeur_assuree;
+        let prime_risque_guerre = (taux_risque_guerre / 100) * valeur_assuree;
+        let prime_supprime = (taux_supprime / 100) * valeur_assuree;
+        let prime_brut = prime_risque_ordinaire + prime_risque_guerre + prime_supprime;
+        let prime_reduction = (taux_reduction_commerciale / 100) * prime_brut;
+        let total_taxe = (taux_taxe / 100) * prime_brut;
+        let prime_ttc_mar = (prime_brut - prime_reduction) + total_taxe + accessoires + autres_frais;
+
+        console.log('valeur_assuree', valeur_assuree);
+        console.log('taux_risque_ordinaire', taux_risque_ordinaire);
+        console.log('prime_risque_ordinaire', prime_risque_ordinaire);
+        console.log('taux_risque_guerre', taux_risque_guerre);
+        console.log('prime_risque_guerre', prime_risque_guerre);
+        console.log('prime_supprime', prime_supprime);
+        console.log('prime_risque_guerre', prime_risque_guerre);
+        console.log('prime_brut', prime_brut);
+        console.log('taux_reduction_commerciale', taux_reduction_commerciale);
+        console.log('prime_reduction', prime_reduction);
+        console.log('total_taxe', total_taxe);
+        console.log('accessoires', accessoires);
+        console.log('autres_frais', autres_frais);
+        console.log('prime_ttc_mar', prime_ttc_mar);
+
+        $('#modal-police #prime_risque_ordinaire').val(prime_risque_ordinaire);
+        $('#modal-police #prime_risque_guerre').val(prime_risque_guerre);
+        $('#modal-police #prime_supprime').val(prime_supprime);
+        $('#modal-police #prime_brut').val(prime_brut);
+        $('#modal-police #prime_reduction').val(prime_reduction);
+        $('#modal-police #total_taxe').val(total_taxe);
+        $('#modal-police #prime_ttc_mar').val(prime_ttc_mar);
+    }
+
+    $(document).on("keyup change", "#modal-marchandise_add .calculs_add_marchandise_montant_police", function (event) {
+
+        if (event.which == 13) {
+            event.preventDefault();
+        }
+
+        calculer_montant_add_marchandise_police();
+
+    });
+
+    function calculer_montant_add_marchandise_police() {
+
+    // Récupération des valeurs saisies
+    let valeur_assuree = parseInt($('#modal-marchandise_add #valeur_assuree').val().replaceAll(' ', ''));
+    let taux_risque_ordinaire = parseInt($('#modal-marchandise_add #taux_risque_ordinaire').val().replaceAll(' ', ''));
+    let taux_risque_guerre = parseInt($('#modal-marchandise_add #taux_risque_guerre').val().replaceAll(' ', ''));
+    let taux_supprime = parseInt($('#modal-marchandise_add #taux_supprime').val().replaceAll(' ', ''));
+    let taux_reduction_commerciale = parseInt($('#modal-marchandise_add #taux_reduction_commerciale').val().replaceAll(' ', ''));
+    let taux_taxe = parseInt($('#modal-marchandise_add #taux_taxe').val().replaceAll(' ', ''));
+    let accessoires = parseInt($('#modal-marchandise_add #accessoires').val().replaceAll(' ', ''));
+    let autres_frais = parseInt($('#modal-marchandise_add #autres_frais').val().replaceAll(' ', ''));
+
+    if (isNaN(valeur_assuree)) { valeur_assuree = 0; }
+    if (isNaN(taux_risque_ordinaire)) { taux_risque_ordinaire = 0; }
+    if (isNaN(taux_risque_guerre)) { taux_risque_guerre = 0; }
+    if (isNaN(taux_supprime)) { taux_supprime = 0; }
+    if (isNaN(taux_reduction_commerciale)) { taux_reduction_commerciale = 0; }
+    if (isNaN(taux_taxe)) { taux_taxe = 0; }
+    if (isNaN(accessoires)) { accessoires = 0; }
+    if (isNaN(autres_frais)) { autres_frais = 0; }
+
+    // Calcul des valeurs saisies
+    let prime_risque_ordinaire = (taux_risque_ordinaire / 100) * valeur_assuree;
+    let prime_risque_guerre = (taux_risque_guerre / 100) * valeur_assuree;
+    let prime_supprime = (taux_supprime / 100) * valeur_assuree;
+    let prime_brut = prime_risque_ordinaire + prime_risque_guerre + prime_supprime;
+    let prime_reduction = (taux_reduction_commerciale / 100) * prime_brut;
+    let total_taxe = (taux_taxe / 100) * prime_brut;
+    let prime_ttc_mar = (prime_brut - prime_reduction) + total_taxe + accessoires + autres_frais;
+
+    console.log('valeur_assuree', valeur_assuree);
+    console.log('taux_risque_ordinaire', taux_risque_ordinaire);
+    console.log('prime_risque_ordinaire', prime_risque_ordinaire);
+    console.log('taux_risque_guerre', taux_risque_guerre);
+    console.log('prime_risque_guerre', prime_risque_guerre);
+    console.log('prime_supprime', prime_supprime);
+    console.log('prime_risque_guerre', prime_risque_guerre);
+    console.log('prime_brut', prime_brut);
+    console.log('taux_reduction_commerciale', taux_reduction_commerciale);
+    console.log('prime_reduction', prime_reduction);
+    console.log('total_taxe', total_taxe);
+    console.log('accessoires', accessoires);
+    console.log('autres_frais', autres_frais);
+    console.log('prime_ttc_mar', prime_ttc_mar);
+
+    $('#modal-marchandise_add #prime_risque_ordinaire').val(prime_risque_ordinaire);
+    $('#modal-marchandise_add #prime_risque_guerre').val(prime_risque_guerre);
+    $('#modal-marchandise_add #prime_supprime').val(prime_supprime);
+    $('#modal-marchandise_add #prime_brut').val(prime_brut);
+    $('#modal-marchandise_add #prime_reduction').val(prime_reduction);
+    $('#modal-marchandise_add #total_taxe').val(total_taxe);
+    $('#modal-marchandise_add #prime_ttc_mar').val(prime_ttc_mar);
+}
+
+    $(document).on("keyup change", "#modal-modification_marchandise .calculs_marchandise_montant_police_modification", function (event) {
+
+        if (event.which == 13) {
+            event.preventDefault();
+        }
+
+        calculer_montant_marchandise_modification();
+
+    });
+
+    function calculer_montant_marchandise_modification() {
+
+        let valeur_assuree = parseInt($('#modal-modification_marchandise #valeur_assuree_modification').val().replaceAll(' ', ''));
+        let taux_risque_ordinaire = parseInt($('#modal-modification_marchandise #taux_risque_ordinaire_modification').val().replaceAll(' ', ''));
+        let taux_risque_guerre = parseInt($('#modal-modification_marchandise #taux_risque_guerre_modification').val().replaceAll(' ', ''));
+        let taux_supprime = parseInt($('#modal-modification_marchandise #taux_supprime_modification').val().replaceAll(' ', ''));
+        let taux_reduction_commerciale = parseInt($('#modal-modification_marchandise #taux_reduction_commerciale_modification').val().replaceAll(' ', ''));
+        let taux_taxe = parseInt($('#modal-modification_marchandise #taux_taxe_modification').val().replaceAll(' ', ''));
+        let accessoires = parseInt($('#modal-modification_marchandise #accessoires_modification').val().replaceAll(' ', ''));
+        let autres_frais = parseInt($('#modal-modification_marchandise #autres_frais_modification').val().replaceAll(' ', ''));
+
+        if (isNaN(valeur_assuree)) { valeur_assuree = 0; }
+        if (isNaN(taux_risque_ordinaire)) { taux_risque_ordinaire = 0; }
+        if (isNaN(taux_risque_guerre)) { taux_risque_guerre = 0; }
+        if (isNaN(taux_supprime)) { taux_supprime = 0; }
+        if (isNaN(taux_reduction_commerciale)) { taux_reduction_commerciale = 0; }
+        if (isNaN(taux_taxe)) { taux_taxe = 0; }
+        if (isNaN(accessoires)) { accessoires = 0; }
+        if (isNaN(autres_frais)) { autres_frais = 0; }
+
+        // Calcul des valeurs saisies
+        let prime_risque_ordinaire = (taux_risque_ordinaire / 100) * valeur_assuree;
+        let prime_risque_guerre = (taux_risque_guerre / 100) * valeur_assuree;
+        let prime_supprime = (taux_supprime / 100) * valeur_assuree;
+        let prime_brut = prime_risque_ordinaire + prime_risque_guerre + prime_supprime;
+        let prime_reduction = (taux_reduction_commerciale / 100) * prime_brut;
+        let total_taxe = (taux_taxe / 100) * prime_brut;
+        let prime_ttc_mar = (prime_brut - prime_reduction) + total_taxe + accessoires + autres_frais;
+
+        console.log('valeur_assuree', valeur_assuree);
+        console.log('taux_risque_ordinaire', taux_risque_ordinaire);
+        console.log('prime_risque_ordinaire', prime_risque_ordinaire);
+        console.log('taux_risque_guerre', taux_risque_guerre);
+        console.log('prime_risque_guerre', prime_risque_guerre);
+        console.log('prime_supprime', prime_supprime);
+        console.log('prime_risque_guerre', prime_risque_guerre);
+        console.log('prime_brut', prime_brut);
+        console.log('taux_reduction_commerciale', taux_reduction_commerciale);
+        console.log('prime_reduction', prime_reduction);
+        console.log('total_taxe', total_taxe);
+        console.log('accessoires', accessoires);
+        console.log('autres_frais', autres_frais);
+        console.log('prime_ttc_mar', prime_ttc_mar);
+
+        $('#modal-modification_marchandise #prime_risque_ordinaire_modification').val(prime_risque_ordinaire);
+        $('#modal-modification_marchandise #prime_risque_guerre_modification').val(prime_risque_guerre);
+        $('#modal-modification_marchandise #prime_supprime_modification').val(prime_supprime);
+        $('#modal-modification_marchandise #prime_brut_modification').val(prime_brut);
+        $('#modal-modification_marchandise #prime_reduction_modification').val(prime_reduction);
+        $('#modal-modification_marchandise #total_taxe_modification').val(total_taxe);
+        $('#modal-modification_marchandise #prime_ttc_mar_modification').val(prime_ttc_mar);
+    }
+
+    const searchInput = $('#search_all');
+    const suggestionsBox = $('#suggestions');
+
+    // Écouteur sur la saisie
+    searchInput.on('input', function () {
+        const query = $(this).val().trim();
+
+        if (query.length > 0) {
+            // Faire une requête AJAX pour récupérer les suggestions
+            $.ajax({
+                url: `/api/suggestions`,
+                method: 'GET',
+                data: { numero: query },
+                success: function (data) {
+                    displaySuggestions(data);
+                },
+                error: function (xhr, status, error) {
+                    console.error('Erreur lors de la récupération des suggestions:', error);
+                }
+            });
+        } else {
+            // Si aucune saisie, cacher les suggestions
+            suggestionsBox.addClass('d-none');
+        }
+    });
+
+    // Affiche les suggestions
+    function displaySuggestions(data) {
+        if (data.length > 0) {
+            suggestionsBox.empty();
+            $.each(data, function (index, item) {
+                // Structure de l'affichage d'une suggestion
+                const suggestion = $(`
+                    <div class="list-group-item list-group-item-action">
+                        <a href="${item.details_url}" class="btn btn-link p-0 text-dark" style="text-decoration:none" target="_blank">
+                            N° Police :<strong>${item.numero_police}</strong> / Client : <strong>${item.client_nom}</strong>
+                        </a>
+                    </div>
+                `).on('click', function () {
+                    // Lorsqu'une suggestion est cliquée
+                    searchInput.val(item.numero_police);
+                    suggestionsBox.addClass('d-none');
+                });
+                suggestionsBox.append(suggestion);
+            });
+            suggestionsBox.removeClass('d-none');
+        } else {
+            suggestionsBox.html('<div class="list-group-item">Aucun résultat</div>');
+            suggestionsBox.removeClass('d-none');
+        }
+    }
+
+    // Cacher les suggestions lorsqu'on clique en dehors
+    $(document).on('click', function (e) {
+        if (!suggestionsBox.is(e.target) && !searchInput.is(e.target) && suggestionsBox.has(e.target).length === 0) {
+            suggestionsBox.addClass('d-none');
+        }
+    });
+
+    /*
+    function toggleDisabledFields() {
+        var valeurAssuree = parseFloat($('#valeur_assuree').val().replace(/,/g, ''));
+        var disableFields = isNaN(valeurAssuree) || valeurAssuree === 0;
+
+        // Sélectionne TOUS les champs à griser
+        var fieldsToDisable = $('#taux_risque_ordinaire, #taux_risque_guerre, #taux_supprime, #taux_reduction_commerciale, #taux_taxe, #accessoires, #autres_frais');
+
+        fieldsToDisable.prop('disabled', disableFields);
+
+        if (disableFields) {
+          fieldsToDisable.addClass('disabled-field');
+          // Vide les champs si valeur_assuree est vide ou 0
+          fieldsToDisable.val('');
+        } else {
+          fieldsToDisable.removeClass('disabled-field');
+        }
+    }
+
+    // Initialisation au chargement de la page
+    toggleDisabledFields();
+
+    // Événement de changement sur le champ valeur_assuree
+    $('#valeur_assuree').on('input', function() {
+        toggleDisabledFields();
+    }); */
+
+    function toggleDisabledFields(prefix) {
+        var valeurAssuree = parseFloat($('#valeur_assuree' + prefix).val().replace(/,/g, ''));
+        var disableFields = isNaN(valeurAssuree) || valeurAssuree === 0;
+
+        var fieldsToDisable = $(
+            '#taux_risque_ordinaire' + prefix + ', ' +
+            '#taux_risque_guerre' + prefix + ', ' +
+            '#taux_supprime' + prefix + ', ' +
+            '#taux_reduction_commerciale' + prefix + ', ' +
+            '#taux_taxe' + prefix + ', ' +
+            '#accessoires' + prefix + ', ' +
+            '#autres_frais' + prefix
+        );
+
+        fieldsToDisable.prop('disabled', disableFields);
+
+        if (disableFields) {
+            fieldsToDisable.addClass('disabled-field');
+            // Important : Vider les champs ici pour effacer les valeurs affichées
+            fieldsToDisable.val('');
+        } else {
+            fieldsToDisable.removeClass('disabled-field');
+        }
+    }
+
+    // Initialisation et gestion des événements pour les deux formulaires
+    toggleDisabledFields("");
+    $('#valeur_assuree').on('input', function() {
+        toggleDisabledFields("");
+    });
+
+    toggleDisabledFields("_modification");
+    $('#valeur_assuree_modification').on('input', function() {
+        toggleDisabledFields("_modification");
+    });
 
     //---------------------------------BUSINESSUNIT-----------------------------------------------------
     //ajouter un business unit
@@ -14214,3 +14678,35 @@ $(document).ready(function () {
         }
     });
 });
+
+$(document).ready(function() {
+    // Récupérer les éléments
+    const $yesRadio = $("#yes_garantie_modification");
+    const $noRadio = $("#no_garantie_modification");
+    const $garantieTableBody = $("#table_garantie_police_modification tbody");
+    const $garantieTableContainer = $("#test_garantie_modification");
+    const $formuleBlock = $("#formule_block_modification");
+
+    // Fonction pour afficher ou masquer le tableau des garanties et le champ de formule
+    function toggleGarantieTable() {
+        if ($yesRadio.is(":checked")) {
+            // Afficher le tableau et le champ de formule si OUI est sélectionné
+            $garantieTableContainer.show(); // Afficher le conteneur du tableau
+            $formuleBlock.show(); // Afficher le champ de choix de formule
+        } else {
+            // Si NON est sélectionné, vider le contenu du tableau, masquer le conteneur et le champ de formule
+            $garantieTableBody.empty(); // Vider le contenu du tableau
+            $garantieTableContainer.hide(); // Masquer le conteneur du tableau
+            $formuleBlock.hide(); // Masquer le champ de choix de formule
+        }
+    }
+
+    // Écouter les événements de clic sur les boutons radio
+    $yesRadio.on("click", toggleGarantieTable);
+    $noRadio.on("click", toggleGarantieTable);
+
+    // Initialiser l'état du tableau et du champ de formule au chargement de la page
+    toggleGarantieTable();
+});
+
+

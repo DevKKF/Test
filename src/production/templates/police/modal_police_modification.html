@@ -1,9 +1,10 @@
+{% load i18n static jazzmin admin_urls %}
 <div  class="modal fade"  id="modal-modification_police" data-backdrop="static" data-keyboard="false" aria-hidden="true"  style="display: none">
 	<div class="modal-dialog modal-xl">
 		<div class="modal-content">
 			<form enctype="multipart/form-data" id="form_update_police" action="{% url 'modifier_police' police.id %}" method="post">
 				{% csrf_token %}
-				<input type="hidden" name="police_id" value="{{ police.id }}">
+				<input type="hidden" name="police_id" id="police_id" value="{{ police.id }}">
 				<div class="modal-header">
 					<h4 class="modal-title">{{_("MODIFICATION DE LA POLICE")}} <b>N° {{ police.numero }}</b> <span class="text-white">{{ police.id }}</span></h4>
 					<button type="button"class="close"data-dismiss="modal"aria-label="Close">
@@ -18,7 +19,7 @@
 						<ul class="nav nav-tabs" id="myTab" role="tablist">
 							<li class="nav-item"><a class="nav-link active" id="general-tab_modification" data-toggle="tab" href="#general_modification" role="tab" aria-controls="general_modification" aria-selected="true">{{_('GENERAL')}}</a></li>
 							<li class="nav-item"><a class="nav-link" id="intermediaire-tab_modification" data-toggle="tab" href="#intermediaire_modification" role="tab" aria-controls="intermediaire_modification" aria-selected="false">{{_('APPORTEURS')}}</a></li>
-							<li class="nav-item" style="display:none;"><a class="nav-link" id="garantie-tab_modification" data-toggle="tab" href="#garantie_modification" role="tab" aria-controls="garantie_modification" aria-selected="false">{{_('GARANTIES')}}</a></li>
+							<li class="nav-item"><a class="nav-link" id="garantie-tab_modification" data-toggle="tab" href="#garantie_modification" role="tab" aria-controls="garantie_modification" aria-selected="false">{{_('GARANTIES')}}</a></li>
 							<li class="nav-item"><a class="nav-link" id="facturation-tab_modification" data-toggle="tab" href="#facturation_modification" role="tab" aria-controls="facturation_modification" aria-selected="false">{{_('FACTURATION')}}</a></li>
 							<li class="nav-item"><a class="nav-link" id="prime-tab_modification" data-toggle="tab" href="#prime_modification" role="tab" aria-controls="prime_modification" aria-selected="false">{{_('PRIME')}}</a></li>
 						</ul>
@@ -280,17 +281,17 @@
 							</div>
 
 							<div class="tab-pane fade mt-3" id="garantie_modification" role="tabpanel" aria-labelledby="garantie-tab_modification">
-								<div class="row">
+								<div class="row" style="max-height:500px;">
 									<div class="col-md-6">
 										<div class="form-group row">
 											<label class="col-sm-6 col-form-label">{{_('Garantie')}} <span class="required"></span></label>
 											<div class="col-sm-6">
 												<div class="icheck-danger d-inline">
-												  <input type="radio" name="garantie" value="OUI" id="yes_garantie_modification" {% if dernier_historique.garantie == "OUI" %} checked {% endif %}>
+												  <input type="radio" name="garantie" value="OUI" id="yes_garantie_modification" checked>
 												  <label for="yes_garantie_modification"> {{_('OUI')}} </label>
 												</div>
 												<div class="icheck-danger d-inline" style="margin-left:50px;">
-												  <input type="radio" name="garantie" value="NON" id="no_garantie_modification" {% if dernier_historique.garantie == "NON" %} checked {% endif %}>
+												  <input type="radio" name="garantie" value="NON" id="no_garantie_modification">
 												  <label for="no_garantie_modification">{{_('NON')}} </label>
 												</div>
 											</div>
@@ -301,7 +302,7 @@
 										<div class="form-group row" id="formule_block_modification">
 											<label class="col-sm-6 col-form-label">{{_('Formule')}}</label>
 											<div class="col-sm-6">
-												<select class="form-control " name="formule" id="formule_modification_id" autocomplete="off">
+												<select class="form-control " name="formule" id="formule_modification" autocomplete="off">
 													<option value="">{{_('Choisir')}}</option>
 													{% for formule in formules %}
 														<option value="{{ formule.id }}" data-formule_id="{{ formule.id }}">{{ formule.libelle }}</option>
@@ -312,8 +313,8 @@
 									</div>
 									<div class="col-md-12" id="test_garantie_modification">
 										<hr>
-										<div id="garantie-message-error-modification" class="alert alert-danger" style="display:none;"></div>
-										<div id="garantie-message-warning-modification" class="alert alert-warning" style="display:none;"></div>
+										<div class="text-danger mb-2" id="garantie-message-error"></div>
+										<div class="text-warning mb-2" id="garantie-message-warning"></div>
 										<table id="table_garantie_police_modification" style="width:100%;" class="table table-bordered table-striped dataTable_ dtr-inline">
 											<thead>
 												<tr>
@@ -326,7 +327,6 @@
 											<tbody>
 											</tbody>
 										</table>
-										<div class="text-center text-danger text-italic mb-2">Si vous choisissez des garanties rassurez-vous que les anciennes y figurent car elles seront supprimées.</div>
 									</div>
 								</div>
 							</div>
@@ -541,3 +541,4 @@
 	</div>
 </div>
 <!-- fin modal interne des autres taxes -->
+<script src="{% static "admin_custom/js/modal_js.js" %}"></script>

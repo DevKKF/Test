@@ -1,7 +1,7 @@
 <div  class="modal fade"  id="modal-modification_vehicule" data-backdrop="static" data-keyboard="false" aria-hidden="true"  style="display: nonehgff">
 	<div class="modal-dialog modal-xl">
 		<div class="modal-content">
-			<form id="form_update_vehicule" action="{% url 'update_vehicule' police.id vehicule.id %}" method="post">
+			<form id="form_update_vehicule" action="{% url 'update_vehicule' police.id alimentpolice.id %}" method="post">
 			{% csrf_token %}
 			<div class="modal-header">
 				<h4 class="modal-title">{{_("MODIFICATION DU VEHICULE")}}</h4>
@@ -24,72 +24,68 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("N° immat")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="immatriculation" value="{{ vehicule.numero_immatriculation }}" required readonly>
+											<input type="text" class="form-control" name="immatriculation" value="{{ alimentpolice.vehicule.numero_immatriculation|default_if_none:'' }}" required readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("N° série")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="num_serie" value="{{ vehicule.numero_serie }}" required/>
+											<input type="text" class="form-control" name="num_serie" value="{{ alimentpolice.vehicule.numero_serie|default_if_none:'' }}" required readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Marque')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="marque" value="{{ vehicule.marque }}" required>
+											<input type="text" class="form-control" name="marque" value="{{ alimentpolice.vehicule.marque|default_if_none:'' }}" required readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Modèle")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="modele" value="{{ vehicule.modele }}">
+											<input type="text" class="form-control" name="modele" value="{{ alimentpolice.vehicule.modele|default_if_none:'' }}" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Energie')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control tags-multiple" name="carburant_id" id="carburant_id" autocomplete="off">
-												<option value="">{{_('Choisir')}}</option>
-												{% for cab in carburants %}
-													<option value="{{ cab.id }}" {% if cab.id == vehicule.carburant_id %} selected {% endif %}>{{ cab.libelle }}</option>
-												{% endfor %}
-											</select>
+											<input type="hidden" class="form-control" name="carburant_id" value="{{ alimentpolice.vehicule.carburant_id|default_if_none:'' }}">
+											<input type="text" class="form-control" name="" value="{{ alimentpolice.vehicule.carburant.libelle|default_if_none:'' }}" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Date de sortie")}} </label>
 										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_sortie" value="{{vehicule.date_sortie|date:'Y-m-d'}}">
+											<input type="date" class="form-control" name="date_sortie" value="{{alimentpolice.date_sortie|date:'Y-m-d'|default_if_none:''}}">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Place')}}</label>
 										<div class="col-sm-7">
-											<input type="text" min="1" max="100" class="form-control money_field" name="places_assises" value="{{vehicule.places_assises}}">
+											<input type="text" min="1" max="100" class="form-control money_field" name="places_assises" value="{{alimentpolice.vehicule.places_assises|default_if_none:''}}">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Parc')}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="num_parc" value="{{vehicule.numero_parc}}">
+											<input type="text" class="form-control" name="num_parc" value="{{alimentpolice.numero_parc|default_if_none:''}}">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Valeur neuve")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="valeur_neuve" value="{{vehicule.valeur_neuve}}">
+											<input type="text" class="form-control money_field" name="valeur_neuve" value="{{alimentpolice.vehicule.valeur_neuve|default_if_none:''}}" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Poid T.A.C")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="poid_tac" value="{{vehicule.poids_a_charge}}">
+											<input type="text" class="form-control money_field" name="poid_tac" value="{{alimentpolice.vehicule.poids_a_charge|default_if_none:''}}" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Conducteur')}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="conducteur" value="{{vehicule.conducteur}}"/>
+											<input type="text" class="form-control" name="conducteur" value="{{alimentpolice.conducteur|default_if_none:''}}"/>
 										</div>
 									</div>
 								</div>
@@ -98,18 +94,14 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("N° immat provi.")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="immatriculation_provisioire" value="{{  vehicule.numero_immat_provisoire }}">
+											<input type="text" class="form-control" name="immatriculation_provisioire" value="{{  alimentpolice.vehicule.numero_immat_provisoire|default_if_none:'' }}" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Catégorie véhicule")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<select class="form-control tags-multiple" name="categorie_id" id="categorie_id" autocomplete="off">
-												<option value="">{{_('Choisir')}}</option>
-												{% for cat in catgories %}
-													<option value="{{ cat.id }}" {% if cat.id == vehicule.categorie_vehicule_id %} selected {% endif %}>{{ cat.libelle }}</option>
-												{% endfor %}
-											</select>
+											<input type="hidden" class="form-control" name="categorie_id" value="{{ alimentpolice.vehicule.categorie_vehicule_id|default_if_none:'' }}">
+											<input type="text" class="form-control" name="" value="{{ alimentpolice.vehicule.categorie_vehicule.libelle|default_if_none:'' }}" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
@@ -118,7 +110,7 @@
 											<select class="form-control tags-multiple" name="usage_id" id="usage_id" autocomplete="off" required>
 												<option value="">{{_('Choisir')}}</option>
 												{% for u in usages %}
-													<option value="{{ u.id }}" {% if u.id == vehicule.usage_id %} selected {% endif %}>{{ u.libelle }}</option>
+													<option value="{{ u.id }}" {% if u.id == alimentpolice.usage_id %} selected {% endif %}>{{ u.libelle }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -126,54 +118,50 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Carrosserie')}}</label>
 										<div class="col-sm-7">
-											<select class="form-control tags-multiple" name="carosserie_id" id="carosserie_id" autocomplete="off">
-												<option value="">{{_('Choisir')}}</option>
-												{% for car in carosseries %}
-													<option value="{{ car.id }}" {% if car.id == vehicule.carosserie_id %} selected {% endif %}>{{ car.libelle }}</option>
-												{% endfor %}
-											</select>
+											<input type="hidden" class="form-control" name="carosserie_id" value="{{ alimentpolice.vehicule.carosserie_id }}">
+											<input type="text" class="form-control" name="" value="{{ alimentpolice.vehicule.carosserie.libelle|default_if_none:'' }}" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Date d'entrée")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_entree"value="{{  vehicule.date_entree|date:'Y-m-d' }}" required readonly>
+											<input type="date" class="form-control" name="date_entree"value="{{  alimentpolice.date_entree|date:'Y-m-d'|default_if_none:'' }}" required readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Mise en circulation")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="date" class="form-control" name="date_mise_circulation" value="{{ vehicule.date_mis_en_circulation|date:'Y-m-d' }}" required readonly>
+											<input type="date" class="form-control" name="date_mise_circulation" value="{{ alimentpolice.date_mis_en_circulation|date:'Y-m-d'|default_if_none:'' }}" required readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_('Puissance')}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="puissance_fiscale" value="{{  vehicule.puissance }}" required>
+											<input type="text" class="form-control money_field" name="puissance_fiscale" value="{{  alimentpolice.vehicule.puissance|default_if_none:'' }}" required readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Valeur actuelle")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="valeur_actuelle" value="{{  vehicule.valeur_actuelle }}">
+											<input type="text" class="form-control money_field" name="valeur_actuelle" value="{{  alimentpolice.valeur_actuelle|default_if_none:'' }}">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Poids à vide")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field" name="poids_a_vide" value="{{  vehicule.poids_a_vide }}">
+											<input type="text" class="form-control money_field" name="poids_a_vide" value="{{  alimentpolice.vehicule.poids_a_vide|default_if_none:'' }}" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Propriétaire")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="proprietaire" value="{{  vehicule.proprietaire }}" required>
+											<input type="text" class="form-control" name="proprietaire" value="{{  alimentpolice.proprietaire|default_if_none:'' }}" required>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Commentaire")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="commentaire" value="{{  vehicule.commentaire }}">
+											<input type="text" class="form-control" name="commentaire" value="{{  alimentpolice.commentaire|default_if_none:'' }}">
 										</div>
 									</div>
 								</div>

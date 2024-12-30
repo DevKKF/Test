@@ -45,8 +45,8 @@
                   <th scope="col">{{_('Type')}}</th>
                   <th scope="col">{{_("Date d'émission")}}</th>
                   <th scope="col">{{_("Début période")}}</th>
-                  <th scope="col">{{_("Prime HT")}}</th>
-                  <th scope="col">{{_("Prime TTC")}}</th>
+                  <th scope="col">{{_("Montant HT")}}</th>
+                  <th scope="col">{{_("Montant TTC")}}</th>
                   <!--th scope="col">Mt cie</th-->
                   <th scope="col">{{_("Com Courtage")}}</th>
                   <th scope="col">{{_("Retro Apporteur")}}</th>
@@ -104,8 +104,8 @@
                   <th scope="col">{{_('Type')}}</th>
                   <th scope="col">{{_("Date d'émission")}}</th>
                   <th scope="col">{{_("Début période")}}</th>
-                  <th scope="col">{{_("Prime HT")}}</th>
-                  <th scope="col">{{_("Prime TTC")}}</th>
+                  <th scope="col">{{_("Montant HT")}}</th>
+                  <th scope="col">{{_("Montant TTC")}}</th>
                   <!--th scope="col">Mt cie</th-->
                   <th scope="col">{{_("Com Courtage")}}</th>
                   <th scope="col">{{_("Retro Apporteur")}}</th>
@@ -163,8 +163,8 @@
                     <th scope="col">{{_('Type')}}</th>
                     <th scope="col">{{_("Date d'émission")}}</th>
                     <th scope="col">{{_("Début période")}}</th>
-                    <th scope="col">{{_("Prime HT")}}</th>
-                    <th scope="col">{{_("Prime TTC")}}</th>
+                    <th scope="col">{{_("Montant HT")}}</th>
+                    <th scope="col">{{_("Montant TTC")}}</th>
                     <th scope="col">{{_("Com Courtage")}}</th>
                     <th scope="col">{{_('Solde')}}</th>
                     <th scope="col">{{_('Devise')}}</th>
@@ -200,6 +200,61 @@
 <div class="col-12 col-md-12 order-2 order-md-1">
   <div class="card">
     <div class="card-header">
+        <h3 class="card-title text-white">{{_('EMISSIONS')}}</h3>
+    </div>
+    <div class="card-body">
+      <div class="button-link pull-right mb-2">
+
+      </div>
+      <div id="dataTables_wrapper" class="dataTables_wrapper dt-bootstrap4 ">
+        <div class="row">
+          <div class="col-12 col-md-12 col-sm-12 table-responsive">
+            <table class="table table-bordered table-striped dataTable dtr-inline" id="table_emissions">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th scope="col">{{_("N° Quittance")}}</th>
+                    <th scope="col">{{_('Nature')}}</th>
+                    <th scope="col">{{_('Type')}}</th>
+                    <th scope="col">{{_("Date d'émission")}}</th>
+                    <th scope="col">{{_("Début période")}}</th>
+                    <th scope="col">{{_("Montant HT")}}</th>
+                    <th scope="col">{{_("Montant TTC")}}</th>
+                    <th scope="col">{{_("Com Courtage")}}</th>
+                    <th scope="col">{{_('Solde')}}</th>
+                    <th scope="col">{{_('Devise')}}</th>
+                    <th scope="col">{{_('Situation')}}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for emission in quittances_emissions %}
+                    <tr>
+                      <td><span class="badge badge-info btnOpenDialogDetailQuittance" data-href="{% url 'details_quittance' emission.id %}"><i class="fa fa-eye"></i></span></td>
+                      <td>{{ emission.numero|default_if_none:"" }}</td>
+                      <td>{{ emission.nature_quittance|default_if_none:"" }}</td>
+                      <td>{{ emission.type_quittance|default_if_none:"" }}</td>
+                      <td>{{ emission.date_emission|date:'d/m/Y'|default_if_none:"" }}</td>
+                      <td>{{ emission.date_debut|date:'d/m/Y'|default_if_none:"" }}</td>
+                      <td class="text-right">{{ emission.prime_ht|money_field }}</td>
+                      <td class="text-right">{{ emission.prime_ttc|money_field }}</td>
+                      <td class="text-right">{{ emission.commission_courtage|money_field }}</td>
+                      <td class="text-right">{{ emission.solde|money_field }}</td>
+                      <td>{{ emission.police.client.pays.devise.code|default_if_none:"" }}</td>
+                      <td>{% if emission.statut == 'PAYE' %} {{_('SOLDEE')}} {% else %}{{ emission.statut|default_if_none:"" }}{% endif %}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="col-12 col-md-12 order-2 order-md-1">
+  <div class="card">
+    <div class="card-header">
         <h3 class="card-title text-white">{{_('LES QUITTANCES ANNULEES')}}</h3>
     </div>
     <div class="card-body">
@@ -218,8 +273,8 @@
                   <th scope="col">{{_("Type")}}</th>
                   <th scope="col">{{_("Date d'émission")}}</th>
                   <th scope="col">{{_("Début période")}}</th>
-                  <th scope="col">{{_("Prime HT")}}</th>
-                  <th scope="col">{{_("Prime TTC")}}</th>
+                  <th scope="col">{{_("Montant HT")}}</th>
+                  <th scope="col">{{_("Montant TTC")}}</th>
                   <th scope="col">{{_("Com Courtage")}}</th>
                   <th scope="col">{{_("Retro Apporteur")}}</th>
                   <th scope="col">{{_('Solde')}}</th>

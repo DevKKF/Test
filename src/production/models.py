@@ -126,6 +126,8 @@ class Police(models.Model):
     intermediaires = models.ManyToManyField(Apporteur, through='ApporteurPolice')
 
     date_souscription = models.DateField(null=True)
+    date_debut_effet = models.DateField(null=True)
+    date_fin_effet = models.DateField(null=True)
     date_fin_police = models.DateField(null=True)
     preavis_de_resiliation = models.CharField(max_length=50, null=True)  # False
 
@@ -539,8 +541,10 @@ class AutreRisque(models.Model):
     libelle = models.TextField(null=True)
     description = models.TextField(null=True)
     date_du_jour = models.DateTimeField(null=True)
+    date_liaison = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    statut = models.fields.CharField(choices=StatutPolice.choices, default=StatutPolice.ACTIF, max_length=15, null=True)
 
     class Meta:
         db_table = 'autre_risque'
@@ -611,6 +615,7 @@ class Marchandise(models.Model):
     taux_risque_ordinaire = models.FloatField(null=True)
     taux_risque_guerre = models.FloatField(null=True)
     taux_supprime = models.FloatField(null=True)
+    taux_reduction_commerciale = models.FloatField(null=True)
     taux_taxe = models.FloatField(null=True)
     accessoires = models.IntegerField(null=True, blank=True)
     autres_frais = models.IntegerField(null=True, blank=True)
@@ -620,6 +625,7 @@ class Marchandise(models.Model):
     prime_risque_guerre = models.BigIntegerField(null=True)
     prime_supprime = models.BigIntegerField(null=True)
     prime_brut = models.BigIntegerField(null=True)
+    prime_reduction = models.BigIntegerField(null=True)
     total_taxe = models.BigIntegerField(null=True)
     prime_ttc_mar = models.BigIntegerField(null=True)
 
@@ -640,6 +646,7 @@ class Marchandise(models.Model):
 
 class AlimentPolice(models.Model):
     vehicule = models.ForeignKey(Vehicule, on_delete=models.RESTRICT, null=True)
+    autre_risque = models.ForeignKey(AutreRisque, on_delete=models.RESTRICT, null=True)
     marchandise = models.ForeignKey(Marchandise, on_delete=models.RESTRICT, null=True)
     usage = models.ForeignKey(Usage, on_delete=models.RESTRICT, null=True)
     historique_police = models.ForeignKey(HistoriquePolice, on_delete=models.RESTRICT, null=True)
@@ -741,6 +748,94 @@ class FormuleGarantie(models.Model):
         db_table = 'formulegarantie'
         verbose_name = 'Formule de garantie'
         verbose_name_plural = 'Formule de garantie'
+
+
+class HistoriqueAliment(models.Model):
+    # LES CHAMPS DU MODEL MARCHANDISE
+    marchandise = models.ForeignKey(Marchandise, related_name="marchandises", on_delete=models.RESTRICT, null=True)
+    conditions_assurance = models.ForeignKey(ConditionsAssurance, on_delete=models.RESTRICT, null=True)
+    moyens_transport = models.ForeignKey(MoyensTransport, on_delete=models.RESTRICT, null=True)
+    devise = models.ForeignKey(Devise, null=True, on_delete=models.RESTRICT)
+    num_certificat = models.CharField(max_length=50, null=True, blank=True)
+    num_fact_fournisseur = models.CharField(max_length=50, null=True, blank=True)
+    ref_dai = models.CharField(max_length=50, null=True, blank=True)
+    date_commande = models.DateField(null=True)
+    nombre_colis = models.CharField(max_length=100, blank=True, null=True)
+    poids_brut = models.CharField(max_length=100, blank=True, null=True)
+    plein_souscription = models.CharField(max_length=100, blank=True, null=True)
+    immatriculation = models.CharField(max_length=100, blank=True, null=True)
+    pavillon_cie_prest = models.CharField(max_length=100, blank=True, null=True)
+    destination = models.CharField(max_length=100, blank=True, null=True)
+    lieu_transit_transbordement = models.CharField(max_length=100, blank=True, null=True)
+    date_emmision_certificat = models.DateField(null=True)
+    num_commande = models.CharField(max_length=100, blank=True, null=True)
+    marchandises_description = models.TextField(null=True)
+    poids_net = models.CharField(max_length=100, blank=True, null=True)
+    valeur_assuree = models.FloatField(null=True)
+    marque_modele_type = models.CharField(max_length=100, blank=True, null=True)
+    debut_voyage = models.DateField(null=True)
+    lieu_depart = models.CharField(max_length=100, blank=True, null=True)
+    nom_commissaire = models.CharField(max_length=100, blank=True, null=True)
+    telephone_commissaire = models.CharField(max_length=100, blank=True, null=True)
+    code_commissaire = models.CharField(max_length=100, blank=True, null=True)
+    adresse_commissaire = models.CharField(max_length=100, blank=True, null=True)
+    courriel_commissaire = models.CharField(max_length=100, blank=True, null=True)
+    taux_risque_ordinaire = models.FloatField(null=True)
+    taux_risque_guerre = models.FloatField(null=True)
+    taux_supprime = models.FloatField(null=True)
+    taux_reduction_commerciale = models.FloatField(null=True)
+    taux_taxe = models.FloatField(null=True)
+    accessoires = models.IntegerField(null=True, blank=True)
+    autres_frais = models.IntegerField(null=True, blank=True)
+    prime_risque_ordinaire = models.BigIntegerField(null=True)
+    prime_risque_guerre = models.BigIntegerField(null=True)
+    prime_supprime = models.BigIntegerField(null=True)
+    prime_brut = models.BigIntegerField(null=True)
+    prime_reduction = models.BigIntegerField(null=True)
+    total_taxe = models.BigIntegerField(null=True)
+    prime_ttc_mar = models.BigIntegerField(null=True)
+
+    # LES CHAMPS DU MODEL VEHICULE
+    vehicule = models.ForeignKey(Vehicule, on_delete=models.RESTRICT, null=True)
+    categorie_vehicule = models.ForeignKey(CategorieVehicule, on_delete=models.RESTRICT, null=True)
+    carosserie = models.ForeignKey(Carosserie, on_delete=models.RESTRICT, null=True)
+    carburant = models.ForeignKey(Carburant, on_delete=models.RESTRICT, null=True)
+    numero_immatriculation = models.CharField(max_length=15, blank=True, null=True)
+    numero_immat_provisoire = models.CharField(max_length=15, blank=True, null=True)
+    numero_serie = models.CharField(max_length=25, blank=True, null=True)
+    marque = models.CharField(max_length=50, blank=True, null=True)
+    modele = models.CharField(max_length=50, blank=True, null=True)
+    places_assises = models.CharField(max_length=50, blank=True, null=True)
+    valeur_neuve = models.CharField(max_length=50, blank=True, null=True)
+    puissance = models.CharField(max_length=50, blank=True, null=True)
+    poids_a_vide = models.CharField(max_length=50, blank=True, null=True)
+    poids_a_charge = models.CharField(max_length=50, blank=True, null=True)
+    usage = models.ForeignKey(Usage, on_delete=models.RESTRICT, null=True)
+    numero_parc = models.CharField(max_length=25, blank=True, null=True)
+    proprietaire = models.CharField(max_length=50, blank=True, null=True)
+    conducteur = models.CharField(max_length=50, blank=True, null=True)
+    valeur_actuelle = models.CharField(max_length=50, blank=True, null=True)
+    date_mis_en_circulation = models.DateField(blank=True, null=True)
+    date_entree = models.DateField(blank=True, null=True)
+    commentaire = models.TextField(null=True)
+
+    # Champs en commun
+    date_sortie = models.DateField(null=True)
+    created_by = models.ForeignKey(User, related_name="histo_aliment_created_by", null=True, on_delete=models.RESTRICT)
+    updated_by = models.ForeignKey(User, related_name="histo_aliment_updated_by", null=True, on_delete=models.RESTRICT)
+    existed_by = models.ForeignKey(User, related_name="histo_aliment_existed_by", null=True, on_delete=models.RESTRICT)
+    statut = models.fields.CharField(choices=StatutPolice.choices, default=StatutPolice.ACTIF, max_length=15, null=True)
+    date_liaison = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.num_certificat}'
+
+    class Meta:
+        db_table = 'historique_aliment'
+        verbose_name = 'Historique aliment'
+        verbose_name_plural = 'Historique aliment'
 
 
 # les jointures sont faibles,
@@ -1913,42 +2008,6 @@ class Contact(models.Model):
         db_table = 'contacts'
         verbose_name = 'Contact'
         verbose_name_plural = 'Contacts'
-
-
-class HistoriqueVehicule(models.Model):
-    vehicule = models.ForeignKey(Vehicule, on_delete=models.RESTRICT, null=True)
-    categorie_vehicule = models.ForeignKey(CategorieVehicule, on_delete=models.RESTRICT, null=True)
-    carosserie = models.ForeignKey(Carosserie, on_delete=models.RESTRICT, null=True)
-    usage = models.ForeignKey(Usage, on_delete=models.RESTRICT, null=True)
-    carburant = models.ForeignKey(Carburant, on_delete=models.RESTRICT, null=True)
-    created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
-    updated_by = models.ForeignKey(User, related_name="hvh_updated_by", null=True, on_delete=models.RESTRICT)
-    numero_immatriculation = models.CharField(max_length=15, blank=True, null=True)
-    numero_immat_provisoire = models.CharField(max_length=15, blank=True, null=True)
-    numero_serie = models.CharField(max_length=25, blank=True, null=True)
-    numero_parc = models.CharField(max_length=25, blank=True, null=True)
-    marque = models.CharField(max_length=50, blank=True, null=True)
-    modele = models.CharField(max_length=50, blank=True, null=True)
-    proprietaire = models.CharField(max_length=50, blank=True, null=True)
-    conducteur = models.CharField(max_length=50, blank=True, null=True)
-    places_assises = models.CharField(max_length=50, blank=True, null=True)
-    valeur_neuve = models.CharField(max_length=50, blank=True, null=True)
-    valeur_actuelle = models.CharField(max_length=50, blank=True, null=True)
-    puissance = models.CharField(max_length=50, blank=True, null=True)
-    poids_a_vide = models.CharField(max_length=50, blank=True, null=True)
-    poids_a_charge = models.CharField(max_length=50, blank=True, null=True)
-    date_mis_en_circulation = models.DateField(blank=True, null=True)
-    date_entree = models.DateField(blank=True, null=True)
-    date_sortie = models.DateField(blank=True, null=True)
-    commentaire = models.TextField(null=True)
-    statut = models.CharField(max_length=50, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'historique_vehicules'
-        verbose_name = 'Historique Véhicules'
-        verbose_name_plural = 'Historique Véhicules'
 
 
 class VehiculePolice(models.Model):

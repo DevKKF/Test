@@ -3232,7 +3232,7 @@ def add_reglement_compagnie(request):
         devises = Devise.objects.all()
         modes_reglements = ModeReglement.objects.all()
         banques = Banque.objects.filter(bureau=request.user.bureau).order_by('libelle')
-        comptes_tresoreries = CompteTresorerie.objects.filter(code="REGCIE").order_by('libelle')
+        comptes_tresoreries = CompteTresorerie.objects.filter(code__in=["REGCIE","BANQUE"]).order_by('libelle')
         reglements_compagnies = Reglement.objects.filter(statut_reversement_compagnie=StatutReversementCompagnie.NON_REVERSE, statut_validite=StatutValidite.VALIDE)
 
         compagnies = Compagnie.objects.filter(bureau=request.user.bureau).order_by('nom')

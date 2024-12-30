@@ -5,7 +5,7 @@
 			{% csrf_token %}
 			<input type="hidden" id="com_type" value="{{ type }}">
 			<div class="modal-header">
-				<h4 class="modal-title">{% if type == "courtage" %}{{ _("FORMULAIRE D'ENCAISSEMENT DE COMMISSION DE COURTAGE") }} {% else %} {{ _("FORMULAIRE D'ENCAISSEMENT DE COMMISSION DE GESTION") }} {% endif %}</b></h4>
+				<h4 class="modal-title">{% if type == "courtage" %}{{_("FORMULAIRE D'ENCAISSEMENT DE COMMISSION DE COURTAGE") }} {% else %} {{_("FORMULAIRE D'ENCAISSEMENT DE COMMISSION DE GESTION") }} {% endif %}</b></h4>
 				<button type="button"class="close"data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">×</span>
 				</button>
@@ -19,10 +19,10 @@
 						<div class="col-md-6">
 
 							<div class="form-group row">
-									<label class="col-sm-6 col-form-label">{{ _("Compte d'encaissement") }} <span class="required">*</span></label>
+									<label class="col-sm-6 col-form-label">{{_("Compte d'encaissement") }} <span class="required">*</span></label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="compte_tresorerie" id="compte_tresorerie" required>
-										<option value="" selected>{{ _('Choisir') }}</option>
+										<option value="" selected>{{_('Choisir') }}</option>
 										{% for ct in comptes_tresoreries %}
 										<option value="{{ ct.id }}">{{ ct.libelle }}</option>
 										{% endfor %}
@@ -32,10 +32,10 @@
 
 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Assureur') }} <span class="required">*</span></label>
+								<label class="col-sm-6 col-form-label">{{_("Assureur") }} <span class="required">*</span></label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="compagnie" id="compagnie" required>
-										<option value="">{{ _('Choisir') }}</option>
+										<option value="">{{_('Choisir') }}</option>
 										{% for compagnie in compagnies %}
 										<option value="{{ compagnie.id }}" data-href_reglements_reverses="{% url 'ajax_reglements_reverses_court_gest' compagnie.id type %}">{{ compagnie.nom }}</option>
 										{% endfor %}
@@ -45,7 +45,7 @@
 
 							{% comment %} 							
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Banque émettrice') }}</label>
+								<label class="col-sm-6 col-form-label">{{_("Banque émettrice") }}</label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="banque" id="banque_rc">
 										<option value="">{{ _('Choisir') }}</option>
@@ -58,7 +58,7 @@
  							{% endcomment %}
 						
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Banque emettrice') }}</label>
+								<label class="col-sm-6 col-form-label">{{_("Banque emettrice") }}</label>
 								<div class="col-sm-6">
 									<input type="text" class="form-control alpha_num_n_space_input" name="banque_emettrice" id="banque_emettrice"/>
 								</div>
@@ -69,7 +69,7 @@
 						<div class="col-md-6" style="border-left:0px;margin-left:-10px;padding-left:20px;">
 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _("Mode d'encaissement") }} <span class="required">*</span></label>
+								<label class="col-sm-6 col-form-label">{{_("Mode d'encaissement") }} <span class="required">*</span></label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="mode_reglement" id="mode_reglement" required>
 										<option value="">{{ _('Choisir') }}</option>
@@ -81,14 +81,14 @@
 							</div>
 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Date encaissement') }} <span class="required">*</span></label>
+								<label class="col-sm-6 col-form-label">{{_("Date encaissement") }} <span class="required">*</span></label>
 								<div class="col-sm-6">
 									<input type="date" class="form-control" name="date_paiement" value="{{ today|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}"  max="{{ today|date:'Y-m-d' }}" readonly required/>
 								</div>
 							</div>
 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Reference') }}</label>
+								<label class="col-sm-6 col-form-label">{{_("Reference") }}</label>
 								<div class="col-sm-6">
 									<input type="text" class="form-control" name="numero_piece" />
 								</div>
@@ -96,14 +96,14 @@
 
 						{% comment %} 
 							<div class="form-group row">
-								<label class="col-sm-6 col-form-label">{{ _('Numéro pièce') }} <span class="required"></span></label>
+								<label class="col-sm-6 col-form-label">{{_("Numéro pièce") }} <span class="required"></span></label>
 								<div class="col-sm-6">
 									<input type="text" class="form-control" name="numero_piece"/>
 								</div>
 							</div>
 
 							<div class="form-group row">
-									<label class="col-sm-6 col-form-label">{{ _('Banque émettrice') }}<span class="required" id=""></span></label>
+									<label class="col-sm-6 col-form-label">{{_("Banque émettrice") }}<span class="required" id=""></span></label>
 								<div class="col-sm-6">
 									<select class="form-control form-add_reglement_compagnie-select" name="banque" id="banque_rc">
 										<option value="">Choisir') }}</option>
@@ -116,7 +116,7 @@
 		 				{% endcomment %}
 						</div>
 					</div>
-					<div class="row table-responsive text-nowrap" style="border-top:1px solid #eee;"><span>{{ _('Liste des règlements reversés') }}</span>
+					<div class="row table-responsive text-nowrap" style="border-top:1px solid #eee;"><span>{{_("Liste des règlements reversés") }}</span>
 						<div id="box_reglements_reverses">
 							<!-- LISTE A CHARGER DYNAMIQUEMENT  -->
 							<table class="table table-bordered table-striped dataTable0 dtr-inline" id="table_reglements_reverses">

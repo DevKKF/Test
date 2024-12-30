@@ -538,15 +538,15 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Plein de souscription")}} <span class="required">*</span></label>
+										<label class="col-sm-5 col-form-label">{{_("Plein de souscription")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field aliment_champ_obligatoire" name="plein_souscription" id="plein_souscription" value="">
+											<input type="text" class="form-control money_field" name="plein_souscription" id="plein_souscription" value="">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Immatriculation")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control" name="immatriculation" id="immatriculation" value="">
+											<input type="text" class="form-control" name="immatriculation_march" id="immatriculation_march" value="">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -573,7 +573,7 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Date émission certificat")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="date" class="form-control aliment_champ_obligatoire" name="date_emmision_certificat" id="date_emmision_certificat" value="{{ today|date:'Y-m-d'|default_if_none:"" }}">
+											<input type="date" class="form-control marchandise_champ_obligatoire" name="date_emmision_certificat" id="date_emmision_certificat" value="{{ today|date:'Y-m-d'|default_if_none:"" }}">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -601,9 +601,9 @@
 										</div>
 									</div>
 									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Valeur assurée")}}</label>
+										<label class="col-sm-5 col-form-label">{{_("Valeur assurée")}} <span class="required">*</span></label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field valeur_assuree" name="valeur_assuree" id="valeur_assuree" value="">
+											<input type="text" class="form-control money_field calculs_marchandise_montant_police marchandise_champ_obligatoire" name="valeur_assuree" id="valeur_assuree" value="">
 										</div>
 									</div>
 									<div class="form-group row">
@@ -638,10 +638,10 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Conditions d'assurance")}}</label>
 										<div class="col-sm-7">
-											<select class="form-control tags-multiple" name="conditions_aussurance_id" id="conditions_aussurance_id" autocomplete="off">
+											<select class="form-control tags-multiple" name="conditions_assurance_id" id="conditions_assurance_id" autocomplete="off">
 												<option value="">{{_('Choisir')}}</option>
-												{% for conditions_aussurance in conditions_aussurances %}
-													<option value="{{ conditions_aussurance.id }}">{{ conditions_aussurance.libelle }}</option>
+												{% for conditions_assurance in conditions_assurances %}
+													<option value="{{ conditions_assurance.id }}">{{ conditions_assurance.libelle }}</option>
 												{% endfor %}
 											</select>
 										</div>
@@ -692,43 +692,43 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Taux risque ordinaire")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field_avec_virgule taux_risque_ordinaire" value="" name="taux_risque_ordinaire" id="taux_risque_ordinaire">
+											<input type="text" class="form-control money_field_avec_virgule calculs_marchandise_montant_police" value="" name="taux_risque_ordinaire" id="taux_risque_ordinaire">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Taux risque guerre")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field_avec_virgule taux_risque_guerre" value="" name="taux_risque_guerre" id="taux_risque_guerre">
+											<input type="text" class="form-control money_field_avec_virgule calculs_marchandise_montant_police" value="" name="taux_risque_guerre" id="taux_risque_guerre">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Taux supprime")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field_avec_virgule taux_supprime" value="" name="taux_supprime" id="taux_supprime">
+											<input type="text" class="form-control money_field_avec_virgule calculs_marchandise_montant_police" value="" name="taux_supprime" id="taux_supprime">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Taux réduc. commerciale")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field_avec_virgule taux_reduction_commerciale" value="" name="taux_reduction_commerciale" id="taux_reduction_commerciale">
+											<input type="text" class="form-control money_field_avec_virgule calculs_marchandise_montant_police" value="" name="taux_reduction_commerciale" id="taux_reduction_commerciale">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Taux de la taxe")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field_avec_virgule taux_taxe" value="" name="taux_taxe" id="taux_taxe">
+											<input type="text" class="form-control money_field_avec_virgule calculs_marchandise_montant_police" value="" name="taux_taxe" id="taux_taxe">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Accessoires")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field accessoires" value="" name="accessoires" id="accessoires">
+											<input type="text" class="form-control calculs_marchandise_montant_police" value="" name="accessoires" id="accessoires" oninput="formatMontant(this)">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Autres frais")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field autres_frais" value="" name="autres_frais" id="autres_frais">
+											<input type="text" class="form-control calculs_marchandise_montant_police" value="" name="autres_frais" id="autres_frais" oninput="formatMontant(this)">
 										</div>
 									</div>
 								</div>
@@ -737,37 +737,43 @@
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Prime risque ordinaire")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field prime_risque_ordinaire" value="" name="prime_risque_ordinaire" id="prime_risque_ordinaire" readonly>
+											<input type="text" class="form-control money_field calculs_marchandise_montant_police" value="" name="prime_risque_ordinaire" id="prime_risque_ordinaire" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Prime risque guerre")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field prime_risque_guerre" value="" name="prime_risque_guerre" id="prime_risque_guerre" readonly>
+											<input type="text" class="form-control money_field calculs_marchandise_montant_police" value="" name="prime_risque_guerre" id="prime_risque_guerre" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Prime supprime")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field prime_supprime" value="" name="prime_supprime" id="prime_supprime" readonly>
+											<input type="text" class="form-control money_field calculs_marchandise_montant_police" value="" name="prime_supprime" id="prime_supprime" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Prime brut")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field prime_brut" value="" name="prime_brut" id="prime_brut" readonly>
+											<input type="text" class="form-control money_field calculs_marchandise_montant_police" value="" name="prime_brut" id="prime_brut" readonly>
+										</div>
+									</div>
+									<div class="form-group row">
+										<label class="col-sm-5 col-form-label">{{_("Prime de réduction")}}</label>
+										<div class="col-sm-7">
+											<input type="text" class="form-control money_field calculs_marchandise_montant_police" value="" name="prime_reduction" id="prime_reduction" readonly style="background: #f0dcc8; border: #f0dcc8">
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Total taxe")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field total_taxe" value="" name="total_taxe" id="total_taxe" readonly>
+											<input type="text" class="form-control money_field calculs_marchandise_montant_police" value="" name="total_taxe" id="total_taxe" readonly>
 										</div>
 									</div>
 									<div class="form-group row">
 										<label class="col-sm-5 col-form-label">{{_("Prime TTC")}}</label>
 										<div class="col-sm-7">
-											<input type="text" class="form-control money_field prime_ttc_mar" value="" name="prime_ttc_mar" id="prime_ttc_mar" readonly>
+											<input type="text" class="form-control money_field calculs_marchandise_montant_police" value="" name="prime_ttc_mar" id="prime_ttc_mar" readonly>
 										</div>
 									</div>
 								</div>
