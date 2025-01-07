@@ -1827,7 +1827,7 @@ $(document).ready(function () {
 
                         //effectuer la suppression
                         $.ajax({
-                            url: '/production/courrier/delete',
+                            url: '/configurations/courrier/delete',
                             type: 'post',
                             data: { courrier_id: courrier_id },
                             success: function (e) {

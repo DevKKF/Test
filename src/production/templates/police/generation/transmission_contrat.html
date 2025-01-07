@@ -2,27 +2,83 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+
+     <style>
+*{
+    margin: 0;
+    padding: 0;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+     font-size: 20px;
+}
+
+img{
+    width: 20%;
+    margin-top: 2%;
+    margin-left: 20px;
+}
+
+
+.container{
+    position: absolute;
+    margin-left: 50px;
+}
+
+.adress{
+    float: right;
+    line-height: 3rem;
+
+}
+
+
+.info-police{
+    margin-top: 20%;
+    line-height: 3rem;
+
+}
+
+.text{
+    line-height: 2.3rem;
+}
+    </style>
 </head>
 <body>
-    <div style="font-family: Arial, sans-serif; line-height: 1.6; margin: 20px;">
-        <h1 style="text-align: center;">FBFR Courtage</h1>
-        <p>Abidjan le 26/12/2024</p>
-        <p><strong>A L'ATTENTION DE : {{ nom_client.nom }}</strong> </p><br>
-        <p><strong>Objet :</strong> Transmission de contrat </p><br>
-        <p>Police {{ numero_police }} - {{ nom_produit }}</p>
-        <p>Période :  {{ date_debut_effet }} - {{ date_fin_effet }} </p>
-        <p>Madame, Monsieur,</p>
+
+    <div class="site_logo">
+        <img src="{{logo}}" alt="AXIS">
+    </div>
+    <div class="container">
+
+    <div class="adress">
+        <p>Abidjan le {{date_jour}}</p>
+        <p style="font-size: smalle;"><strong>{{nom_client.nom}}</strong></p>
+<!--        <p style="font-size: smalle;"><strong>adress du client</strong></p>-->
+    </div>
+
+
+    <div class="info-police">
+        <strong>{{ numero_police }}</strong>
+        <p><span style="text-decoration: underline;">A L'ATTENTION DE</span> : <Strong>{{nom_client.nom}}</Strong> </p>
+        <p>Objet : Transmission Contrat</p>
+        <p>Police : <strong>{{ numero_police }} - {{ nom_produit }} </strong></p>
+        <p>Période : <strong> {{ date_debut_effet }} - {{ date_fin_effet }} </strong></p>
+    </div>
+
+
+        <p style="margin-top: 3rem;font-weight: bold;">Madame, Monsieur,</p>
+        <div class="text">
         <p>
-           Nous vous transmettons ci-joint zéro (3) exemplaires du contrat cité en objet.
+           Nous vous transmettons ci-joint trois (3) exemplaires du contrat cité en objet..
         </p>
         <p>
-            Merci de nous faire retour des doubles dûment signés et cachetés par vos soins.
+             Merci de nous faire retour des doubles dûment signés et cachetés par vos soins.
         </p>
-        <p>Vous en souhaitant bonne réception, </p>
+
+          <p>Vous en souhaitant bonne réception, </p>
         <p>
-            Recevez, Madame, Monsieur, nos meilleures salutations.
+             Recevez,<strong> Madame, Monsieur,</strong> nos meilleures salutations.
         </p>
-        <p style="text-align: right;">{{ responsable }}</p>
+    </div>
+        <p style="text-align: right;margin-top: 3rem;">La responsable de production</p>
     </div>
 </body>
 </html>

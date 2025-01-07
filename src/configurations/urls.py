@@ -6,7 +6,9 @@ from shared.helpers import openai_complete
 from . import views
 from .views import PrestatairesView, DetailsPrestatairesView, GroupePermissionsView, TarifsView, ReseauxSoinsView, \
     DetailsReseauSoinView, WsBobyView, WsBobyCreateView, WsBobyEditeView, ActesView, ConnectedUsersView, businessView, \
-    brancheView, banquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView, DeviseView
+    brancheView, banquesView, affectionsView, ApporteurView, ApporteurinternationalView, CategorieView,ViewCourrier
+
+
 
 urlpatterns = [
 
@@ -62,7 +64,12 @@ urlpatterns = [
     #
     path('banque/',banquesView.as_view(),name='banques'),
     #
-    path('devise/', DeviseView.as_view(), name='devises'),
+    # path('devise/', DeviseView.as_view(), name='devises'),
+    #
+    path('courriers/', ViewCourrier.as_view(), name='courrier'),
+    path('courrier/add_courrier', views.add_courrier, name='add_courrier'),
+    path('courrier/<int:courrier_id>/modifier_courrier', views.modifier_courrier, name='modifier_courrier'),
+    path("courrier/delete", views.supprimer_courrier, name='supprimer_courrier'),
     #
 
     path('acte/', ActesView.as_view(), name='acte'),

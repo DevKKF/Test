@@ -1,41 +1,59 @@
 # Create your views here.
 import datetime
-from datetime import timedelta
 import json
 import os
+import re
 import uuid
+import pypandoc
 from ast import literal_eval
+from datetime import date
+from datetime import datetime, timezone
+from datetime import timedelta
 from io import BytesIO
 from pprint import pprint
-from fpdf import FPDF
-import math
-from django.template.loader import render_to_string
 from sqlite3 import Date
-from datetime import date,datetime
-import re
-from venv import create
-
-from django.db.models import Max
+import locale
+from docx import Document
+from docx.shared import Inches
+from num2words import num2words
+from django.templatetags.static import static
+import pdfkit
+from PyPDF2 import PdfReader
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 import openpyxl
 import pandas as pd
+from configurations.models import Compagnie, MarqueVehicule, Pays, Civilite, QualiteBeneficiaire, Profession, \
+    Produit, Formule, GarantieBranche, GarantieFormule, \
+    Territorialite, ModeCalcul, Duree, TicketModerateur, TypeCarosserie, User, Fractionnement, ModeReglement, \
+    Regularisation, Bureau, BusinessUnit, \
+    Devise, Taxe, BureauTaxe, Apporteur, BaseCalcul, TypeQuittance, NatureQuittance, TypeClient, TypePersonne, Branche, \
+    ParamProduitCompagnie, CategorieVehicule, Banque, Carburant, Usage, Carosserie, \
+    NatureOperation, TypeTarif, Prestataire, Acte, Rubrique, ReseauSoin, Periodicite, ActionLog, SousRubrique, \
+    RegroupementActe, TypePrefinancement, CompteTresorerie, SousRegroupementActe, \
+    GroupeInter
+
 # import qrcode
 # import qrcode.image.svg
 # from dateutil.relativedelta import relativedelta
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.utils.html import escape
-from django.contrib.auth.models import Group
 from django.core import serializers
+from django.core.files.base import File
 from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Sum, Q, OuterRef, Subquery, ExpressionWrapper, F, DurationField, IntegerField, Max
+from django.db.models import Sum, Q, ExpressionWrapper, F, DurationField, Max
 from django.forms import model_to_dict
 from django.http import JsonResponse, HttpResponse, FileResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.template.loader import get_template
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
@@ -43,50 +61,32 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
 from django.views import View
 from django.views.decorators.cache import never_cache
-from django.views.generic import TemplateView, ListView
-from django_dump_die.middleware import dd
-# from django_dump_die.middleware import dd
-from fpdf import FPDF
-from urllib3 import request
-from xhtml2pdf import pisa
-from datetime import datetime, timezone
-from django.core.exceptions import ObjectDoesNotExist
-
-from configurations.models import Compagnie, MarqueVehicule, Pays, Civilite, QualiteBeneficiaire, Profession, \
-    Produit, Formule, GarantieBranche, GarantieFormule, \
-    Territorialite, ModeCalcul, Duree, TicketModerateur, TypeCarosserie, User, Fractionnement, ModeReglement, \
-    Regularisation, Bureau, BusinessUnit, \
-    Devise, Taxe, BureauTaxe, Apporteur, BaseCalcul, TypeQuittance, NatureQuittance, TypeClient, TypePersonne, Langue, \
-    Branche, ParamProduitCompagnie, CategorieVehicule, Banque, Carburant, Usage, Carosserie, \
-    NatureOperation, TypeTarif, Prestataire, Acte, Rubrique, ReseauSoin, Periodicite, PrescripteurPrestataire, \
-    AuthGroup, ActionLog, SousRubrique, RegroupementActe, TypePrefinancement, CompteTresorerie, SousRegroupementActe, \
-    GroupeInter
-from grh.models import Prospect, Campagne, CampagneProspect
-from inov import settings
-from production.forms import ContactForm, FilialeForm, AcompteForm, DocumentForm, PoliceForm, PhotoUploadForm
-from production.helper_production import create_alimet_helper
-from production.models import FormuleRubriquePrefinance, ModePrefinancement, Motif, Mouvement, Aliment, Client, Police, \
-    Acompte, Document, Filiale, Courrier, TypeCourrier,HistoriquePolice,\
-    Acompte, Document, Filiale, AutreRisque, PoliceGarantie, AlimentPolice,  \
-    Contact, Quittance, SecteurActivite, TypeDocument, AlimentFormule, Statut, FormuleGarantie, MouvementPolice, StatutQuittance, \
-    Genre, StatutFamilial, PlacementEtGestion, ModeRenouvellement, CalculTM, ApporteurPolice, TaxePolice, \
-    TaxeQuittance, Reglement, OptionYesNo, Carte, TypeMajorationContrat, Vehicule, VehiculePolice, Energie, \
-    StatutPolice, Operation, TarifPrestataireClient, PeriodeCouverture, Bareme, AlimentTemporaire, MouvementAliment, \
-    OperationReglement, HistoriquePolice, HistoriqueApporteurPolice, HistoriqueTaxePolice
-from production.templatetags.my_filters import money_field
-from shared.enum import StatutIncorporation, StatutValidite, StatutSinistre, StatutEnrolement, StatutTraitement, \
-    StatutReversementCompagnie, StatutValiditeQuittance
-from shared.helpers import generer_qrcode_carte, generate_numero_famille, generate_numero_carte, render_pdf, \
-    generer_numero_ordre, generer_nombre_famille_du_mois, custom_model_to_dict
-from shared.veos import get_taux_euro_by_devise, get_taux_usd_by_devise, send_client_to_veos
-from sinistre.models import Sinistre, DossierSinistre
-import traceback
-from django.core.files.base import File
-
-
-
 ## INOV API MOBILE
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
+# from django_dump_die.middleware import dd
+from fpdf import FPDF
+from grh.models import Prospect, CampagneProspect
+from inov import settings
+from production.forms import ContactForm, FilialeForm, AcompteForm, DocumentForm, PoliceForm, PhotoUploadForm
+from production.models import FormuleRubriquePrefinance, ModePrefinancement, Motif, Mouvement, Aliment, Client, Police, \
+    Courrier, Acompte, Document, Filiale, AutreRisque, PoliceGarantie, AlimentPolice, \
+    Contact, Quittance, SecteurActivite, TypeDocument, AlimentFormule, Statut, FormuleGarantie, MouvementPolice, \
+    StatutQuittance,  Quittance,\
+    Genre, StatutFamilial, PlacementEtGestion, ModeRenouvellement, CalculTM, ApporteurPolice, TaxePolice, \
+    TaxeQuittance, Reglement, OptionYesNo, Carte, TypeMajorationContrat, Vehicule, VehiculePolice, Energie, \
+    StatutPolice, Operation, TarifPrestataireClient, PeriodeCouverture, Bareme, MouvementAliment, \
+    OperationReglement, HistoriquePolice, HistoriqueApporteurPolice, HistoriqueTaxePolice
+from production.templatetags.my_filters import money_field
+from shared.enum import StatutIncorporation, StatutValidite, StatutEnrolement, StatutTraitement, \
+    StatutReversementCompagnie, StatutValiditeQuittance
+from shared.helpers import generer_qrcode_carte, generate_numero_famille, generate_numero_carte, render_pdf, \
+    generer_numero_ordre, generer_nombre_famille_du_mois
+from shared.veos import send_client_to_veos
+from sinistre.models import Sinistre, DossierSinistre
+from xhtml2pdf import pisa
+
+
 # from rest_framework.views import APIView
 # from rest_framework.response import Response
 # from rest_framework import status, generics
@@ -149,7 +149,6 @@ def todo_manuel(request):
     }
 
     return JsonResponse(response)
-
 
 @method_decorator(login_required, name='dispatch')
 class DetailsClientView(TemplateView):
@@ -268,6 +267,7 @@ class DetailsClientView(TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
+
 
 
 @login_required
@@ -7167,121 +7167,121 @@ class CourrierView(TemplateView):
         context['opts'] = self.model._meta  # Options du modèle Courrier
         return context
 
-
-@login_required()
-def add_courrier(request, police_id):
-    police = Police.objects.get(id=police_id)
-    if police and request.method == 'POST':
-
-        produit_id = request.POST.get('produit')
-        produit = get_object_or_404(Produit, id=produit_id)
-
-        courrier_created = Courrier.objects.create(
-            designation = request.POST.get('designation'),
-            lien_fichier = request.POST.get('lien_fichier'),
-            service = request.POST.get('service'),
-            produit = produit,
-            status = request.POST.get('status')
-        )
-
-    response = {
-        'statut': 1,
-        'message': "Enregistrement effectuée avec succès !",
-        'data': {
-            'designation': courrier_created.designation,
-            'service':courrier_created.service,
-            'lien_fhichier': courrier_created.lien_fichier,
-            'status': courrier_created.status,
-            'created_at': courrier_created.created_at,
-        }
-    }
-
-    return JsonResponse(response)
-
-
+#
+# @login_required()
+# def add_courrier(request, police_id):
+#     police = Police.objects.get(id=police_id)
+#     if police and request.method == 'POST':
+#
+#         produit_id = request.POST.get('produit')
+#         produit = get_object_or_404(Produit, id=produit_id)
+#
+#         courrier_created = Courrier.objects.create(
+#             designation = request.POST.get('designation'),
+#             lien_fichier = request.POST.get('lien_fichier'),
+#             service = request.POST.get('service'),
+#             produit = produit,
+#             status = request.POST.get('status')
+#         )
+#
+#     response = {
+#         'statut': 1,
+#         'message': "Enregistrement effectuée avec succès !",
+#         'data': {
+#             'designation': courrier_created.designation,
+#             'service':courrier_created.service,
+#             'lien_fhichier': courrier_created.lien_fichier,
+#             'status': courrier_created.status,
+#             'created_at': courrier_created.created_at,
+#         }
+#     }
+#
+#     return JsonResponse(response)
 
 
-def modifier_courrier(request, courrier_id):
-    courrier = get_object_or_404(Courrier, id=courrier_id)
-
-    if request.method == 'POST':
-
-        courrier_before = courrier
-        pprint(courrier_before)
-
-        # Récupérer les champs envoyés par le formulaire
-        produit_id = request.POST.get('produit')
-        designation = request.POST.get('designation')
-        lien_fichier = escape(request.POST.get('lien_fichier'))
-        service = escape(request.POST.get('service'))
-        status = request.POST.get('statut')
 
 
-        if produit_id:
-            produit_id = int(produit_id)
-            produit = get_object_or_404(Produit, id=produit_id)
-        else:
-            produit = None
-
-        # Mettre à jour les champs
-        courrier.produit = produit
-        courrier.designation = designation
-        courrier.lien_fichier = lien_fichier
-        courrier.service = service
-        courrier.status = status
-
-        # Sauvegarder les modifications
-        courrier.save()
-
-        # Log d'action (si nécessaire)
-        ActionLog.objects.create(
-            done_by=request.user,
-            action="update",
-            description="Modification d'un courrier",
-            table="courrier",
-            row=courrier.pk,
-        )
-
-        # Retourner une réponse JSON pour AJAX
-        return JsonResponse({
-            'statut': 1,
-            'message': "Courrier modifié avec succès !"
-        })
-
-    else:
-        courriers = Courrier.objects.all()  # Options pour les services et statuts
-        produits = Produit.objects.all()
-        return render(request, 'police/modal_courrier_update.html', {
-            'courrier': courrier,
-            'produits': produits,
-        })
-
-
-@login_required()
-def supprimer_courrier(request):
-    if request.method == "POST":
-        courrier_id = request.POST.get('courrier_id')
-
-        try:
-            courrier = Courrier.objects.get(id=courrier_id)
-            courrier.delete()
-
-            response = {
-                'statut': 1,
-                'message': "Courrier supprimé avec succès !",
-            }
-
-        except Courrier.DoesNotExist:
-            response = {
-                'statut': 0,
-                'message': "Courrier introuvable !",
-            }
-
-        return JsonResponse(response)
-
-    return JsonResponse({'statut': 0, 'message': "Requête invalide !"}, status=400)
-
-
+# def modifier_courrier(request, courrier_id):
+#     courrier = get_object_or_404(Courrier, id=courrier_id)
+#
+#     if request.method == 'POST':
+#
+#         courrier_before = courrier
+#         pprint(courrier_before)
+#
+#         # Récupérer les champs envoyés par le formulaire
+#         produit_id = request.POST.get('produit')
+#         designation = request.POST.get('designation')
+#         lien_fichier = escape(request.POST.get('lien_fichier'))
+#         service = escape(request.POST.get('service'))
+#         status = request.POST.get('statut')
+#
+#
+#         if produit_id:
+#             produit_id = int(produit_id)
+#             produit = get_object_or_404(Produit, id=produit_id)
+#         else:
+#             produit = None
+#
+#         # Mettre à jour les champs
+#         courrier.produit = produit
+#         courrier.designation = designation
+#         courrier.lien_fichier = lien_fichier
+#         courrier.service = service
+#         courrier.status = status
+#
+#         # Sauvegarder les modifications
+#         courrier.save()
+#
+#         # Log d'action (si nécessaire)
+#         ActionLog.objects.create(
+#             done_by=request.user,
+#             action="update",
+#             description="Modification d'un courrier",
+#             table="courrier",
+#             row=courrier.pk,
+#         )
+#
+#         # Retourner une réponse JSON pour AJAX
+#         return JsonResponse({
+#             'statut': 1,
+#             'message': "Courrier modifié avec succès !"
+#         })
+#
+#     else:
+#         courriers = Courrier.objects.all()  # Options pour les services et statuts
+#         produits = Produit.objects.all()
+#         return render(request, 'police/modal_courrier_update.html', {
+#             'courrier': courrier,
+#             'produits': produits,
+#         })
+#
+#
+# @login_required()
+# def supprimer_courrier(request):
+#     if request.method == "POST":
+#         courrier_id = request.POST.get('courrier_id')
+#
+#         try:
+#             courrier = Courrier.objects.get(id=courrier_id)
+#             courrier.delete()
+#
+#             response = {
+#                 'statut': 1,
+#                 'message': "Courrier supprimé avec succès !",
+#             }
+#
+#         except Courrier.DoesNotExist:
+#             response = {
+#                 'statut': 0,
+#                 'message': "Courrier introuvable !",
+#             }
+#
+#         return JsonResponse(response)
+#
+#     return JsonResponse({'statut': 0, 'message': "Requête invalide !"}, status=400)
+#
+#
 
 
 @method_decorator(login_required, name='dispatch')
@@ -8736,75 +8736,305 @@ class AnnulerQuittanceView(TemplateView):
 
 
 
-class PDFGenerator(FPDF):
-    def header(self):
-        # Exemple d'entête de document
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 10, 'FBFR Courtage', align='C', ln=True)
-
-    def footer(self):
-        # Exemple de pied de page
-        self.set_y(-15)
-        self.set_font('Arial', 'I', 8)
-        self.cell(0, 10, f'Page {self.page_no()}', align='C')
-
-
 def generer_courrier(request, police_id, courrier_id):
-
-# Vérifie que la police existe
+    # Vérifie que la police existe
     police = get_object_or_404(Police, id=police_id)
     courrier = get_object_or_404(Courrier, id=courrier_id)
     historique_police = get_object_or_404(HistoriquePolice, id=police_id)
 
     date_du_jour = datetime.now().strftime('%d/%m/%Y')
 
-# Vérifier si le type de courrier a un template associé
+    # Vérifier si le type de courrier a un template associé
     if not courrier.type_courrier:
         return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
+
+
+    # recuperqtion du logo
+    site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
+    print("Logo : ", site_logo_url)
+
+    # Configuration du locale pour le formatage
+    locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
+
+    # formatage de la prime
+    prime_ttc = historique_police.prime_ttc
+    prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)}"
+
+    # Conversion du montant en texte
+    prime_ttc_en_lettres = num2words(prime_ttc, lang='fr').capitalize() + " F CFA"
+
 
     # Utilisation du système de templates Django pour charger un fichier HTML
     template_name = f"police/generation/{courrier.type_courrier.nom.lower().replace(' ', '_')}.html"
     try:
         template_content = render_to_string(template_name, {
             'nom_client': historique_police.client,
-            'numero_police':historique_police.numero,
+            'numero_police': historique_police.numero,
             'nom_produit': historique_police.produit,
-            'date_debut_effet':historique_police.date_debut_effet,
-            'date_fin_effet':historique_police.date_fin_effet,
-            'montant_renouvellement': '240000',
+            'numero_quittance': '',
+            'date_debut_effet': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
+            'date_fin_effet': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
+            'montant_renouvellement': prime_formatee,
+            'montant_renouvellement_en_lettres': prime_ttc_en_lettres,
             'date_jour': date_du_jour,
-            'responsable': "La Responsable Production",
+            'compagnie':historique_police.compagnie,
+            'logo': site_logo_url
         })
     except FileNotFoundError:
         return HttpResponse(f"Erreur : Le template '{template_name}' est introuvable.", status=404)
 
 
-        # Nettoyer le HTML pour éviter d'afficher les balises
-    def clean_html(raw_html):
-        # Supprime toutes les balises HTML
-        clean_text = re.sub('<[^<]+?>', '', raw_html)
-        return clean_text
+    pdfkit_config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
 
-    cleaned_content = clean_html(template_content)
+    # Générer le PDF depuis le contenu HTML
+    try:
+        pdf = pdfkit.from_string(template_content, False, configuration=pdfkit_config)
 
+    except Exception as e:
+        return HttpResponse(f"Erreur lors de la génération du PDF : {e}", status=500)
 
-
-# Initialisation du PDF
-    pdf = PDFGenerator()
-    pdf.add_page()
-    pdf.set_font('Arial', '', 12)
-
-
-# Ajout du contenu nettoyé au PDF
-    for line in cleaned_content.splitlines():
-        if line.strip():  # Ignorer les lignes vides
-            pdf.multi_cell(0, 10, line)
-
-
-
-# Retourner le PDF comme réponse HTTP
-    response = HttpResponse(content_type='application/pdf')
+    # Retourner le PDF comme réponse HTTP
+    response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.pdf"'
-    pdf.output(dest='S')  # Sauvegarde temporaire pour output
-    response.write(pdf.output(dest='S').encode('latin1'))
     return response
+
+
+
+# generation de fichier word
+#
+# def generer_word(request, police_id, courrier_id):
+#     # Vérifie que la police existe
+#     police = get_object_or_404(Police, id=police_id)
+#     courrier = get_object_or_404(Courrier, id=courrier_id)
+#     historique_police = get_object_or_404(HistoriquePolice, id=police_id)
+#
+#     # Date actuelle
+#     date_du_jour = datetime.now().strftime('%d/%m/%Y')
+#
+#     # Vérifier si le type de courrier a un template associé
+#     if not courrier.type_courrier:
+#         return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
+#
+#     # Récupération du logo
+#     site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
+#     print("Logo : ", site_logo_url)
+#
+#     # Configuration du locale pour le formatage
+#     locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
+#
+#     # Formatage de la prime
+#     prime_ttc = historique_police.prime_ttc
+#     prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)}"
+#
+#     # Conversion du montant en texte
+#     prime_ttc_en_lettres = num2words(prime_ttc, lang='fr').capitalize() + " F CFA"
+#
+#
+#     # Charger le modèle Word existant
+#     doc_path = os.path.join(settings.BASE_DIR, 'production', 'templates', 'police', 'courriers', "Appel de prime.docx")
+#     document = Document(doc_path)
+#
+#     # Dictionnaire des remplacements pour le texte
+#     base_replacements = {
+#         'NOM_CLIENT': historique_police.client,
+#         'NUMERO_POLICE': historique_police.numero,
+#         'NOM_PRODUIT': historique_police.produit,
+#         # 'numero_quittance': quittance,
+#         'DATE_DEBUT_EFFET': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
+#         'DATE_FIN_EFFET': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
+#         'MONTANT_RENOUVELLEMENT': prime_formatee,
+#         'MONTANT_RENOUVELLEMENT_EN_LETTRES': prime_ttc_en_lettres,
+#         'DATE_JOUR': date_du_jour,
+#         'COMPAGNIE': historique_police.compagnie,
+#         'LOGO': site_logo_url
+#     }
+#
+#     replacements = {}
+#     for key, value in base_replacements.items():
+#         formats = [
+#             f'«{key}»', f'"{key}"', key
+#         ]
+#         for fmt in formats:
+#             replacements[fmt] = str(value) if value else ""
+#
+#
+#     # Fonction pour remplacer les placeholders dans les paragraphes
+#     def replace_placeholders_in_paragraph(paragraph):
+#         original_text = paragraph.text
+#         new_text = original_text
+#
+#         for placeholder, value in replacements.items():
+#             if placeholder in new_text:
+#                 new_text = new_text.replace(placeholder, value)
+#
+#         if new_text != original_text:
+#             first_run = paragraph.runs[0] if paragraph.runs else paragraph.add_run()
+#             first_run.text = new_text
+#             for run in paragraph.runs[1:]:
+#                 run.clear()
+#
+#     # Fonction pour remplacer les placeholders dans le document entier (paragraphes et tables)
+#     def replace_placeholders_in_document(document):
+#         for paragraph in document.paragraphs:
+#             replace_placeholders_in_paragraph(paragraph)
+#
+#         for table in document.tables:
+#             for row in table.rows:
+#                 for cell in row.cells:
+#                     for paragraph in cell.paragraphs:
+#                         replace_placeholders_in_paragraph(paragraph)
+#
+#         for section in document.sections:
+#             for paragraph in section.header.paragraphs + section.footer.paragraphs:
+#                 replace_placeholders_in_paragraph(paragraph)
+#             for table in section.header.tables + section.footer.tables:
+#                 for row in table.rows:
+#                     for cell in row.cells:
+#                         for paragraph in cell.paragraphs:
+#                             replace_placeholders_in_paragraph(paragraph)
+#
+#     # Remplacement des placeholders dans le document
+#     replace_placeholders_in_document(document)
+#
+#     # Ajouter le logo dans le document
+#     if site_logo_url:
+#         try:
+#             # Insérer le logo dans l'en-tête du document
+#             for paragraph in document.paragraphs:
+#                 if 'LOGO_SOC' in paragraph.text:
+#                     for run in paragraph.runs:
+#                         if 'LOGO_SOC' in run.text:
+#                             run.clear()
+#                             run.add_picture(site_logo_url, width=Inches(1.5))
+#                             break
+#         except Exception as e:
+#             print(f"Erreur lors de l'ajout du logo : {e}")
+#
+#     # Sauvegarder le document Word dans une réponse HTTP
+#     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+#     response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.docx"'
+#
+#     # Sauvegarde le document dans la réponse
+#     document.save(response)
+#
+#     return response
+
+def generer_word(request, police_id, courrier_id):
+    # Vérifie que la police existe
+    police = get_object_or_404(Police, id=police_id)
+    courrier = get_object_or_404(Courrier, id=courrier_id)
+    historique_police = get_object_or_404(HistoriquePolice, id=police_id)
+
+    # Date actuelle
+    date_du_jour = datetime.now().strftime('%d/%m/%Y')
+
+ # Récupération du logo
+    site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
+    print("Logo : ", site_logo_url)
+
+# Configuration du locale pour le formatage
+    locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
+
+    # Formatage de la prime
+    prime_ttc = historique_police.prime_ttc
+    prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)}"
+
+
+    # Conversion du montant en texte
+    prime_ttc_en_lettres = num2words(prime_ttc, lang='fr').capitalize() + " F CFA"
+
+
+    # Charger le modèle Word existant
+    doc_path = os.path.join(settings.BASE_DIR, 'production', 'templates', 'police', 'courriers', "1-APPEL DE PRIME.docx")
+    document = Document(doc_path)
+
+    # Dictionnaire des remplacements pour le texte
+    base_replacements = {
+        'NOM_CLIENT': historique_police.client,
+        'NUMERO_POLICE': historique_police.numero,
+        'NOM_PRODUIT': historique_police.produit,
+        # 'numero_quittance': quittance,
+        'DATE_DEBUT_EFFET': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
+        'DATE_FIN_EFFET': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
+        'MONTANT_RENOUVELLEMENT': prime_formatee,
+        'MONTANT_RENOUVELLEMENT_EN_LETTRES': prime_ttc_en_lettres,
+        'DATE_JOUR': date_du_jour,
+        'COMPAGNIE': historique_police.compagnie,
+        'LOGO': site_logo_url
+    }
+
+    replacements = {}
+    for key, value in base_replacements.items():
+        formats = [
+            f'«{key}»', f'"{key}"', key
+        ]
+        for fmt in formats:
+            replacements[fmt] = str(value) if value else ""
+
+    # Fonction pour remplacer le logo séparément
+    def replace_logo_in_document(document, logo_path):
+        if not logo_path:
+            return
+
+        for paragraph in document.paragraphs:
+            if 'LOGO_SOC' in paragraph.text:
+                for run in paragraph.runs:
+                    if 'LOGO_SOC' in run.text:
+                        run.clear()
+                        run.add_picture(logo_path, width=Inches(1.0))
+                        break
+
+        # Remplacer dans les en-têtes et les pieds de page également
+        for section in document.sections:
+            # En-têtes
+            for paragraph in section.header.paragraphs:
+                if 'LOGO_SOC' in paragraph.text:
+                    for run in paragraph.runs:
+                        if 'LOGO_SOC' in run.text:
+                            run.clear()
+                            run.add_picture(logo_path, width=Inches(1.0))
+                            break
+
+    # Fonction pour remplacer les autres placeholders
+    def replace_placeholders_in_paragraph(paragraph):
+        original_text = paragraph.text
+        new_text = original_text
+
+        for placeholder, value in replacements.items():
+            if placeholder in new_text:
+                new_text = new_text.replace(placeholder, value)
+
+        if new_text != original_text:
+            first_run = paragraph.runs[0] if paragraph.runs else paragraph.add_run()
+            first_run.text = new_text
+            for run in paragraph.runs[1:]:
+                run.clear()
+
+    def replace_placeholders_in_document(document):
+        for paragraph in document.paragraphs:
+            replace_placeholders_in_paragraph(paragraph)
+
+        for table in document.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        replace_placeholders_in_paragraph(paragraph)
+
+        for section in document.sections:
+            for paragraph in section.header.paragraphs + section.footer.paragraphs:
+                replace_placeholders_in_paragraph(paragraph)
+            for table in section.header.tables + section.footer.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        for paragraph in cell.paragraphs:
+                            replace_placeholders_in_paragraph(paragraph)
+
+    def generate_document_response(document):
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        response['Content-Disposition'] = 'attachment; filename="APPEL DE PRIME.docx"'
+        document.save(response)
+        return response
+
+    return generate_document_response(document)

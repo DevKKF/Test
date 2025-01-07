@@ -625,3 +625,8 @@ article .shimmer{
 #modal-police_aliment label:not(.form-check-label):not(.custom-file-label) {
   font-weight: 200 !important;
 }
+
+
+.date{
+    color: red;
+}

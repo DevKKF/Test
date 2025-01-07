@@ -1925,9 +1925,7 @@ class TypeCourrier(models.Model):
 
 class Courrier(models.Model):
     designation = models.CharField(max_length=255)
-    lien_fichier = models.CharField(max_length=50, blank=True, null=True)
     service = models.CharField(max_length=50, )
-    produit = models.ForeignKey(Produit, blank=True, null=True, on_delete=models.RESTRICT)
     status = models.CharField(max_length=10, default='Inactif')
     type_courrier = models.ForeignKey(TypeCourrier, blank=True, null=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1936,6 +1934,7 @@ class Courrier(models.Model):
 
     def __str__(self):
         return f" {self.designation} - {self.service} - {self.status} - {self.created_at} "
+
 
     class Meta:
         db_table = "production_courrier"

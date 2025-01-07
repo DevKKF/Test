@@ -106,7 +106,7 @@ ROOT_URLCONF = "inov.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "generation"],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -430,12 +430,12 @@ JAZZMIN_SETTINGS = {
             # },
         ],
         "configurations": [
-            # {
-            #     "name": "Gestion Ws Boby",
-            #     "url": "ws_bobys",
-            #     # "icon": "fa fa-times",
-            #     "permissions": ["configurations.view_wsbooby"],
-            # },
+            {
+                "name": "Courriers",
+                "url": "courrier",
+                # "icon": "fa fa-times",
+                "permissions": ["configurations.view_courrier"],
+            },
             {
                 "name": "Action super admin",
                 "url": "db_super_admin_query",
