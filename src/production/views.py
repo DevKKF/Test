@@ -4,6 +4,8 @@ import json
 import os
 import re
 import uuid
+
+import docx
 import pypandoc
 from ast import literal_eval
 from datetime import date
@@ -8801,123 +8803,6 @@ def generer_courrier(request, police_id, courrier_id):
 
 
 # generation de fichier word
-#
-# def generer_word(request, police_id, courrier_id):
-#     # Vérifie que la police existe
-#     police = get_object_or_404(Police, id=police_id)
-#     courrier = get_object_or_404(Courrier, id=courrier_id)
-#     historique_police = get_object_or_404(HistoriquePolice, id=police_id)
-#
-#     # Date actuelle
-#     date_du_jour = datetime.now().strftime('%d/%m/%Y')
-#
-#     # Vérifier si le type de courrier a un template associé
-#     if not courrier.type_courrier:
-#         return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
-#
-#     # Récupération du logo
-#     site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
-#     print("Logo : ", site_logo_url)
-#
-#     # Configuration du locale pour le formatage
-#     locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
-#
-#     # Formatage de la prime
-#     prime_ttc = historique_police.prime_ttc
-#     prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)}"
-#
-#     # Conversion du montant en texte
-#     prime_ttc_en_lettres = num2words(prime_ttc, lang='fr').capitalize() + " F CFA"
-#
-#
-#     # Charger le modèle Word existant
-#     doc_path = os.path.join(settings.BASE_DIR, 'production', 'templates', 'police', 'courriers', "Appel de prime.docx")
-#     document = Document(doc_path)
-#
-#     # Dictionnaire des remplacements pour le texte
-#     base_replacements = {
-#         'NOM_CLIENT': historique_police.client,
-#         'NUMERO_POLICE': historique_police.numero,
-#         'NOM_PRODUIT': historique_police.produit,
-#         # 'numero_quittance': quittance,
-#         'DATE_DEBUT_EFFET': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
-#         'DATE_FIN_EFFET': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
-#         'MONTANT_RENOUVELLEMENT': prime_formatee,
-#         'MONTANT_RENOUVELLEMENT_EN_LETTRES': prime_ttc_en_lettres,
-#         'DATE_JOUR': date_du_jour,
-#         'COMPAGNIE': historique_police.compagnie,
-#         'LOGO': site_logo_url
-#     }
-#
-#     replacements = {}
-#     for key, value in base_replacements.items():
-#         formats = [
-#             f'«{key}»', f'"{key}"', key
-#         ]
-#         for fmt in formats:
-#             replacements[fmt] = str(value) if value else ""
-#
-#
-#     # Fonction pour remplacer les placeholders dans les paragraphes
-#     def replace_placeholders_in_paragraph(paragraph):
-#         original_text = paragraph.text
-#         new_text = original_text
-#
-#         for placeholder, value in replacements.items():
-#             if placeholder in new_text:
-#                 new_text = new_text.replace(placeholder, value)
-#
-#         if new_text != original_text:
-#             first_run = paragraph.runs[0] if paragraph.runs else paragraph.add_run()
-#             first_run.text = new_text
-#             for run in paragraph.runs[1:]:
-#                 run.clear()
-#
-#     # Fonction pour remplacer les placeholders dans le document entier (paragraphes et tables)
-#     def replace_placeholders_in_document(document):
-#         for paragraph in document.paragraphs:
-#             replace_placeholders_in_paragraph(paragraph)
-#
-#         for table in document.tables:
-#             for row in table.rows:
-#                 for cell in row.cells:
-#                     for paragraph in cell.paragraphs:
-#                         replace_placeholders_in_paragraph(paragraph)
-#
-#         for section in document.sections:
-#             for paragraph in section.header.paragraphs + section.footer.paragraphs:
-#                 replace_placeholders_in_paragraph(paragraph)
-#             for table in section.header.tables + section.footer.tables:
-#                 for row in table.rows:
-#                     for cell in row.cells:
-#                         for paragraph in cell.paragraphs:
-#                             replace_placeholders_in_paragraph(paragraph)
-#
-#     # Remplacement des placeholders dans le document
-#     replace_placeholders_in_document(document)
-#
-#     # Ajouter le logo dans le document
-#     if site_logo_url:
-#         try:
-#             # Insérer le logo dans l'en-tête du document
-#             for paragraph in document.paragraphs:
-#                 if 'LOGO_SOC' in paragraph.text:
-#                     for run in paragraph.runs:
-#                         if 'LOGO_SOC' in run.text:
-#                             run.clear()
-#                             run.add_picture(site_logo_url, width=Inches(1.5))
-#                             break
-#         except Exception as e:
-#             print(f"Erreur lors de l'ajout du logo : {e}")
-#
-#     # Sauvegarder le document Word dans une réponse HTTP
-#     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-#     response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.docx"'
-#
-#     # Sauvegarde le document dans la réponse
-#     document.save(response)
-#
-#     return response
 
 def generer_word(request, police_id, courrier_id):
     # Vérifie que la police existe
@@ -8928,39 +8813,38 @@ def generer_word(request, police_id, courrier_id):
     # Date actuelle
     date_du_jour = datetime.now().strftime('%d/%m/%Y')
 
- # Récupération du logo
+    # Vérifier si le type de courrier a un template associé
+    if not courrier.type_courrier:
+        return HttpResponse("Erreur : Ce courrier n'a pas de type de courrier défini.", status=400)
+
+    # Récupération du logo
     site_logo_url = request.build_absolute_uri(static(settings.JAZZMIN_SETTINGS['site_logo']))
     print("Logo : ", site_logo_url)
 
-# Configuration du locale pour le formatage
+    # Configuration du locale pour le formatage
     locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
     # Formatage de la prime
     prime_ttc = historique_police.prime_ttc
-    prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)}"
-
-
-    # Conversion du montant en texte
-    prime_ttc_en_lettres = num2words(prime_ttc, lang='fr').capitalize() + " F CFA"
+    prime_formatee = f"{locale.format_string('%.0f', prime_ttc, grouping=True)} F CFA"
 
 
     # Charger le modèle Word existant
-    doc_path = os.path.join(settings.BASE_DIR, 'production', 'templates', 'police', 'courriers', "1-APPEL DE PRIME.docx")
-    document = Document(doc_path)
+    doc_path = os.path.join(settings.BASE_DIR, 'production', 'templates', 'police', 'courriers', "Appel de prime.docx")
+    document = docx.Document(doc_path)
 
     # Dictionnaire des remplacements pour le texte
     base_replacements = {
-        'NOM_CLIENT': historique_police.client,
+        'NOM_CLIENT': historique_police.client.nom,
         'NUMERO_POLICE': historique_police.numero,
         'NOM_PRODUIT': historique_police.produit,
         # 'numero_quittance': quittance,
         'DATE_DEBUT_EFFET': historique_police.date_debut_effet.strftime('%d/%m/%Y'),
         'DATE_FIN_EFFET': historique_police.date_fin_effet.strftime('%d/%m/%Y'),
         'MONTANT_RENOUVELLEMENT': prime_formatee,
-        'MONTANT_RENOUVELLEMENT_EN_LETTRES': prime_ttc_en_lettres,
+        'MONTANT_RENOUVELLEMENT_EN_LETTRES':  f"{num2words(historique_police.prime_ttc, lang='fr').capitalize()} F CFA",
         'DATE_JOUR': date_du_jour,
         'COMPAGNIE': historique_police.compagnie,
-        'LOGO': site_logo_url
     }
 
     replacements = {}
@@ -8971,31 +8855,8 @@ def generer_word(request, police_id, courrier_id):
         for fmt in formats:
             replacements[fmt] = str(value) if value else ""
 
-    # Fonction pour remplacer le logo séparément
-    def replace_logo_in_document(document, logo_path):
-        if not logo_path:
-            return
 
-        for paragraph in document.paragraphs:
-            if 'LOGO_SOC' in paragraph.text:
-                for run in paragraph.runs:
-                    if 'LOGO_SOC' in run.text:
-                        run.clear()
-                        run.add_picture(logo_path, width=Inches(1.0))
-                        break
-
-        # Remplacer dans les en-têtes et les pieds de page également
-        for section in document.sections:
-            # En-têtes
-            for paragraph in section.header.paragraphs:
-                if 'LOGO_SOC' in paragraph.text:
-                    for run in paragraph.runs:
-                        if 'LOGO_SOC' in run.text:
-                            run.clear()
-                            run.add_picture(logo_path, width=Inches(1.0))
-                            break
-
-    # Fonction pour remplacer les autres placeholders
+    # Fonction pour remplacer les placeholders dans les paragraphes
     def replace_placeholders_in_paragraph(paragraph):
         original_text = paragraph.text
         new_text = original_text
@@ -9010,6 +8871,7 @@ def generer_word(request, police_id, courrier_id):
             for run in paragraph.runs[1:]:
                 run.clear()
 
+    # Fonction pour remplacer les placeholders dans le document entier (paragraphes et tables)
     def replace_placeholders_in_document(document):
         for paragraph in document.paragraphs:
             replace_placeholders_in_paragraph(paragraph)
@@ -9029,12 +8891,16 @@ def generer_word(request, police_id, courrier_id):
                         for paragraph in cell.paragraphs:
                             replace_placeholders_in_paragraph(paragraph)
 
-    def generate_document_response(document):
-        response = HttpResponse(
-            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        )
-        response['Content-Disposition'] = 'attachment; filename="APPEL DE PRIME.docx"'
-        document.save(response)
-        return response
+    # Remplacement des placeholders dans le document
+    replace_placeholders_in_document(document)
 
-    return generate_document_response(document)
+
+    # Sauvegarder le document Word dans une réponse HTTP
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    response['Content-Disposition'] = f'attachment; filename="courrier_{courrier.designation}.docx"'
+
+    # Sauvegarde le document dans la réponse
+    document.save(response)
+
+    return response
+

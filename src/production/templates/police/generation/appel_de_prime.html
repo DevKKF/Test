@@ -67,8 +67,8 @@ img{
     <div class="container">
 
     <div class="adress">
-        <p>Abidjan le 26/12/2024</p>
-        <p style="font-size: smalle;"><strong>Nom du client</strong></p>
+        <p>Abidjan le {{date_jour}}</p>
+        <p style="font-size: smalle;"><strong>{{nom_client.nom}}</strong></p>
 <!--        <p style="font-size: smalle;"><strong>adress du client</strong></p>-->
     </div>
 
@@ -76,11 +76,11 @@ img{
         APPEL DE PRIME
     </div>
     <div class="info-police">
-        <p>Compagnie: <span style="margin-left: 100px;font-weight: bold;">GNA Assurance</span></p>
-        <p>N° Police: <span style="margin-left: 100px;font-weight: bold;">345655F</span></p>
+        <p>Compagnie: <span style="margin-left: 100px;font-weight: bold;">{{compagnie}}</span></p>
+        <p>N° Police: <span style="margin-left: 100px;font-weight: bold;">{{numero_police}}</span></p>
         <p>N° Quitance: <span style="margin-left: 100px;font-weight: bold;">Q-45-GTT5TH</span></p>
-        <p>Période: <span style="margin-left: 100px;font-weight: bold;">12/04/2024</span></p>
-        <p>Prime TTC: <span style="margin-left: 100px;font-weight: bold;">540000 F CF</span></p>
+        <p>Période: <span style="margin-left: 100px;font-weight: bold;">{{date_debut_effet}} au {{date_fin_effet}}</span></p>
+        <p>Prime TTC: <span style="margin-left: 100px;font-weight: bold;">{{montant_renouvellement}} F CFA</span></p>
     </div>
 
 
@@ -88,7 +88,7 @@ img{
         <p>
             Arrêté le présent appel de prime à la somme de :
         </p>
-        <p style="font-weight: bold;">Deux Milles neuf cent</p>
+        <p style="font-weight: bold;">{{montant_renouvellement_en_lettres}}</p>
 
     </div>
         <p style="margin-left: 300px;margin-top: 3rem; text-decoration: underline;font-weight: bold;">La responsable de production</p>
