@@ -42,27 +42,25 @@
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_('Produit')}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<select class="form-control d-none" name="produit" id="produit_modification" disabled>
+												<select class="form-control" name="produit_modification" id="produit_modification" disabled>
 													<option value="">{{_('Choisir')}}</option>
 													{% for produit in produits %}
 														<option {% if police.produit.id == produit.id %} selected {% endif %} value="{{ produit.id }}" data-code="{{ produit.code }}">{{ produit.nom }}</option>
 													{% endfor %}
 												</select>
-												<input type="hidden" class="form-control" name="produit" value="{{ police.produit.id }}"/>
-												<input type="text" class="form-control" name="edit_produit" value="{{ police.produit.nom|default_if_none:"" }}" readonly/>
+												<input type="hidden" name="produit" id="produit" value="{{ police.produit.id }}">
 											</div>
 										</div>
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_('Assureur')}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<select class="form-control d-none" name="compagnie" id="compagnie_modification" required disabled>
+												<select class="form-control" name="compagnie_modification" id="compagnie_modification" required disabled>
 													<option value="">{{_('Choisir')}}</option>
 													{% for compagnie in compagnies %}
 														<option {% if assureur_police.compagnie_id == compagnie.id %} selected {% endif %} value="{{ compagnie.id }}" data-compagnie_id="{{ compagnie.id }}">{{ compagnie.nom|default_if_none:"" }}</option>
 													{% endfor %}
 												</select>
-												<input type="hidden" class="form-control" name="compagnie" value="{{ assureur_police.compagnie_id }}"/>
-												<input type="text" class="form-control" name="edit_compagnie" value="{{ assureur_police.compagnie.nom|default_if_none:"" }}" readonly/>
+												<input type="hidden" name="compagnie" id="compagnie" value="{{ assureur_police.compagnie_id }}">
 											</div>
 										</div>
 										<div class="form-group row">
@@ -113,27 +111,30 @@
 												</select>
 											</div>
 										</div>
-
-										<div class="form-group row" style="display:none;">
+										{% if autre_assureur_police %}
+										<div class="form-group row">
 											<label class="col-sm-6 col-form-label">{{_("Autre assureur")}}</label>
 											<div class="col-sm-6">
 												{% for type in typecompagnie %}
 													<div class="icheck-danger d-inline mr-3">
-													  <input type="radio" name="typecompagnie" value="{{ type.id }}" class="typecompagnie" id="typecompagnie" data-typecompagnie_id="{{ type.id }}">
-													  <label for="typecompagnie">{{ type.libelle }}</label>
+													  <input type="radio" name="typecompagnie" value="{{ type.id }}" class="typecompagnie" id="typecompagnie_modification" data-typecompagnie_id="{{ type.id }}" {% if autre_assureur_police.type_compagnie_id == type.id %} checked {% endif %} readonly>
+													  <label for="typecompagnie_modification">{{ type.libelle }}</label>
 													</div>
 												{% endfor %}
 											</div>
 										</div>
-										<div class="form-group row" id="box_compagnie" style="display:none;">
+										<div class="form-group row" id="box_compagnie_modification" style="">
 											<label class="col-sm-5 col-form-label">{{_("Choisir l'assureur")}} <span class="required">*</span></label>
 											<div class="col-sm-7">
-												<select class="form-control tags-multiple" name="compagnie_id" id="compagnie_id" autocomplete="off">
+												<select class="form-control" name="compagnie_id" id="autre_compagnie_modification">
 													<option value="">{{_('Choisir')}}</option>
+													{% for compagnie in compagnie_autre %}
+														<option {% if autre_assureur_police.compagnie_id == compagnie.id %} selected {% endif %} value="{{ compagnie.id }}" data-compagnie_id="{{ compagnie.id }}">{{ compagnie.nom|default_if_none:"" }}</option>
+													{% endfor %}
 												</select>
 											</div>
 										</div>
-
+										{% endif %}
 										<div class="form-group row">
 											<label class="col-sm-5 col-form-label">{{_("Logo du partenaire")}}<span class="required"></span></label>
 											<div class="col-sm-6">

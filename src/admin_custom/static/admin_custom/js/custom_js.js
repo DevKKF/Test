@@ -359,9 +359,7 @@ $(document).ready(function () {
                                         //Vider le formulaire
                                         resetFields('#' + formulaire.attr('id'));
 
-                                        notifySuccess(response.message, function () {
-                                            location.reload();
-                                        });
+                                        location.reload();
 
                                     } else {
 
@@ -3450,6 +3448,7 @@ $(document).ready(function () {
 
     });
 
+
     // Importation véhicules
     $("#btn_importer_vehicules").on('click', function () {
 
@@ -3502,6 +3501,7 @@ $(document).ready(function () {
 
 
     });
+
 
     //DETAILS de marchandise
     $(document).on("click", ".btn_details_marchandise", function () {
@@ -3653,6 +3653,7 @@ $(document).ready(function () {
             });
         });
     });
+
 
     //Suppression de marchandise
     $(document).on('click', ".btn_supprimer_marchandise", function () {
@@ -4717,6 +4718,7 @@ $(document).ready(function () {
         }
     });
 
+
     $("#btn_imprimer_cartes").on('click', function () {
         let btn_valider = $(this);
 
@@ -4898,6 +4900,7 @@ $(document).ready(function () {
         }
 
     });
+
 
     $("#execution_requete_super_admin").on('click', function () {
         let btn_valider = $(this);
@@ -5082,6 +5085,7 @@ $(document).ready(function () {
         });
 
     });
+
 
     //Valider les modifications
     $("#btn_valider").on('click', function () {
@@ -6501,10 +6505,7 @@ $(document).ready(function () {
 
                                             if (response.statut == 1) {
 
-                                                notifySuccess(response.message, function () {
-                                                    location.reload();
-                                                });
-
+                                                location.reload();
 
                                             } else {
 
@@ -6665,7 +6666,16 @@ $(document).ready(function () {
         calculer_montant_divers_quittance();
 
     });
+
     function calculer_montant_divers_quittance() {
+
+        let type_quittance_code = $('#modal-quittance #type_quittance option:selected').data('code');
+        //Action d'activation et de désactivation de champ.
+        if (type_quittance_code === "HONORAIRE") {
+            $("#cout_police_compagnie, #cout_police_courtier").prop('disabled', true).addClass('disabled-field').val(0);
+        } else {
+            $("#cout_police_compagnie, #cout_police_courtier").prop("disabled", false).removeClass("disabled-field");
+        }
 
         let nature_quittance_id = $('#modal-quittance #nature_quittance').val();
         let type_quittance_id = $('#modal-quittance #type_quittance').val();
@@ -6825,7 +6835,6 @@ $(document).ready(function () {
 
         });
 
-
         $('#modal-quittance #prime_ttc').val(prime_ttc);
 
         $('#modal-quittance #commission_courtage').val(montant_commission_courtage);
@@ -6838,7 +6847,6 @@ $(document).ready(function () {
 
 
     }
-
 
     $(document).on("change", "#modal-quittance #nature_quittance", function (event) {
         let nature_quittance_id = $(this).val();
@@ -6925,26 +6933,48 @@ $(document).ready(function () {
             //
             $('#modal-reglement').modal();
 
-            //gestion des saisies des montants à regler
             $(document).on('change', '.checkbox_quittance_a_regler', function () {
                 let input_montant_a_regler = $(this).closest('tr').find('.montant_a_regler');
-                let solde_quittance = $(this).closest('tr').find('.solde_quittance').val();
+                let solde_quittance = parseFloat($(this).closest('tr').find('.solde_quittance').val()) || 0;
                 let input_solde_apres = $(this).closest('tr').find('.solde_apres');
 
-                calculer_montant_total_a_regler();
-
+                // Initialisation des valeurs
                 input_montant_a_regler.val(0);
                 input_solde_apres.val(solde_quittance);
 
                 if (this.checked) {
                     input_montant_a_regler.removeAttr('readonly');
-                    input_montant_a_regler.attr('required', true);
+                    input_montant_a_regler.attr('required', true).val(solde_quittance);
+                    input_solde_apres.val(0); // Mise à jour du solde après
                 } else {
                     input_montant_a_regler.attr('readonly', true);
-                    input_montant_a_regler.removeAttr('required');
+                    input_montant_a_regler.removeAttr('required').val(0);
+                    input_solde_apres.val(solde_quittance); // Réinitialisation du solde après
                 }
 
+                // Lancer les calculs après modification
+                calculer_montant_total_a_regler();
             });
+
+            // Gestion des montants à régler lors de la saisie ou du changement
+            $(document).on('change keyup', '.montant_a_regler', function () {
+                let montant_a_regler = parseFloat($(this).val().replaceAll(' ', '')) || 0;
+                let solde_quittance = parseFloat($(this).closest('tr').find('.solde_quittance').val()) || 0;
+                let input_solde_apres = $(this).closest('tr').find('.solde_apres');
+
+                // Validation du montant saisi
+                if (montant_a_regler > 0 && montant_a_regler <= solde_quittance) {
+                    input_solde_apres.val(solde_quittance - montant_a_regler);
+                } else {
+                    $(this).val(0);
+                    input_solde_apres.val(solde_quittance);
+                }
+
+                // Lancer les calculs après modification
+                calculer_montant_total_a_regler();
+            });
+
+
 
             //montant_a_regler
             $(document).on('change keyup', '.handle_calculer_montant_total_a_regler', function () {
@@ -7005,12 +7035,7 @@ $(document).ready(function () {
                                         success: function (response) {
 
                                             if (response.statut == 1) {
-
-                                                notifySuccess(response.message, function () {
-                                                    location.reload();
-                                                });
-
-
+                                                location.reload();
                                             } else {
 
                                                 let errors = JSON.parse(JSON.stringify(response.errors));
@@ -7081,45 +7106,319 @@ $(document).ready(function () {
 
     });
 
+    // Calcul du montant total à régler
     function calculer_montant_total_a_regler() {
-
         let montant_total_a_regler = 0;
 
-        $('.montant_a_regler').each(function (element) {
-
-            let montant_a_regler = parseFloat($(this).val().replaceAll(' ', ''));
-            let solde_quittance = $(this).closest('tr').find('.solde_quittance').val();
-            let solde_apres = solde_quittance;//init
+        $('.montant_a_regler').each(function () {
+            let montant_a_regler = parseFloat($(this).val().replaceAll(' ', '')) || 0;
+            let solde_quittance = parseFloat($(this).closest('tr').find('.solde_quittance').val()) || 0;
 
             if (montant_a_regler > 0 && montant_a_regler <= solde_quittance) {
-
-                console.log(montant_a_regler + ' réglé sur ' + solde_quittance);
-                montant_total_a_regler = montant_total_a_regler + montant_a_regler;
-
-                solde_apres = solde_quittance - montant_a_regler;
-
-                //console.log(montant_total_a_regler);
-
+                montant_total_a_regler += montant_a_regler;
             } else {
-                solde_apres = solde_quittance;
-                $(this).val('0');
+                $(this).val(0);
+                $(this).closest('tr').find('.solde_apres').val(solde_quittance);
             }
-
-            $(this).closest('tr').find('.solde_apres').val(solde_apres);
-
         });
 
+        // Mise à jour du champ total
         $('.montant_total_a_regler').val(montant_total_a_regler);
 
+        // Activer ou désactiver le bouton de sauvegarde
         if (montant_total_a_regler > 0) {
             $('#btn_save_reglement').removeAttr('disabled');
         } else {
             $('#btn_save_reglement').attr('disabled', 'true');
         }
-
     }
 
+
     //********* FIN FAIRE UN REGLEMENT ***********//
+
+
+    //********* FAIRE UN LETTRAGE ***********//
+
+    $("#btnOpenDialogAddLettrage").on('click', function () {
+
+        let model_name = $(this).data('model_name');
+        let modal_title = $(this).data('modal_title');
+        let href = $(this).data('href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            //appliquer le mask de saisie sur les champs montant
+            AppliquerMaskSaisie();
+
+            $('#modal-lettrage').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-lettrage').find('.modal-title').text(modal_title);
+            $('#modal-lettrage').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-lettrage').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            //
+            $('#modal-lettrage').modal();
+
+            // Gestion des cases à cocher des acomptes
+            $(document).on('change', '.checkbox_acompte_a_utiliser', function () {
+                calculer_montant_acompte_lettrage();
+                verifier_et_activer_quittances();
+
+                // Réinitialisation des quittances si un acompte est décoché après qu'une quittance est cochée
+                if (!$('.checkbox_acompte_a_utiliser:checked').length) {
+                    $('.checkbox_quittance_a_regler:checked').each(function () {
+                        let checkbox = $(this);
+                        let input_montant_a_regler = checkbox.closest('tr').find('.montant_a_regler');
+                        let solde_quittance = parseFloat(checkbox.closest('tr').find('.solde_quittance').val()) || 0;
+                        let input_solde_apres = checkbox.closest('tr').find('.solde_apres');
+                        let montant_retire = parseFloat(input_montant_a_regler.val()) || 0;
+
+                        // Réinitialiser les champs de la quittance
+                        checkbox.prop('checked', false);
+                        input_montant_a_regler.val(0).attr('readonly', true);
+                        input_solde_apres.val(solde_quittance);
+
+                        // Remettre le montant retiré au cumul des acomptes
+                        let montant_acompte_cumul = parseFloat($('#hidden_select_montant_acompte_cumul').val()) || 0;
+                        montant_acompte_cumul += montant_retire;
+                        $('#hidden_select_montant_acompte_cumul').val(montant_acompte_cumul.toFixed(2));
+                        $('#montant_acompte_cumul').val(montant_acompte_cumul.toFixed(2));
+
+                        console.log('montant_retire',montant_retire);
+                        console.log('montant_acompte_cumul',montant_acompte_cumul);
+                    });
+
+                    // Désactiver les cases des quittances
+                    $('.checkbox_quittance_a_regler').attr('disabled', true);
+                }
+            });
+
+            // Gestion des cases à cocher des quittances
+            $(document).on('change', '.checkbox_quittance_a_regler', function () {
+                let checkbox = $(this);
+                let input_montant_a_regler = checkbox.closest('tr').find('.montant_a_regler');
+                let solde_quittance = parseFloat(checkbox.closest('tr').find('.solde_quittance').val()) || 0;
+                let input_solde_apres = checkbox.closest('tr').find('.solde_apres');
+                let montant_acompte_cumul = parseFloat($('#hidden_select_montant_acompte_cumul').val()) || 0;
+
+                if (checkbox.is(':checked')) {
+                    // Si on coche une quittance
+                    if (montant_acompte_cumul >= solde_quittance) {
+                        // Déduction complète
+                        input_montant_a_regler.val(solde_quittance).attr('readonly', true);
+                        input_solde_apres.val(0); // Tout est payé
+                        montant_acompte_cumul -= solde_quittance;
+                    } else {
+                        // Déduction partielle
+                        input_montant_a_regler.val(montant_acompte_cumul).attr('readonly', true);
+                        input_solde_apres.val(solde_quittance - montant_acompte_cumul); // Reste à payer
+                        montant_acompte_cumul = 0; // Tout l'acompte est utilisé
+                    }
+                }
+                else {
+                    // Si on décoche une quittance
+                    let montant_retire = parseFloat(input_montant_a_regler.val().replace(/\s/g, '')) || 0; // Retirer les espaces avant conversion
+
+                    // Rendre l'acompte
+                    montant_acompte_cumul += montant_retire;
+
+                    // Réinitialisation des valeurs
+                    input_montant_a_regler.val(0).attr('readonly', true);
+                    input_solde_apres.val(solde_quittance); // Retour à l'état initial
+                }
+
+                // Mise à jour des champs cumulés
+                $('#hidden_select_montant_acompte_cumul').val(montant_acompte_cumul.toFixed(2));
+                $('#montant_acompte_cumul').val(montant_acompte_cumul.toFixed(2));
+
+                // Mise à jour du montant total à régler
+                calculer_montant_total_a_regler();
+            });
+
+            $(document).on('change', '.checkbox_acompte_a_utiliser', function () {
+                calculer_montant_acompte_lettrage();
+                verifier_et_activer_quittances();
+
+                // Vérification après modification des acomptes
+                let montant_acompte_cumul = parseFloat($('#hidden_select_montant_acompte_cumul').val()) || 0;
+
+                $('.checkbox_quittance_a_regler:checked').each(function () {
+                    let checkbox = $(this);
+                    let input_montant_a_regler = checkbox.closest('tr').find('.montant_a_regler');
+                    let solde_quittance = parseFloat(checkbox.closest('tr').find('.solde_quittance').val()) || 0;
+                    let input_solde_apres = checkbox.closest('tr').find('.solde_apres');
+
+                    // Vérifier si l'acompte cumulé peut toujours couvrir cette quittance
+                    if (montant_acompte_cumul >= solde_quittance) {
+                        montant_acompte_cumul -= solde_quittance; // Déduction
+                    } else {
+                        // Si le montant des acomptes restants est insuffisant, décocher la quittance
+                        checkbox.prop('checked', false);
+                        input_montant_a_regler.val(0).attr('readonly', true);
+                        input_solde_apres.val(solde_quittance); // Retour à l'état initial
+                    }
+                });
+
+                // Mise à jour des champs cumulés après vérification
+                $('#hidden_select_montant_acompte_cumul').val(montant_acompte_cumul.toFixed(2));
+                $('#montant_acompte_cumul').val(montant_acompte_cumul.toFixed(2));
+            });
+
+            //enregistrement
+            $('#btn_save_lettrage').on('click', function () {
+
+                let btn_save_lettrage = $(this);
+
+                let formulaire = $('#form_add_lettrage');
+                let href = formulaire.attr('action');
+
+                $.validator.setDefaults({ ignore: [] });
+
+                if (formulaire.valid()) {
+
+                    //désactiver le bouton Valider, pour empecher une double soumission du formulaire
+                    btn_save_lettrage.attr('disabled', true);
+
+                    //demander confirmation
+
+                    let n = noty({
+                        text: 'Voulez-vous vraiment effectuer ce lettrage de compte ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+                                    //confirmation obtenu
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formulaire.serialize(),
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                location.reload();
+
+                                            } else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-lettrage .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-lettrage .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'enregistrement");
+
+                                            btn_save_lettrage.removeAttr('disabled');
+
+                                        }
+
+                                    });
+
+                                    //fin confirmation obtenue
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    //confirmation refusée
+                                    $noty.close();
+
+                                    btn_save_lettrage.removeAttr('disabled');
+
+                                }
+                            }
+                        ]
+                    });
+                    //fin demande confirmation
+
+
+                } else {
+
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+
+                    let validator = formulaire.validate();
+
+                    $.each(validator.errorMap, function (index, value) {
+
+                        console.log('Id: ' + index + ' Message: ' + value);
+
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+
+                    btn_save_lettrage.removeAttr('disabled');
+
+                }
+
+
+            });
+
+        });
+
+    });
+
+    // Fonction pour activer/désactiver les cases quittances
+    function verifier_et_activer_quittances() {
+        let acomptes_actifs = $('.checkbox_acompte_a_utiliser:checked').length > 0;
+
+        $('.checkbox_quittance_a_regler').each(function () {
+            $(this).prop('disabled', !acomptes_actifs);
+        });
+    }
+
+    // Fonction de calcul du montant cumulé des acomptes
+    function calculer_montant_acompte_lettrage() {
+        let montant_acompte_cumul = 0;
+
+        $('.checkbox_acompte_a_utiliser:checked').each(function () {
+            let solde_acompte = parseFloat($(this).closest('tr').find('.solde_acompte').val()) || 0;
+            montant_acompte_cumul += solde_acompte;
+        });
+
+        // Mise à jour des champs cumulés
+        $('#montant_acompte_cumul').val(montant_acompte_cumul.toFixed(2));
+        $('#hidden_select_montant_acompte_cumul').val(montant_acompte_cumul.toFixed(2));
+    }
+
+    // Fonction de calcul du montant total à régler
+    function calculer_montant_total_a_regler() {
+        let montant_total_a_regler = 0;
+
+        $('.montant_a_regler').each(function () {
+            let montant_a_regler = parseFloat($(this).val().replaceAll(' ', '')) || 0;
+            montant_total_a_regler += montant_a_regler;
+        });
+
+        // Mise à jour du champ total
+        $('.montant_total_a_regler').val(montant_total_a_regler.toFixed(2));
+
+        // Activer ou désactiver le bouton de sauvegarde
+        if (montant_total_a_regler > 0) {
+            $('#btn_save_lettrage').removeAttr('disabled');
+        } else {
+            $('#btn_save_lettrage').attr('disabled', true);
+        }
+    }
+
+    // Initialisation : désactiver toutes les quittances au chargement
+    verifier_et_activer_quittances();
+
+    //********* FIN FAIRE UN LETTRAGE ***********//
 
 
     //********* FAIRE UN ENCAISSEMENT DE COMMISSION ***********//
@@ -7301,7 +7600,6 @@ $(document).ready(function () {
 
                                             if (response.statut == 1) {
 
-                                                notifySuccess(response.message, function () {
                                                     window.open('../generer_bordereau_encaissement_compagnie_pdf/' + response.data.operation_id, '_blank');
 
                                                     //rediriger pour afficher le bordereau de reglement compagnie en pdf
@@ -7315,7 +7613,6 @@ $(document).ready(function () {
                                                     //alert(location.href);
 
                                                     location.reload();
-                                                });
 
 
                                             } else {
@@ -7477,7 +7774,6 @@ $(document).ready(function () {
 
 
     //********* FIN FAIRE UN ENCAISSEMENT ***********//
-
 
 
     //********* FAIRE UN ENCAISSEMENT DE COMMISSION COURTAGE / GESTION ***********//
@@ -7907,9 +8203,17 @@ $(document).ready(function () {
     //********* FIN FAIRE UN ENCAISSEMENT COURTAGE / GESTION ***********//
 
 
-
-
     //********* FAIRE UN REGLEMENT COMPAGNIE ***********//
+
+    $(".btnOpenDialogDetailCompagnieEncaissementReglement").on('dblclick', function () {
+
+        $(".btnOpenDialogDetailCompagnieEncaissementReglement").removeClass('tr_selected');
+        $(this).addClass('tr_selected');
+        let compagnie = $(this).data('compagnie');
+        $("#datatable_stock_input_com").html("");
+        $("#btnOpenDialogAddReglementCompagnie").trigger("click");
+
+    });
 
     $("#btnOpenDialogAddReglementCompagnie").on('click', function () {
 
@@ -7931,6 +8235,14 @@ $(document).ready(function () {
 
             //
             $('#modal-reglement_compagnie').modal();
+
+            $('#modal-reglement_compagnie').on('shown.bs.modal', function () {
+                compagnie = $('.tr_selected').data('compagnie');
+                if (compagnie && compagnie != "") {
+                    $('#modal-reglement_compagnie #compagnie option[value=' + compagnie + ']').attr('selected', 'selected');
+                    $("#modal-reglement_compagnie #compagnie").trigger('change');
+                }
+            })
 
 
             $('.form-add_reglement_compagnie-select').select2();
@@ -8118,6 +8430,8 @@ $(document).ready(function () {
         });
 
     });
+
+    //********* FIN FAIRE UN REGLEMENT COMPAGNIE ***********//
 
 
     //********** FAIRE UN REGLEMENT BORDEREAU D"ORDONNANCEMENT */
@@ -9450,7 +9764,6 @@ $(document).ready(function () {
             dataType: 'json',
             success: function (prescripteurs) {
                 $('#prescripteur_optique').html('').append('<option value="">Choisir</option>');
-
 
                 prescripteurs.forEach(function (prescripteur) {
                     $('#prescripteur_optique').append('<option value="' + prescripteur.pk + '">' + prescripteur.fields.nom + ' ' + prescripteur.fields.prenoms + '</option>');
@@ -13672,7 +13985,6 @@ $(document).ready(function () {
         });
     }
 
-
     function addInputAlphaNumValidation(inputSelector, errorId) {
         var previousValue = ""; // Déclarer previousValue en dehors de la fonction
         $(inputSelector).on("input", function () {
@@ -13788,7 +14100,6 @@ $(document).ready(function () {
                 alert('Une erreur est survenue. Veuillez réessayer plus tard.');
             });
     });
-
 
     // Apporteur
     function on_change_apporteur(response, mode) {
@@ -14185,48 +14496,71 @@ $(document).ready(function () {
         });
     }
 
+    //Changement de branche, charger les produits liés
+    $('#branche').on('change', function () {
+
+        let branche_id = $(this).val();
+        $('#produit').html('<option value="">---------------------------</option>');
+
+        $.ajax({
+            type: 'get',
+            url: '/production/branche/' + branche_id + '/produits',
+            success: function (produits) {
+
+                $('#produit').html('').append('<option value="">Sélectionnez un produit</option>');
+
+                produits.forEach(function (produit) {
+                    $('#produit').append('<option value="' + produit.pk + '">' + produit.fields.libelle + '</option>');
+                });
+
+            },
+            error: function () { }
+        });
+    });
 
     // Initialisation lors du chargement de la page
-    $(".typecompagnie").prop("checked", false).prop("disabled", true);
+    $("#typecompagnie").val("");
+    $(".box_typecompagnie").hide();
     $("#box_compagnie").hide();
     $("#compagnie_id").empty().append('<option value="">Choisir</option>');
 
-    // Activer les boutons radio seulement si une compagnie est choisie
+    // Gestion du changement dans le champ "compagnie"
     $("#compagnie").on("change", function () {
         const selectedCompagnieId = $(this).val();
 
-        // Si une compagnie est sélectionnée
         if (selectedCompagnieId) {
-            $(".typecompagnie").prop("disabled", false);
+            // Si une compagnie est choisie, afficher le champ "Autre assureur"
+            $(".box_typecompagnie").show();
+            $("#typecompagnie").val("");
             $("#box_compagnie").hide();
             $("#compagnie_id").empty().append('<option value="">Choisir</option>');
-            $(".typecompagnie").prop("checked", false);
         } else {
-            $(".typecompagnie").prop("checked", false).prop("disabled", true);
+            // Si aucune compagnie n'est choisie, cacher le champ "Autre assureur" et réinitialiser
+            $(".box_typecompagnie").hide();
+            $("#typecompagnie").val("");
             $("#box_compagnie").hide();
             $("#compagnie_id").empty().append('<option value="">Choisir</option>');
         }
     });
 
-    // Gestion de l'affichage dynamique des compagnies lors du changement d'un type de compagnie
-    $(".typecompagnie").on("change", function () {
+    // Gestion du changement dans le champ "typecompagnie"
+    $("#typecompagnie").on("change", function () {
         const selectedTypeId = $(this).val();
         const selectedCompagnieId = $("#compagnie").val();
 
-        // Si un type de compagnie est sélectionné
         if (selectedTypeId) {
+            // Si un type de compagnie est sélectionné, afficher les compagnies associées
             $("#box_compagnie").show();
             $.ajax({
                 url: "/production/get_compagnies/",
                 method: "GET",
                 data: {
                     type_id: selectedTypeId,
-                    exclude_compagnie_id: selectedCompagnieId
+                    compagnie_id: selectedCompagnieId
                 },
                 success: function (response) {
                     const compagnieSelect = $("#compagnie_id");
-                    compagnieSelect.empty();
-                    compagnieSelect.append('<option value="">Choisir</option>');
+                    compagnieSelect.empty().append('<option value="">Choisir</option>');
 
                     // Ajouter les options retournées par l'API
                     response.compagnies.forEach(function (compagnie) {
@@ -14238,12 +14572,14 @@ $(document).ready(function () {
                 }
             });
         } else {
+            // Réinitialiser si aucun type n'est sélectionné
             $("#box_compagnie").hide();
+            $("#compagnie_id").empty().append('<option value="">Choisir</option>');
         }
     });
 
-    // Rendre le champ non obligatoire si la liste des compagnies est masquée
-    $("form").on("submit", function (e) {
+    // Rendre le champ "compagnie_id" non obligatoire si la liste est masquée
+    $("form").on("submit", function () {
         if ($("#box_compagnie").is(":hidden")) {
             $("#compagnie_id").prop("required", false);
         } else {
@@ -14327,57 +14663,57 @@ $(document).ready(function () {
 
     function calculer_montant_add_marchandise_police() {
 
-    // Récupération des valeurs saisies
-    let valeur_assuree = parseInt($('#modal-marchandise_add #valeur_assuree').val().replaceAll(' ', ''));
-    let taux_risque_ordinaire = parseInt($('#modal-marchandise_add #taux_risque_ordinaire').val().replaceAll(' ', ''));
-    let taux_risque_guerre = parseInt($('#modal-marchandise_add #taux_risque_guerre').val().replaceAll(' ', ''));
-    let taux_supprime = parseInt($('#modal-marchandise_add #taux_supprime').val().replaceAll(' ', ''));
-    let taux_reduction_commerciale = parseInt($('#modal-marchandise_add #taux_reduction_commerciale').val().replaceAll(' ', ''));
-    let taux_taxe = parseInt($('#modal-marchandise_add #taux_taxe').val().replaceAll(' ', ''));
-    let accessoires = parseInt($('#modal-marchandise_add #accessoires').val().replaceAll(' ', ''));
-    let autres_frais = parseInt($('#modal-marchandise_add #autres_frais').val().replaceAll(' ', ''));
+        // Récupération des valeurs saisies
+        let valeur_assuree = parseInt($('#modal-marchandise_add #valeur_assuree').val().replaceAll(' ', ''));
+        let taux_risque_ordinaire = parseInt($('#modal-marchandise_add #taux_risque_ordinaire').val().replaceAll(' ', ''));
+        let taux_risque_guerre = parseInt($('#modal-marchandise_add #taux_risque_guerre').val().replaceAll(' ', ''));
+        let taux_supprime = parseInt($('#modal-marchandise_add #taux_supprime').val().replaceAll(' ', ''));
+        let taux_reduction_commerciale = parseInt($('#modal-marchandise_add #taux_reduction_commerciale').val().replaceAll(' ', ''));
+        let taux_taxe = parseInt($('#modal-marchandise_add #taux_taxe').val().replaceAll(' ', ''));
+        let accessoires = parseInt($('#modal-marchandise_add #accessoires').val().replaceAll(' ', ''));
+        let autres_frais = parseInt($('#modal-marchandise_add #autres_frais').val().replaceAll(' ', ''));
 
-    if (isNaN(valeur_assuree)) { valeur_assuree = 0; }
-    if (isNaN(taux_risque_ordinaire)) { taux_risque_ordinaire = 0; }
-    if (isNaN(taux_risque_guerre)) { taux_risque_guerre = 0; }
-    if (isNaN(taux_supprime)) { taux_supprime = 0; }
-    if (isNaN(taux_reduction_commerciale)) { taux_reduction_commerciale = 0; }
-    if (isNaN(taux_taxe)) { taux_taxe = 0; }
-    if (isNaN(accessoires)) { accessoires = 0; }
-    if (isNaN(autres_frais)) { autres_frais = 0; }
+        if (isNaN(valeur_assuree)) { valeur_assuree = 0; }
+        if (isNaN(taux_risque_ordinaire)) { taux_risque_ordinaire = 0; }
+        if (isNaN(taux_risque_guerre)) { taux_risque_guerre = 0; }
+        if (isNaN(taux_supprime)) { taux_supprime = 0; }
+        if (isNaN(taux_reduction_commerciale)) { taux_reduction_commerciale = 0; }
+        if (isNaN(taux_taxe)) { taux_taxe = 0; }
+        if (isNaN(accessoires)) { accessoires = 0; }
+        if (isNaN(autres_frais)) { autres_frais = 0; }
 
-    // Calcul des valeurs saisies
-    let prime_risque_ordinaire = (taux_risque_ordinaire / 100) * valeur_assuree;
-    let prime_risque_guerre = (taux_risque_guerre / 100) * valeur_assuree;
-    let prime_supprime = (taux_supprime / 100) * valeur_assuree;
-    let prime_brut = prime_risque_ordinaire + prime_risque_guerre + prime_supprime;
-    let prime_reduction = (taux_reduction_commerciale / 100) * prime_brut;
-    let total_taxe = (taux_taxe / 100) * prime_brut;
-    let prime_ttc_mar = (prime_brut - prime_reduction) + total_taxe + accessoires + autres_frais;
+        // Calcul des valeurs saisies
+        let prime_risque_ordinaire = (taux_risque_ordinaire / 100) * valeur_assuree;
+        let prime_risque_guerre = (taux_risque_guerre / 100) * valeur_assuree;
+        let prime_supprime = (taux_supprime / 100) * valeur_assuree;
+        let prime_brut = prime_risque_ordinaire + prime_risque_guerre + prime_supprime;
+        let prime_reduction = (taux_reduction_commerciale / 100) * prime_brut;
+        let total_taxe = (taux_taxe / 100) * prime_brut;
+        let prime_ttc_mar = (prime_brut - prime_reduction) + total_taxe + accessoires + autres_frais;
 
-    console.log('valeur_assuree', valeur_assuree);
-    console.log('taux_risque_ordinaire', taux_risque_ordinaire);
-    console.log('prime_risque_ordinaire', prime_risque_ordinaire);
-    console.log('taux_risque_guerre', taux_risque_guerre);
-    console.log('prime_risque_guerre', prime_risque_guerre);
-    console.log('prime_supprime', prime_supprime);
-    console.log('prime_risque_guerre', prime_risque_guerre);
-    console.log('prime_brut', prime_brut);
-    console.log('taux_reduction_commerciale', taux_reduction_commerciale);
-    console.log('prime_reduction', prime_reduction);
-    console.log('total_taxe', total_taxe);
-    console.log('accessoires', accessoires);
-    console.log('autres_frais', autres_frais);
-    console.log('prime_ttc_mar', prime_ttc_mar);
+        console.log('valeur_assuree', valeur_assuree);
+        console.log('taux_risque_ordinaire', taux_risque_ordinaire);
+        console.log('prime_risque_ordinaire', prime_risque_ordinaire);
+        console.log('taux_risque_guerre', taux_risque_guerre);
+        console.log('prime_risque_guerre', prime_risque_guerre);
+        console.log('prime_supprime', prime_supprime);
+        console.log('prime_risque_guerre', prime_risque_guerre);
+        console.log('prime_brut', prime_brut);
+        console.log('taux_reduction_commerciale', taux_reduction_commerciale);
+        console.log('prime_reduction', prime_reduction);
+        console.log('total_taxe', total_taxe);
+        console.log('accessoires', accessoires);
+        console.log('autres_frais', autres_frais);
+        console.log('prime_ttc_mar', prime_ttc_mar);
 
-    $('#modal-marchandise_add #prime_risque_ordinaire').val(prime_risque_ordinaire);
-    $('#modal-marchandise_add #prime_risque_guerre').val(prime_risque_guerre);
-    $('#modal-marchandise_add #prime_supprime').val(prime_supprime);
-    $('#modal-marchandise_add #prime_brut').val(prime_brut);
-    $('#modal-marchandise_add #prime_reduction').val(prime_reduction);
-    $('#modal-marchandise_add #total_taxe').val(total_taxe);
-    $('#modal-marchandise_add #prime_ttc_mar').val(prime_ttc_mar);
-}
+        $('#modal-marchandise_add #prime_risque_ordinaire').val(prime_risque_ordinaire);
+        $('#modal-marchandise_add #prime_risque_guerre').val(prime_risque_guerre);
+        $('#modal-marchandise_add #prime_supprime').val(prime_supprime);
+        $('#modal-marchandise_add #prime_brut').val(prime_brut);
+        $('#modal-marchandise_add #prime_reduction').val(prime_reduction);
+        $('#modal-marchandise_add #total_taxe').val(total_taxe);
+        $('#modal-marchandise_add #prime_ttc_mar').val(prime_ttc_mar);
+    }
 
     $(document).on("keyup change", "#modal-modification_marchandise .calculs_marchandise_montant_police_modification", function (event) {
 
@@ -14564,6 +14900,34 @@ $(document).ready(function () {
         toggleDisabledFields("_modification");
     });
 
+    // Récupérer les éléments
+    const $yesRadio = $("#yes_garantie_modification");
+    const $noRadio = $("#no_garantie_modification");
+    const $garantieTableBody = $("#table_garantie_police_modification tbody");
+    const $garantieTableContainer = $("#test_garantie_modification");
+    const $formuleBlock = $("#formule_block_modification");
+
+    // Fonction pour afficher ou masquer le tableau des garanties et le champ de formule
+    function toggleGarantieTable() {
+        if ($yesRadio.is(":checked")) {
+            // Afficher le tableau et le champ de formule si OUI est sélectionné
+            $garantieTableContainer.show(); // Afficher le conteneur du tableau
+            $formuleBlock.show(); // Afficher le champ de choix de formule
+        } else {
+            // Si NON est sélectionné, vider le contenu du tableau, masquer le conteneur et le champ de formule
+            $garantieTableBody.empty(); // Vider le contenu du tableau
+            $garantieTableContainer.hide(); // Masquer le conteneur du tableau
+            $formuleBlock.hide(); // Masquer le champ de choix de formule
+        }
+    }
+
+    // Écouter les événements de clic sur les boutons radio
+    $yesRadio.on("click", toggleGarantieTable);
+    $noRadio.on("click", toggleGarantieTable);
+
+    // Initialiser l'état du tableau et du champ de formule au chargement de la page
+    toggleGarantieTable();
+
     //---------------------------------BUSINESSUNIT-----------------------------------------------------
     //ajouter un business unit
     $(document).on('click', "#btn_save_businessunit", function () {
@@ -14677,36 +15041,8 @@ $(document).ready(function () {
             notifyWarning('Veuillez renseigner correctement le formulaire');
         }
     });
+
 });
 
-$(document).ready(function() {
-    // Récupérer les éléments
-    const $yesRadio = $("#yes_garantie_modification");
-    const $noRadio = $("#no_garantie_modification");
-    const $garantieTableBody = $("#table_garantie_police_modification tbody");
-    const $garantieTableContainer = $("#test_garantie_modification");
-    const $formuleBlock = $("#formule_block_modification");
-
-    // Fonction pour afficher ou masquer le tableau des garanties et le champ de formule
-    function toggleGarantieTable() {
-        if ($yesRadio.is(":checked")) {
-            // Afficher le tableau et le champ de formule si OUI est sélectionné
-            $garantieTableContainer.show(); // Afficher le conteneur du tableau
-            $formuleBlock.show(); // Afficher le champ de choix de formule
-        } else {
-            // Si NON est sélectionné, vider le contenu du tableau, masquer le conteneur et le champ de formule
-            $garantieTableBody.empty(); // Vider le contenu du tableau
-            $garantieTableContainer.hide(); // Masquer le conteneur du tableau
-            $formuleBlock.hide(); // Masquer le champ de choix de formule
-        }
-    }
-
-    // Écouter les événements de clic sur les boutons radio
-    $yesRadio.on("click", toggleGarantieTable);
-    $noRadio.on("click", toggleGarantieTable);
-
-    // Initialiser l'état du tableau et du champ de formule au chargement de la page
-    toggleGarantieTable();
-});
 
 

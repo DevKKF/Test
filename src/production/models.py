@@ -1879,7 +1879,7 @@ class Reglement(models.Model):
             return False
 
     def etat_encaisse(self):
-        if self.etat_encaisse_courtage() == True and self.etat_encaisse_gestion() == True:
+        if self.etat_encaisse_courtage() == True: #and self.etat_encaisse_gestion() == True:
             return True
         else:
             return False
@@ -1912,10 +1912,12 @@ class Acompte(models.Model):
     client = models.ForeignKey(Client, on_delete=models.RESTRICT)
     police = models.ForeignKey(Police, null=True, on_delete=models.RESTRICT)
     quittance = models.ForeignKey(Quittance, null=True, on_delete=models.RESTRICT)
-    libelle = models.CharField(max_length=255, blank=True, null=True)
-    sens = models.CharField(max_length=1, null=True)
-    montant = models.DecimalField(max_digits=20, decimal_places=3, blank=False, null=True)
+    debit = models.DecimalField(max_digits=20, decimal_places=3, blank=False, null=True)
+    credit = models.DecimalField(max_digits=20, decimal_places=3, blank=False, null=True)
+    solde = models.DecimalField(max_digits=20, decimal_places=3, blank=False, null=True)
     date_versement = models.DateField(blank=False, null=True)
+    periode_debut = models.DateField(blank=False, null=True)
+    periode_fin = models.DateField(blank=False, null=True)
     date_affectation = models.DateField(blank=True, null=True)
     observation = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -2071,8 +2073,6 @@ class CarteDigitalDematerialisee(models.Model):
         verbose_name_plural = 'Cartes Digital Dématérialisées'
 
 
-
-
 # Les choix pour le champ service
 SERVICE_CHOICES = [
     ('production', 'Production'),
@@ -2085,6 +2085,7 @@ STATUS_CHOICES = [
     ('Actif', 'Actif'),
     ('Inactive', 'Inactive'),
 ]
+
 
 class Courrier(models.Model):
     designation = models.CharField(max_length=255)

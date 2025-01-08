@@ -492,7 +492,7 @@ article .shimmer{
 
 
 /*pour gérer les statuts*/
-.badge-actif, .badge-accorde, .badge-effectue, .badge-valide, .badge-paye, .badge-en-cours, .badge-reverse{
+.badge-actif, .badge-accorde, .badge-effectue, .badge-valide, .badge-paye, .badge-en-cours, .badge-reverse, .badge-soldee{
   color: #fff;
   background-color: #28a745;
 }
@@ -670,3 +670,32 @@ label:not(.form-check-label):not(.custom-file-label) {
 .text-italic {
     font-style: italic !important;
 }
+
+.mt-5{
+    margin-top: 5px;
+}
+
+.mt-10{
+    margin-top: 10px;
+}
+
+.mt-15{
+    margin-top: 15px;
+}
+
+.mt-20{
+    margin-top: 20px;
+}
+
+.mt-30{
+    margin-top: 30px;
+}
+
+.mt-40{
+    margin-top: 40px;
+}
+
+.mt-50{
+    margin-top: 50px;
+}
+

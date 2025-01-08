@@ -18,7 +18,7 @@
 					<ul class="nav nav-tabs" id="myTab" role="tablist">
 						<li class="nav-item"><a class="nav-link active" id="infos_quittance-tab" data-toggle="tab" href="#infos_quittance" role="tab" aria-controls="infos_quittance" aria-selected="true">{{_("INFORMATIONS DE LA QUITTANCE")}}</a></li>
 						<li class="nav-item"><a class="nav-link" id="reglements-tab" data-toggle="tab" href="#reglements" role="tab" aria-controls="reglements" aria-selected="false">{{_("LISTE DES REGLEMENTS")}}</a></li>
-						<li class="nav-item"><a class="nav-link" id="ged_beneficiaire-tab" data-toggle="tab" href="#ged_beneficiaire" role="tab" aria-controls="ged" aria-selected="false">{{_('GED')}}</a></li>
+						<!--li class="nav-item"><a class="nav-link" id="ged_beneficiaire-tab" data-toggle="tab" href="#ged_beneficiaire" role="tab" aria-controls="ged" aria-selected="false">{{_('GED')}}</a></li-->
 
 					</ul>
 					<div class="tab-content" id="myTabContent">
@@ -126,41 +126,45 @@
                         <!-- TAB REGLEMENTS QUITTANCE -->
 						<div class="tab-pane fade mt-3" id="reglements" role="tabpanel" aria-labelledby="reglements-tab">
 
-							<div class="row table-responsive">
-								<table class="table table-bordered table-striped dataTable dtr-inline" id="table_reglements">
-                                    <thead>
-                                      <tr>
-                                        <th scope="col">{{_("N° Règlement")}}</th>
-                                        <th scope="col">{{_("N° Pièce")}}</th>
-                                        <th scope="col">{{_("Banque")}}</th>
-                                        <th scope="col">{{_("Mode règlement")}}</th>
-                                        <th scope="col">{{_("Montant reglé")}}</th>
-                                        <th scope="col">{{_("Dévise")}}</th>
-                                        <th scope="col">{{_("Date règlement")}}</th>
-                                        <th scope="col">{{_("Revers Cie")}}</th>
-                                        <!--th scope="col">Enc com</th-->
-                                        <th scope="col">{{_("Date saisie")}}</th>
-                                        <th scope="col">{{_("Enregistrer par")}}</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for reglement in reglements %}
-                                          <tr>
-                                            <td>{{ reglement.numero|default_if_none:"" }}</td>
-                                            <td>{{ reglement.numero_piece|default_if_none:"" }}</td>
-                                            <td>{{ reglement.banque.libelle|default_if_none:"" }}</td>
-                                            <td>{{ reglement.mode_reglement|default_if_none:"" }}</td>
-                                            <td class="text-right">{{ reglement.montant|money_field }}</td>
-                                            <td>{{ reglement.devise.code|default_if_none:"" }}</td>
-                                            <td>{{ reglement.date_paiement|date:'d/m/Y'|default_if_none:"" }}</td>
-                                            <td><span class="badge badge-{{ reglement.statut_reversement_compagnie|lower|replace_espace }}" title="{{ reglement.statut_reversement_compagnie|date:'d/m/Y'|default_if_none:'' }}">{{ reglement.statut_reversement_compagnie|default_if_none:"" }}</span></td>
-                                            <!--td><span class="badge badge-{{ reglement.statut_commission|lower|replace_espace }}">{{ reglement.statut_commission|default_if_none:"" }}</span></td-->
-                                            <td>{{ reglement.created_at|date:'d/m/Y à H:i'|default_if_none:"" }}</td>
-                                            <td>{{ reglement.created_by|default_if_none:"" }}</td>
-                                          </tr>
-                                        {% endfor %}
-                                    </tbody>
-							  </table>
+							<div class="row">
+								<div class="col-12 col-md-12 col-sm-12 table-responsive">
+									<table class="table table-bordered table-striped dataTable dtr-inline" id="table_reglements">
+										<thead>
+										  <tr>
+											<th scope="col">{{_("N° Règlement")}}</th>
+											<th scope="col">{{_("N° Pièce")}}</th>
+											<th scope="col">{{_("Banque")}}</th>
+											<th scope="col">{{_("Mode règlement")}}</th>
+											<th scope="col">{{_("Montant reglé")}}</th>
+											<th scope="col">{{_("Dévise")}}</th>
+											<th scope="col">{{_("Date règlement")}}</th>
+											<th scope="col">{{_("Revers Cie")}}</th>
+											<!--th scope="col">Enc com</th-->
+											<th scope="col">{{_("Date saisie")}}</th>
+											<th scope="col">{{_("Enregistrer par")}}</th>
+											<th scope="col">{{_("Action")}}</th>
+										  </tr>
+										</thead>
+										<tbody>
+											{% for reglement in reglements %}
+											  <tr>
+												<td>{{ reglement.numero|default_if_none:"" }}</td>
+												<td>{{ reglement.numero_piece|default_if_none:"" }}</td>
+												<td>{{ reglement.banque.libelle|default_if_none:"" }}</td>
+												<td>{{ reglement.mode_reglement|default_if_none:"" }}</td>
+												<td class="text-right">{{ reglement.montant|money_field }}</td>
+												<td>{{ reglement.devise.code|default_if_none:"" }}</td>
+												<td>{{ reglement.date_paiement|date:'d/m/Y'|default_if_none:"" }}</td>
+												<td><span class="badge badge-{{ reglement.statut_reversement_compagnie|lower|replace_espace }}" title="{{ reglement.statut_reversement_compagnie|date:'d/m/Y'|default_if_none:'' }}">{{ reglement.statut_reversement_compagnie|default_if_none:"" }}</span></td>
+												<!--td><span class="badge badge-{{ reglement.statut_commission|lower|replace_espace }}">{{ reglement.statut_commission|default_if_none:"" }}</span></td-->
+												<td>{{ reglement.created_at|date:'d/m/Y à H:i'|default_if_none:"" }}</td>
+												<td>{{ reglement.created_by|default_if_none:"" }}</td>
+												<td></td>
+											  </tr>
+											{% endfor %}
+										</tbody>
+								  </table>
+								</div>
 							</div>
 
 						</div>

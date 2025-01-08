@@ -256,7 +256,7 @@
                         </div>
                     </div>
                     <hr>
-                    <h6 class="o-primary">{{_('INTERMEDIAIRES')}}</h6>
+                    <h6 class="o-primary">{{_('APPORTEUR')}}</h6>
                     <hr>
                     <div class="row mb-3">
 
@@ -303,10 +303,9 @@
                         </div>
 
                     </div>
+                    <h6 class="o-primary d-none">{{_("APPORTEUR ET PROGRAMME")}}</h6>
                     <hr>
-                    <h6 class="o-primary">{{_("APPORTEUR ET PROGRAMME")}}</h6>
-                    <hr>
-                    <div class="row mb-3">
+                    <div class="row mb-3 d-none">
                         <div class="col-md-6">
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_('Autofinancement')}}</label>
@@ -325,8 +324,7 @@
                             </div>
                         </div>
                     </div>
-                    <hr>
-                    <h6 class="o-primary">{{_('SITUATION')}}</h6>
+                    <h6 class="o-primary">{{_("SITUATION POLICE")}}</h6>
                     <hr>
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -345,25 +343,6 @@
                                 <span class="form-control">{{mouvement_police.motif.libelle}}</span>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <hr>
-                    <h6 class="o-primary">{{_('PARTENAIRE')}}</h6>
-                    <hr>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-6 col-form-label">{{_("Logo du partenaire")}}</label>
-                                <div class="col-sm-6">
-                                    {% if police.logo_partenaire %}
-                                        <a href="{{request.scheme}}://{{request.META.HTTP_HOST}}{{police.logo_partenaire.url}}" target="_blank"><img style="width:50px;" src="{{request.scheme}}://{{request.META.HTTP_HOST}}{{police.logo_partenaire.url}}" alt="" srcset="" class="logo-partenaire"></a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="vl"></div>
-                        <div class="col-md-5">
-
                         </div>
                     </div>
 

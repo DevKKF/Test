@@ -1,6 +1,8 @@
 from ast import literal_eval
 import calendar
 import datetime
+from datetime import datetime
+from datetime import timedelta
 from collections import defaultdict
 from decimal import Decimal
 from functools import reduce
@@ -3169,6 +3171,7 @@ def add_reglement_compagnie(request):
         date_paiement = request.POST.get('date_paiement')
         reglement = request.POST.getlist('reglement')
         reglements_selectionnes = request.POST.getlist('reglement_selectionne')
+        date_reglement_compagnie = datetime.now(tz=timezone.utc)
 
         nature_operation_code = "REGCIE"
         nature_operation = NatureOperation.objects.filter(code=nature_operation_code).first()
@@ -3197,7 +3200,7 @@ def add_reglement_compagnie(request):
             if reglement_id is not None:
                 reglement = Reglement.objects.get(id=reglement_id)
                 reglement.statut_reversement_compagnie = StatutReversementCompagnie.REVERSE
-                reglement.date_reversement_compagnie = datetime.datetime.now(tz=timezone.utc)
+                reglement.date_reversement_compagnie = date_reglement_compagnie
                 reglement.save()
 
                 devise = reglement.devise if devise is None else devise
@@ -3237,15 +3240,20 @@ def add_reglement_compagnie(request):
 
         compagnies = Compagnie.objects.filter(bureau=request.user.bureau).order_by('nom')
 
+        print('Mode de règlement : ', modes_reglements)
+        print('Nature opération : ', natures_operations)
+        print('Compte de trésorerie : ', comptes_tresoreries)
+        print('Règlement compagnie : ', reglements_compagnies)
 
         for compagnie in compagnies:
             if compagnie.nombre_reglements_a_reverser_cie == 0:
                 compagnies = compagnies.exclude(id=compagnie.id)
 
 
-        today = datetime.datetime.now(tz=timezone.utc)
+        today = datetime.now(tz=timezone.utc)
         return render(request, 'modal_add_reglement_compagnie.html',
                       {'reglements_compagnies': reglements_compagnies,  'compagnies': compagnies, 'today': today, 'devises': devises, 'natures_operations': natures_operations, 'modes_reglements': modes_reglements, 'banques': banques, 'comptes_tresoreries': comptes_tresoreries, })
+
 
 @login_required
 def generer_bordereau_reglement_compagnie_pdf(request, operation_id):
@@ -3410,6 +3418,7 @@ def add_encaissement_commission(request):
         date_paiement = request.POST.get('date_paiement')
         #reglement = request.POST.getlist('reglement')
         reglements_selectionnes = request.POST.getlist('reglement_selectionne')
+        date_encaissement_commission = datetime.now(tz=timezone.utc)
 
         compte_difference = request.POST.get('compte_difference')
         debit_difference = request.POST.get('debit_difference').replace(" ", "")
@@ -3466,7 +3475,8 @@ def add_encaissement_commission(request):
                 montant_total_reglements_selectionne += montant_com_courtage + montant_com_gestion
                 nombre_reglements_selectionnes = nombre_reglements_selectionnes + 1
 
-                """                 #Lier l'opération au règlement
+                """                 
+                #Lier l'opération au règlement
                 operation_reglement = OperationReglement.objects.create(operation=operation, reglement=reglement, created_by=request.user)
                 operation_reglement.save()
                 """
@@ -3489,8 +3499,10 @@ def add_encaissement_commission(request):
                     journal.save()
 
                 # on constate l'encaissement total pour mettre a jour ledit statut
+                print("Encaissement de commission & Date du jour", date_encaissement_commission)
                 if reglement.etat_encaisse() == True:
                     reglement.statut_commission = StatutEncaissementCommission.ENCAISSEE
+                    reglement.date_encaissement_commission = date_encaissement_commission
                     reglement.save()
 
                 nombre_reglements_selectionnes = i
@@ -3540,13 +3552,17 @@ def add_encaissement_commission(request):
 
         comptes_exercices = CompteComptable.objects.all()
 
+        print('Mode de règlement : ', modes_reglements)
+        print('Nature opération : ', natures_operations)
+        print('Compte de trésorerie : ', comptes_tresoreries)
+        print('Règlement compagnie : ', reglements_compagnies)
 
         for compagnie in compagnies:
             if compagnie.nombre_reglements_a_recevoir_com == 0:
                 compagnies = compagnies.exclude(id=compagnie.id)
 
 
-        today = datetime.datetime.now(tz=timezone.utc)
+        today = datetime.now(tz=timezone.utc)
         return render(request, 'modal_add_encaissement_commission.html',
                       {'reglements_compagnies': reglements_compagnies,  'compagnies': compagnies, 'today': today, 'devises': devises, 'natures_operations': natures_operations, 'modes_reglements': modes_reglements, 'banques': banques, 'comptes_tresoreries': comptes_tresoreries, 'comptes_exercices': comptes_exercices,})
 
@@ -3596,6 +3612,7 @@ def add_encaissement_com_court_gest(request, type):
         date_paiement = request.POST.get('date_paiement')
         #reglement = request.POST.getlist('reglement')
         reglements_selectionnes = request.POST.getlist('reglement_selectionne')
+        date_encaissement_commission = datetime.now(tz=timezone.utc)
 
         compte_difference = request.POST.get('compte_difference')
         debit_difference = request.POST.get('debit_difference').replace(" ", "")
@@ -3655,7 +3672,8 @@ def add_encaissement_com_court_gest(request, type):
                 montant_total_reglements_selectionne += montant_com_courtage + montant_com_gestion
                 nombre_reglements_selectionnes = nombre_reglements_selectionnes + 1
 
-                """                 #Lier l'opération au règlement
+                """
+                #Lier l'opération au règlement
                 operation_reglement = OperationReglement.objects.create(operation=operation, reglement=reglement, created_by=request.user)
                 operation_reglement.save()
                 """
@@ -3694,7 +3712,9 @@ def add_encaissement_com_court_gest(request, type):
                 # on constate l'encaissement total pour mettre a jour ledit statut
                 if reglement.etat_encaisse() == True:
                     reglement.statut_commission = StatutEncaissementCommission.ENCAISSEE
+                    reglement.date_encaissement_commission = date_encaissement_commission
                     reglement.save()
+                    print("Changement de statut de la commission & Date du jour", date_encaissement_commission)
 
                 nombre_reglements_selectionnes = i
                 devise = reglement.devise
@@ -3713,7 +3733,6 @@ def add_encaissement_com_court_gest(request, type):
 
             montant_total_reglements_selectionne += journal.montant
         
-
 
         #mettre à jour le total dans operation
         operation.montant_total = montant_total_reglements_selectionne
@@ -3745,6 +3764,10 @@ def add_encaissement_com_court_gest(request, type):
 
         comptes_exercices = CompteComptable.objects.all()
 
+        print('Mode de règlement : ', modes_reglements)
+        print('Nature opération : ', natures_operations)
+        print('Compte de trésorerie : ', comptes_tresoreries)
+        print('Règlement compagnie : ', reglements_compagnies)
 
         for compagnie in compagnies:
             if type == "courtage" and compagnie.nombre_reglements_a_recevoir_com_court == 0:
@@ -3752,7 +3775,7 @@ def add_encaissement_com_court_gest(request, type):
             if type == "gestion" and compagnie.nombre_reglements_a_recevoir_com_gest == 0:
                 compagnies = compagnies.exclude(id=compagnie.id)
 
-        today = datetime.datetime.now(tz=timezone.utc)
+        today = datetime.now(tz=timezone.utc)
 
         return render(request, 'modal_add_encaissement_com_court_gest.html',
                       {'reglements_compagnies': reglements_compagnies,  'compagnies': compagnies, 'today': today, 'devises': devises, 'natures_operations': natures_operations, 'modes_reglements': modes_reglements, 'banques': banques, 'comptes_tresoreries': comptes_tresoreries, 'comptes_exercices': comptes_exercices, 'type': type})

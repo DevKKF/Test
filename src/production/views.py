@@ -10,6 +10,7 @@ from pprint import pprint
 import math
 from sqlite3 import Date
 from datetime import date
+from decimal import Decimal
 from venv import create
 
 from django.db.models import Max
@@ -77,6 +78,7 @@ from shared.helpers import generer_qrcode_carte, generate_numero_famille, genera
     generer_numero_ordre, generer_nombre_famille_du_mois, custom_model_to_dict
 from shared.veos import get_taux_euro_by_devise, get_taux_usd_by_devise, send_client_to_veos
 from sinistre.models import Sinistre, DossierSinistre
+from comptabilite.models import EncaissementCommission
 import traceback
 from django.core.files.base import File
 
@@ -654,7 +656,7 @@ def add_acompte(request, client_id):
             client_id = request.POST.get('client_id')
 
             acompte = Acompte(
-                montant=request.POST.get('montant', '').replace(' ', ''),
+                credit=request.POST.get('montant', '').replace(' ', ''),
                 date_versement=request.POST.get('date_versement', ''),
             )
             acompte.client = Client.objects.get(id=client_id)
@@ -665,7 +667,7 @@ def add_acompte(request, client_id):
                 'message': "Enregistrement effectué avec succès !",
                 'data': {
                     'id': acompte.pk,
-                    'montant': acompte.montant,
+                    'montant': acompte.credit,
                     'date_versement': acompte.date_versement,
                 }
             }
@@ -942,44 +944,6 @@ def add_police(request, client_id):
             )
             periode_couverture.save()
 
-            # Initialiser une liste pour les garanties
-            garanties = []
-            # Parcourir les données POST pour trouver les champs de garantie
-            for key, value in request.POST.items():
-                if key.startswith('garantie_'):
-                    garantie_id = key.split('_')[1]
-                    franchise = request.POST.get(f'franchise_{garantie_id}', '0')
-                    capital = request.POST.get(f'capital_{garantie_id}', '0')
-
-                    # Ajouter les données extraites à la liste
-                    garanties.append({
-                        'garantie_id': garantie_id,
-                        'franchise': franchise,
-                        'capital': capital,
-                    })
-
-            print("Garantie transmis", garanties)
-            print("Reponse Garantie", garantie)
-            # Enregistrer chaque garantie de la police
-            for garantie in garanties:
-                franchise = garantie['franchise'].replace(' ', '')
-                capital = garantie['capital'].replace(' ', '')
-
-                print("id garantie : ", garantie['garantie_id'])
-                print("franchise garantie : ", franchise)
-                print("capital garantie : ", capital)
-
-                police_garantie = PoliceGarantie(
-                    client_id=client_id,
-                    police_id=police.id,
-                    created_by=request.user,
-                    garantie_id=garantie['garantie_id'],
-                    formule_id=formule_id,
-                    franchise=franchise if franchise else None,
-                    capital=capital if capital else None,
-                )
-                police_garantie.save()
-
             historique_police_created = HistoriquePolice(
                 police_id=police.id,
                 bureau_id=client.bureau_id,
@@ -1019,6 +983,45 @@ def add_police(request, client_id):
             historique_police_created.save()
 
             dernier_historique = HistoriquePolice.objects.filter(police_id=police.id).order_by('-date_du_jour').first()
+
+            # Initialiser une liste pour les garanties
+            garanties = []
+            # Parcourir les données POST pour trouver les champs de garantie
+            for key, value in request.POST.items():
+                if key.startswith('garantie_'):
+                    garantie_id = key.split('_')[1]
+                    franchise = request.POST.get(f'franchise_{garantie_id}', '0')
+                    capital = request.POST.get(f'capital_{garantie_id}', '0')
+
+                    # Ajouter les données extraites à la liste
+                    garanties.append({
+                        'garantie_id': garantie_id,
+                        'franchise': franchise,
+                        'capital': capital,
+                    })
+
+            print("Garantie transmis", garanties)
+            print("Reponse Garantie", garantie)
+            # Enregistrer chaque garantie de la police
+            for garantie in garanties:
+                franchise = garantie['franchise'].replace(' ', '')
+                capital = garantie['capital'].replace(' ', '')
+
+                print("id garantie : ", garantie['garantie_id'])
+                print("franchise garantie : ", franchise)
+                print("capital garantie : ", capital)
+
+                police_garantie = PoliceGarantie(
+                    client_id=client_id,
+                    police_id=police.id,
+                    created_by=request.user,
+                    garantie_id=garantie['garantie_id'],
+                    formule_id=formule_id,
+                    franchise=franchise if franchise else None,
+                    capital=capital if capital else None,
+                )
+                police_garantie.save()
+
 
             police_assureur = PoliceAssureur(
                 client_id=client_id,
@@ -1393,17 +1396,73 @@ def modifier_police(request, police_id):
         if cout_police_courtier == "": cout_police_courtier = 0
         calcul_tm = request.POST.get('calcul_tm')
         devise_id = request.POST.get('devise')
-        ar_libelle = request.POST.get('risque_name')
-        ar_description = request.POST.get('risque_description')
-        date_entree = request.POST.get('date_entree')
-        date_sortie = request.POST.get('date_sortie')
-        mis_en_circulation = request.POST.get('mis_en_circulation')
 
         statut_contrat = request.POST.get('statut_contrat')
         statut_contrat = "CONTRAT"
 
         # Récupérer la police à mettre à jour
         police_old = Police.objects.get(id=police_id)
+
+        dernier_historique = HistoriquePolice.objects.filter(police_id=police_old.id).order_by('-date_du_jour').first()
+
+        # Historique apporteur police
+        apporteurs_old = ApporteurPolice.objects.filter(police_id=police_id)
+        for apporteur_old in apporteurs_old:
+            HistoriqueApporteurPolice.objects.create(
+                taux_com_affaire_nouvelle=apporteur_old.taux_com_affaire_nouvelle,
+                taux_com_renouvellement=apporteur_old.taux_com_renouvellement,
+                base_calcul=apporteur_old.base_calcul,
+                apporteur=apporteur_old.apporteur,
+                historique_police_id=dernier_historique.id,
+                date_effet=apporteur_old.date_effet,
+                statut_validite=apporteur_old.statut_validite,
+                created_at=apporteur_old.created_at,
+                updated_at=apporteur_old.updated_at,
+                deleted_at=apporteur_old.deleted_at,
+                added_by_id=apporteur_old.added_by_id,
+            )
+        # Historique taxe police
+        taxes_old = TaxePolice.objects.filter(police_id=police_id)
+        for taxe in taxes_old:
+            HistoriqueTaxePolice.objects.create(
+                montant=taxe.montant,
+                taxe=taxe.taxe,
+                historique_police_id=dernier_historique.id,
+                created_at=taxe.created_at,
+                updated_at=taxe.updated_at,
+            )
+
+        # relier l'historique police au mouvement police
+        # get 2nd last mouvement police
+
+        mouvement_police = MouvementPolice.objects.filter(police_id=police_id, historique_police_id__isnull=True).order_by('-id').first()
+        if mouvement_police:
+            mouvement_police.historique_police_id = dernier_historique.id
+            mouvement_police.save()
+
+        # creation du monvement police
+        movement_data_save = request.session.get('add_avenant')
+        print(movement_data_save)
+        if movement_data_save:
+            date_fin_periode_garantie = movement_data_save.get('date_fin_periode_garantie')
+            mouvement_police = MouvementPolice.objects.create(police_id=police_id,
+                                                              mouvement_id=movement_data_save.get('mouvement'),
+                                                              motif_id=movement_data_save.get('motif'),
+                                                              date_effet=movement_data_save.get('date_effet'),
+                                                              date_fin_periode_garantie=date_fin_periode_garantie if date_fin_periode_garantie else None,
+                                                              created_by=request.user
+                                                              )
+            mouvement_police.save()
+            mouvement = Mouvement.objects.get(id=mouvement_police.mouvement_id)
+
+            # si c'est un renouvellement, créer une période de couverture
+            if mouvement.code == "AVENANT":
+                # créer une ligne dans période de couverture
+                periode_couverture = PeriodeCouverture.objects.create(
+                    police_id=police_old.id,
+                    date_debut_effet=mouvement_police.date_effet,
+                    date_fin_effet=mouvement_police.date_fin_periode_garantie,
+                ).save()
 
         # Créer l'historique avant la mise à jour
         histtorique_police = HistoriquePolice.objects.create(
@@ -1443,67 +1502,6 @@ def modifier_police(request, police_id):
             date_du_jour=datetime.now(),
             created_by=request.user,
         )
-
-        dernier_historique = HistoriquePolice.objects.filter(police_id=police_old.id).order_by('-date_du_jour').first()
-
-        # Historique apporteur police
-        apporteurs_old = ApporteurPolice.objects.filter(police_id=police_id)
-        for apporteur_old in apporteurs_old:
-            HistoriqueApporteurPolice.objects.create(
-                taux_com_affaire_nouvelle=apporteur_old.taux_com_affaire_nouvelle,
-                taux_com_renouvellement=apporteur_old.taux_com_renouvellement,
-                base_calcul=apporteur_old.base_calcul,
-                apporteur=apporteur_old.apporteur,
-                historique_police_id=dernier_historique.id,
-                date_effet=apporteur_old.date_effet,
-                statut_validite=apporteur_old.statut_validite,
-                created_at=apporteur_old.created_at,
-                updated_at=apporteur_old.updated_at,
-                deleted_at=apporteur_old.deleted_at,
-                added_by_id=apporteur_old.added_by_id,
-            )
-        # Historique taxe police
-        taxes_old = TaxePolice.objects.filter(police_id=police_id)
-        for taxe in taxes_old:
-            HistoriqueTaxePolice.objects.create(
-                montant=taxe.montant,
-                taxe=taxe.taxe,
-                historique_police_id=dernier_historique.id,
-                created_at=taxe.created_at,
-                updated_at=taxe.updated_at,
-            )
-
-        # relier l'historique police au mouvement police
-        # get 2nd last mouvement police
-
-        mouvement_police = MouvementPolice.objects.filter(police_id=police_id, historique_police_id=dernier_historique.id).order_by('-id').first()
-        if mouvement_police:
-            mouvement_police.historique_police_id = dernier_historique.id
-            mouvement_police.save()
-
-        # creation du monvement police
-        movement_data_save = request.session.get('add_avenant')
-        print(movement_data_save)
-        if movement_data_save:
-            date_fin_periode_garantie = movement_data_save.get('date_fin_periode_garantie')
-            mouvement_police = MouvementPolice.objects.create(police_id=police_id,
-                                                              mouvement_id=movement_data_save.get('mouvement'),
-                                                              motif_id=movement_data_save.get('motif'),
-                                                              date_effet=movement_data_save.get('date_effet'),
-                                                              date_fin_periode_garantie=date_fin_periode_garantie if date_fin_periode_garantie else None,
-                                                              created_by=request.user
-                                                              )
-            mouvement_police.save()
-            mouvement = Mouvement.objects.get(id=mouvement_police.mouvement_id)
-
-            # si c'est un renouvellement, créer une période de couverture
-            if mouvement.code == "AVENANT":
-                # créer une ligne dans période de couverture
-                periode_couverture = PeriodeCouverture.objects.create(
-                    police_id=police_old.id,
-                    date_debut_effet=mouvement_police.date_effet,
-                    date_fin_effet=mouvement_police.date_fin_periode_garantie,
-                ).save()
 
         # Mise à jour de la police
         police = Police.objects.filter(id=police_id).update(
@@ -1625,46 +1623,56 @@ def modifier_police(request, police_id):
         #Si des garanties sont chargées
         if len(garanties) > 0:
 
-            # Supprime les anciennes relations si nécessaire
-            PoliceGarantie.objects.filter(police_id=police_old.id).delete()
-
             # Enregistrer chaque garantie de la police
             for garantie in garanties:
+
                 franchise = garantie['franchise'].replace(' ', '')
                 capital = garantie['capital'].replace(' ', '')
 
-                PoliceGarantie.objects.create(
-                    client_id=police.client_id,
-                    police_id=police.id,
-                    created_by=request.user,
-                    garantie_id=garantie['garantie_id'],
-                    formule_id=formule_id,
-                    franchise=franchise if franchise else None,
-                    capital=capital if capital else None,
-                )
+                garantie_existe = PoliceGarantie.objects.filter(police_id=police_old.id, garantie_id=garantie['garantie_id'])
+
+                if garantie_existe:
+                    # Mise à jour de la garantie
+                    garantie_existe = PoliceGarantie.objects.filter(police_id=police_old.id).update(
+                        formule_id=formule_id,
+                        franchise=franchise if franchise else None,
+                        capital=capital if capital else None,
+                        updated_by=request.user
+                    )
+                else:
+                    PoliceGarantie.objects.create(
+                        client_id=police.client_id,
+                        police_id=police.id,
+                        created_by=request.user,
+                        garantie_id=garantie['garantie_id'],
+                        formule_id=formule_id,
+                        franchise=franchise if franchise else None,
+                        capital=capital if capital else None,
+                    )
 
         # Créer un nouveau assureur principal
-        police_assureur = PoliceAssureur(
-            client_id=police.client_id,
-            historique_police_id=dernier_historique.id,
-            type_compagnie_id=typecompagnie_prin.id,
-            compagnie_id=compagnie.id,
-            date_creation=datetime.now(),
-            created_by=request.user
-        )
-        police_assureur.save()
-
-        # Si type_compagnie est choisi avec une autre compagnie choisie
-        if typecompagnie and compagnie_id:
-            police_assureur_autre = PoliceAssureur(
+        if typecompagnie_prin:
+            police_assureur = PoliceAssureur(
                 client_id=police.client_id,
-                historique_police_id=dernier_historique.id,
-                type_compagnie_id=typecompagnie,
-                compagnie_id=compagnie_id,
+                historique_police=histtorique_police,
+                type_compagnie_id=typecompagnie_prin.id,
+                compagnie_id=compagnie.id,
                 date_creation=datetime.now(),
                 created_by=request.user
             )
-            police_assureur_autre.save()
+            police_assureur.save()
+
+            # Si type_compagnie est choisi avec une autre compagnie choisie
+            if typecompagnie and compagnie_id:
+                police_assureur_autre = PoliceAssureur(
+                    client_id=police.client_id,
+                    historique_police=histtorique_police,
+                    type_compagnie_id=typecompagnie,
+                    compagnie_id=compagnie_id,
+                    date_creation=datetime.now(),
+                    created_by=request.user
+                )
+                police_assureur_autre.save()
 
         # enregistrer les autres taxes
         taxes = request.POST.get('liste_autres_taxes_modification')
@@ -1686,7 +1694,6 @@ def modifier_police(request, police_id):
             'data': {
                 'id': police.pk,
                 'numero': police.numero,
-                'compagnie': police_assureur.compagnie.nom,
                 'prime_ht': dernier_historique.prime_ht,
                 'prime_ttc': dernier_historique.prime_ttc,
                 'commission_courtage': dernier_historique.commission_courtage,
@@ -1750,10 +1757,12 @@ def modifier_police(request, police_id):
 
         assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id, type_compagnie_id=1).first() if dernier_historique else []
         autre_assureur_police = PoliceAssureur.objects.filter(historique_police_id=dernier_historique.id).exclude(type_compagnie_id=1).first()
+        compagnie_autre = Compagnie.objects.exclude(id=assureur_police.compagnie_id).order_by('nom')
 
         print('dernier historique : ', dernier_historique.police_id)
         print('assureur principal : ', assureur_police)
         print('autre assureur : ', autre_assureur_police)
+        pprint(compagnie_autre)
 
         typecompagnie = TypeCompagnie.objects.exclude(code="ASSPR").order_by('libelle')
         formules = Formule.objects.order_by('libelle')
@@ -1769,7 +1778,7 @@ def modifier_police(request, police_id):
                        'fractionnements': fractionnements, 'modes_reglements': modes_reglements,
                        'regularisations': regularisations, 'typecompagnie': typecompagnie,
                        'devises': devises, 'utilisateurs': utilisateurs, 'taxes': taxes,
-                       'bureau_taxes': bureau_taxes, 'garanties': garanties,
+                       'bureau_taxes': bureau_taxes, 'garanties': garanties, 'compagnie_autre': compagnie_autre,
                        'apporteurs': apporteurs, 'bases_calculs': bases_calculs, 'modes_calculs': modes_calculs,
                        'apporteurs_police': apporteurs_police, 'type_majoration_contrat': type_majoration_contrat, 'types_prefinancements': types_prefinancements,
                        })
@@ -1783,16 +1792,6 @@ def list_polices(request, client_id):
 
 
 # Charger les garanties en fonction de la formule
-def get_garanties_by_formule_modifi_cation(request):
-    police_id = request.GET.get('police_id')
-    formule_id = request.GET.get('formule_id')
-
-    policegrantie = PoliceGarantie.objects.filter(police_id=police_id)
-
-    garanties = GarantieFormule.objects.filter(formule_id=formule_id).values('garantie__id', 'garantie__nom')
-    garanties = [{'id': g['garantie__id'], 'nom': g['garantie__nom']} for g in garanties]
-    return JsonResponse({'garanties': list(garanties)})
-
 def get_garanties_by_formule_modification(request):
     police_id = request.GET.get('police_id')
     formule_id = request.GET.get('formule_id')
@@ -1833,8 +1832,8 @@ def get_garanties_by_formule_modification(request):
 
     return JsonResponse({'garanties': garanties})
 
+
 # Importer des aliments via le fichier excel
-@login_required
 @csrf_exempt
 def import_excel_aliments(request):
     if request.method == "POST":
@@ -1933,7 +1932,6 @@ def import_excel_aliments(request):
 
 
 # Importer des aliments via le formulaire
-@login_required
 @csrf_exempt
 def import_formulaire_aliments(request):
     if request.method == 'POST':
@@ -2861,18 +2859,20 @@ def add_quittance(request, police_id):
     error_message = ""
 
     if request.method == 'POST':
-        commission_intermediaires = request.POST.get('commission_intermediaire').replace(' ', '')
+        commission_intermediaires = supprimer_espaces(request.POST.get('commission_intermediaire'))
         nature_quittance_id = request.POST.get('nature_quittance')
         type_quittance_id = request.POST.get('type_quittance')
-        prime_ht = request.POST.get('prime_ht').replace(' ', '')
-        cout_police_courtier = request.POST.get('cout_police_courtier').replace(' ', '')
-        cout_police_compagnie = request.POST.get('cout_police_compagnie').replace(' ', '')
-        taxe = request.POST.get('taxe').replace(' ', '')
-        autres_taxes = request.POST.get('autres_taxes').replace(' ', '')
-        prime_ttc = request.POST.get('prime_ttc').replace(' ', '')
-        taux_com_courtage = request.POST.get('taux_com_courtage').replace(' ', '')
+        prime_ht = supprimer_espaces(request.POST.get('prime_ht'))
+        cout_police_courtier_req = request.POST.get('cout_police_courtier')
+        cout_police_courtier = supprimer_espaces(cout_police_courtier_req) if cout_police_courtier_req else 0
+        cout_police_compagnie_req = request.POST.get('cout_police_compagnie')
+        cout_police_compagnie = supprimer_espaces(cout_police_compagnie_req) if cout_police_compagnie_req else 0
+        taxe = supprimer_espaces(request.POST.get('taxe'))
+        autres_taxes = supprimer_espaces(request.POST.get('autres_taxes'))
+        prime_ttc = supprimer_espaces(request.POST.get('prime_ttc'))
+        taux_com_courtage = supprimer_espaces(request.POST.get('taux_com_courtage'))
         if taux_com_courtage == "": taux_com_courtage = 0
-        commission_courtage = request.POST.get('commission_courtage').replace(' ', '')
+        commission_courtage = supprimer_espaces(request.POST.get('commission_courtage'))
         if commission_courtage == "": commission_courtage = 0
         date_emission = request.POST.get('date_emission')
         date_debut = request.POST.get('date_debut')
@@ -2880,8 +2880,10 @@ def add_quittance(request, police_id):
 
         # Convert numeric values to appropriate types or set default to 0
         prime_ht = int(prime_ht) if prime_ht else 0
-        cout_police_courtier = int(cout_police_courtier) if cout_police_courtier else 0
-        cout_police_compagnie = int(cout_police_compagnie) if cout_police_compagnie else 0
+        if cout_police_courtier :
+            cout_police_courtier = int(cout_police_courtier) if cout_police_courtier else 0
+        if cout_police_compagnie:
+            cout_police_compagnie = int(cout_police_compagnie) if cout_police_compagnie else 0
         taxe = int(taxe) if taxe else 0
         autres_taxes = int(autres_taxes) if autres_taxes else 0
         prime_ttc = int(prime_ttc) if prime_ttc else 0
@@ -3197,6 +3199,63 @@ def add_reglement(request, police_id):
                       {'police': police, 'today': today, 'quittances_impayees': quittances_impayees, 'devises': devises,
                        'natures_operations': natures_operations, 'modes_reglements': modes_reglements,
                        'banques': banques, 'comptes_tresoreries': comptes_tresoreries, 'uuid_reglement': uuid_reglement})
+
+
+@login_required
+def add_lettrage(request, police_id):
+    police = Police.objects.get(id=police_id)
+    natures_operations = NatureOperation.objects.all()
+    devises = Devise.objects.all()
+    modes_reglements = ModeReglement.objects.all()
+    comptes_tresoreries = CompteTresorerie.objects.filter(status=True)
+    banques = Banque.objects.filter(bureau=request.user.bureau, status=True)
+    quittances_impayees = Quittance.objects.filter(police_id=police_id, statut=StatutQuittance.IMPAYE,
+                                                   statut_validite=StatutValidite.VALIDE, import_stats=False)
+    acomptes = Acompte.objects.filter(client_id=police.client_id)
+
+    uuid_lettrage = uuid.uuid4()
+    today = datetime.now(tz=timezone.utc)
+
+    if request.method == 'POST':
+        date_paiement = datetime.now(tz=timezone.utc)
+        acomptes_utilises = request.POST.getlist('id_acompte')
+        quittance_a_regler = request.POST.getlist('quittance_regle')
+        montant_total_acomptes=0
+
+        # Conversion des montants reçus
+        try:
+            for acomptes in acomptes_utilises:
+                acompte = Acompte.objects.filter(id=acomptes).first()
+                if acompte:
+                    montant_total_acomptes += Decimal(acompte.solde)
+        except Exception as e:
+            return JsonResponse(
+                {'statut': 0, 'message': 'Erreur dans le format des montants des acomptes.', 'erreur': str(e)})
+
+        # Initialisation des variables
+        montant_total_quittances = Decimal(0)
+        quittances_reglees = []
+        erreurs = []
+
+        print('acomptes_utilises', acomptes_utilises)
+        print('quittance_a_regler', quittance_a_regler)
+        print('montant_total_acomptes', montant_total_acomptes)
+        print('montant_total_quittances', montant_total_quittances)
+
+        response = {
+            'statut': 1,
+            'message': "Lettrage de compte effectué, veuillez vérifier !",
+            'data': {}
+        }
+
+        return JsonResponse(response)
+
+    else:
+
+        return render(request, 'police/modal_add_lettrage.html',
+                      {'police': police, 'today': today, 'quittances_impayees': quittances_impayees, 'devises': devises,
+                       'natures_operations': natures_operations, 'modes_reglements': modes_reglements, 'acomptes': acomptes,
+                       'banques': banques, 'comptes_tresoreries': comptes_tresoreries, 'uuid_lettrage': uuid_lettrage})
 
 
 # all police avenants
@@ -7177,8 +7236,8 @@ def add_client(request):
             date_naissance = datetime.strptime(date_naissance, '%Y-%m-%d').date()
         else:
             date_naissance = None
-
-        client_created = Client.objects.create(bureau_id=request.user.bureau.id,
+        
+        client_created = Client.objects.create(bureau_id=67,
                                        nom=request.POST.get('nom'),
                                        prenoms=request.POST.get('prenoms'),
                                        secteur_activite_id=request.POST.get('secteur_activite_id'),
@@ -7510,7 +7569,7 @@ class PoliceClientView(TemplateView):
 def get_compagnies(request):
     # Récupérer les paramètres de la requête
     type_id = request.GET.get('type_id')
-    exclude_compagnie_id = request.GET.get('exclude_compagnie_id')
+    exclude_compagnie_id = request.GET.get('compagnie_id')
     print("Compagnie choisie : ", exclude_compagnie_id)
     print("Type de compagnie : ", type_id)
     # Vérifiez que le type_id est fourni
@@ -7529,6 +7588,12 @@ def get_compagnies(request):
         return JsonResponse({'compagnies': compagnies_data}, safe=False)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+def produits_by_branche(request, branche_id):
+    produits = Produit.objects.filter(branche_id=branche_id)
+    produits_serialize = serializers.serialize('json', produits)
+    return HttpResponse(produits_serialize, content_type='application/json')
 
 
 #Liste des contacts du client
@@ -7652,11 +7717,21 @@ class AcompteClientView(TemplateView):
 
             bureaux = Bureau.objects.filter(id=request.user.bureau.id)
 
+            quittances = Quittance.objects.filter(police__client_id=client_id, statut=StatutQuittance.IMPAYE, statut_validite=StatutValidite.VALIDE)
+
+            solde_acomptes = sum(acompte.solde for acompte in acomptes)
+            solde_quittances = sum(quittance.solde for quittance in quittances)
+            difference_acomptes_quittances = solde_acomptes - solde_quittances
+
             context_perso = {
                 'client': client,
                 'acomptes': acomptes,
                 'pays': pays,
-                'bureaux': bureaux
+                'bureaux': bureaux,
+                'quittances': quittances,
+                'solde_acomptes': solde_acomptes,
+                'solde_quittances': solde_quittances,
+                'difference_acomptes_quittances': difference_acomptes_quittances
             }
 
             context = {**context_original, **context_perso}
@@ -9424,7 +9499,7 @@ def rejet_prospect(request, prospect_id):
     }, status=404)
 
 
-#Annulation de quittance
+# Annulation de quittance
 @method_decorator(login_required, name='dispatch')
 class AnnulerQuittanceView(TemplateView):
     template_name = 'police/annuler_quittance.html'
@@ -9440,7 +9515,6 @@ class AnnulerQuittanceView(TemplateView):
         ]
         return self.render_to_response(context)
 
-    # traitement à l'appel du lien en post pour la recherche de dossier et la suppresion de dossier ou police
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         # recuperation de tout ce qui peut venir en post que ca soit pour la recherche ou la suppression
@@ -9457,12 +9531,13 @@ class AnnulerQuittanceView(TemplateView):
 
         # cette condition précise que nous venons faire la recherche
         if btn_recherche and numero_quittance:
-            quittance = Quittance.objects.filter(numero=numero_quittance, bureau=request.user.bureau, statut=StatutQuittance.IMPAYE).first()
+            quittance = Quittance.objects.filter(numero=numero_quittance, bureau=request.user.bureau, statut_validite=StatutValiditeQuittance.VALIDE).first()
             # dd(quittance)
 
             context['numero_quittance'] = numero_quittance
             context['quittance'] = quittance
 
+        """
         # cette condition précise que nous venons faire l'annulation de la quittance
         if submit_delete_item and id_item:
 
@@ -9482,7 +9557,7 @@ class AnnulerQuittanceView(TemplateView):
                     if reglements.filter(statut_reversement_compagnie=StatutReversementCompagnie.REVERSE).first():
                         context['reverse_reglement'] = True
                         #Avoir l'accord de la finance (GILDAS)
-    
+
                     else:
                         context['reglements_existants_annules'] = True
                         #Annuler les règlements sur la quittances
@@ -9492,10 +9567,10 @@ class AnnulerQuittanceView(TemplateView):
                             reglement.statut_validite = StatutValidite.SUPPRIME
                             reglement.observation = motif_delete_item
                             #reglement.save #décommenter après
-    
+
                             ActionLog.objects.create(done_by=request.user, action="annulation_reglement", description="Annulation d'un règlement", table="reglement", row=reglement.pk)
                             #
-    
+
                         # Annuler la quittance
                         quittance.deleted_by = request.user
                         quittance.statut_validite = StatutValidite.SUPPRIME
@@ -9524,8 +9599,8 @@ class AnnulerQuittanceView(TemplateView):
                 ActionLog.objects.create(done_by=request.user, action="annulation_quittance",
                                          description="Annulation d'une quittances", table="quittances",
                                          row=quittance.pk)
-
-            # print(code_dossier_police)
+        """
+        # print(code_dossier_police) """
         return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
@@ -9535,3 +9610,165 @@ class AnnulerQuittanceView(TemplateView):
             "opts": self.model._meta,
         }
 
+
+# Annulation de la quittance
+def add_annuler_quittance(request):
+    if request.method == "POST":
+        id_item = request.POST.get('id_item')
+        motif_delete_item = request.POST.get('motif_delete_item')
+        type_commission = "GESTION" if type == "courtage" else "COURTAGE"
+
+        quittance = Quittance.objects.filter(id=id_item, bureau=request.user.bureau).first()
+
+        if quittance:
+            # Date de paiement
+            date_annulation_quittance = datetime.now(tz=timezone.utc)
+
+            # Récupération de la police associée à la quittance
+            police = Police.objects.filter(id=quittance.police_id).first()
+
+            # Récupérer les règlements sur la quittance
+            reglements = Reglement.objects.filter(quittance=quittance, bureau=request.user.bureau)
+
+            if reglements:
+                # Annuler les règlements sur la quittance
+                for reglement in reglements:
+                    if reglement.statut_reversement_compagnie == "NON REVERSE":
+                        # Créer un nouveau règlement et passer les données comme une quittance ristourne
+                        reglement_ristourne = Reglement.objects.create(quittance_id=quittance.id,
+                                                                       montant=-(reglement.montant),
+                                                                       montant_compagnie=-(reglement.montant_compagnie),
+                                                                       compagnie=reglement.compagnie,
+                                                                       devise_id=reglement.devise_id,
+                                                                       # banque_id=reglement.banque_id,
+                                                                       banque_emettrice=reglement.banque_emettrice,
+                                                                       compte_tresorerie_id=reglement.compte_tresorerie_id,
+                                                                       numero_piece=reglement.numero_piece,
+                                                                       montant_com_courtage=-(reglement.montant_com_courtage),
+                                                                       montant_com_intermediaire=reglement.montant_com_intermediaire,
+                                                                       mode_reglement=reglement.mode_reglement,
+                                                                       created_by=reglement.created_by,
+                                                                       statut_validite=StatutValidite.VALIDE,
+                                                                       bureau=reglement.bureau)
+                        reglement_ristourne.save()
+                        # mettre à jour son numéro
+                        reglement_ristourne.numero = 'R' + str(Date.today().year) + str(reglement_ristourne.pk).zfill(6)
+                        reglement_ristourne.statut_reversement_compagnie = StatutReversementCompagnie.REVERSE
+                        reglement_ristourne.statut_validite = StatutValidite.SUPPRIME
+                        reglement_ristourne.save()
+
+                    if reglement.statut_reversement_compagnie == "REVERSE":
+                        if reglement.statut_commission == "ENCAISSEE":
+                            encaiss_com = EncaissementCommission.objects.create(reglement=reglement,
+                                                                                created_by=request.user,
+                                                                                montant_com_courtage=-(reglement.montant_com_courtage),
+                                                                                montant_com_gestion=-(reglement.montant_com_gestion) if reglement.montant_com_gestion else 0,
+                                                                                type_commission=type_commission)
+                            encaiss_com.save()
+
+                        # Créer un nouveau règlement et passer les données comme une quittance ristourne
+                        reglement_ristourne = Reglement.objects.create(quittance_id=quittance.id,
+                                                                       montant=-(reglement.montant),
+                                                                       montant_compagnie=-(reglement.montant_compagnie),
+                                                                       compagnie=reglement.compagnie,
+                                                                       devise_id=reglement.devise_id,
+                                                                       # banque_id=reglement.banque_id,
+                                                                       banque_emettrice=reglement.banque_emettrice,
+                                                                       compte_tresorerie_id=reglement.compte_tresorerie_id,
+                                                                       numero_piece=reglement.numero_piece,
+                                                                       montant_com_courtage=-(reglement.montant_com_courtage),
+                                                                       montant_com_intermediaire=reglement.montant_com_intermediaire,
+                                                                       mode_reglement=reglement.mode_reglement,
+                                                                       created_by=reglement.created_by,
+                                                                       statut_validite=StatutValidite.VALIDE,
+                                                                       bureau=reglement.bureau)
+                        reglement_ristourne.save()
+                        # mettre à jour son numéro
+                        reglement_ristourne.numero = 'R' + str(Date.today().year) + str(reglement_ristourne.pk).zfill(6)
+                        reglement_ristourne.statut_reversement_compagnie = StatutReversementCompagnie.REVERSE
+                        reglement_ristourne.statut_validite = StatutValidite.SUPPRIME
+                        reglement_ristourne.save()
+
+                    # traitement reglement
+                    reglement.reg_deleted_by = request.user
+                    reglement.statut_reversement_compagnie = StatutReversementCompagnie.REVERSE
+                    reglement.statut_validite = StatutValidite.SUPPRIME
+                    reglement.observation = motif_delete_item
+                    reglement.save()
+
+                    # Créer une ligne d'acompte
+                    acompte = Acompte(
+                                    credit=reglement.montant,
+                                    solde=reglement.montant,
+                                    periode_debut=police.date_debut_effet,
+                                    periode_fin=police.date_debut_effet,
+                                    date_versement=datetime.now(),
+                                    created_at=datetime.now(),
+                                    observation=motif_delete_item,
+                                )
+                    acompte.client_id = police.client_id
+                    acompte.police_id = police.id
+                    acompte.quittance_id = quittance.id
+                    acompte.save()
+
+                # Créer une nouvelle quittance ristourne
+                quittance_ristourne = Quittance.objects.create(police_id=quittance.police_id,
+                                                     compagnie=quittance.compagnie,
+                                                     devise=quittance.devise,
+                                                     nature_quittance_id=quittance.nature_quittance_id,
+                                                     type_quittance_id=quittance.type_quittance_id,
+                                                     cout_police_courtier=quittance.cout_police_courtier,
+                                                     cout_police_compagnie=quittance.cout_police_compagnie,
+                                                     taxe=quittance.taxe,
+                                                     autres_taxes=quittance.autres_taxes,
+                                                     prime_ht=-(quittance.prime_ht),
+                                                     prime_ttc=-(quittance.prime_ttc),
+                                                     montant_regle=0,
+                                                     solde=quittance.solde,
+                                                     # taux_euro=get_taux_euro_by_devise(devise.code) if devise else None,
+                                                     # taux_usd=get_taux_usd_by_devise(devise.code) if devise else None,
+                                                     taux_com_courtage=quittance.taux_com_courtage,
+                                                     commission_courtage=-(quittance.commission_courtage),
+                                                     commission_intermediaires=quittance.commission_intermediaires,
+                                                     date_emission=quittance.date_emission,
+                                                     date_debut=quittance.date_debut,
+                                                     date_fin=quittance.date_fin,
+                                                     statut=quittance.statut,
+                                                     created_by=quittance.created_by,
+                                                     bureau=quittance.bureau
+                                                     )
+
+                # Mettre a jour le numero
+                code_bureau = request.user.bureau.code
+                numero = str(code_bureau) + str(Date.today().year)[-2:] + '-' + str(quittance_ristourne.pk).zfill(
+                    7) + '-Q'
+                quittance_ristourne.numero = numero
+                quittance_ristourne.save()
+
+                # mise à jour du solde de la quittance
+                quittance_ristourne.montant_regle = quittance.prime_ttc
+                quittance_ristourne.solde = 0
+                quittance_ristourne.statut = StatutQuittance.PAYE
+                quittance_ristourne.updated_at = date_annulation_quittance
+                quittance_ristourne.save()
+
+                # Annuler la quittance
+                quittance.deleted_by = request.user
+                quittance.statut_validite = StatutValiditeQuittance.ANNULEE
+                quittance.observation = motif_delete_item
+                quittance.save()
+
+                return redirect(reverse('police_quittances', args=[police.id]))
+
+            # Annuler la quittance
+            quittance.deleted_by = request.user
+            quittance.statut_validite = StatutValiditeQuittance.ANNULEE
+            quittance.observation = motif_delete_item
+            quittance.save()
+
+            return redirect(reverse('police_quittances', args=[police.id]))
+
+        else:
+            return redirect(reverse('annuler_quittance'))
+
+    return redirect(reverse('annuler_quittance'))

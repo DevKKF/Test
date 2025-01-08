@@ -61,7 +61,7 @@ class FilialeForm(forms.ModelForm):
 class AcompteForm(forms.ModelForm):
     class Meta:
         model = Acompte
-        fields = ['montant', 'date_versement' ]
+        fields = ['debit', 'credit', 'date_versement' ]
 
 
 #

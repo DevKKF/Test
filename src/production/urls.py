@@ -34,10 +34,11 @@ urlpatterns = [
     path('import-formulaire-aliments/', views.import_formulaire_aliments, name='import_formulaire_aliments'),
     path('get_garanties_by_produit/', views.get_garanties_by_produit, name='get_garanties_by_produit'),
     path('get_garanties_by_formule/', views.get_garanties_by_formule, name='get_garanties_by_formule'),
+    path('get_garanties_by_formule_modification/', views.get_garanties_by_formule_modification, name='get_garanties_by_formule_modification'),
     path('supprimer_aliment/<int:index>/', views.supprimer_aliment, name='supprimer_aliment'),
     path('clear_session/', views.clear_session, name='clear_session'),
     path('get_compagnies/', views.get_compagnies, name='get_compagnies'),
-    path('get_garanties_by_formule_modification/', views.get_garanties_by_formule_modification, name='get_garanties_by_formule_modification'),
+    path('branche/<int:branche_id>/produits',views.produits_by_branche, name='branche_produits'),
 
     path("client/<int:client_id>/liste-contact", ContactClientView.as_view(), name='client_contacts'),
     path("client/<int:client_id>/contact/add", views.add_contact, name='client_add_contact'),
@@ -71,6 +72,7 @@ urlpatterns = [
     path('quittance/<int:quittance_id>/police/<int:police_id>/add_document', views.add_document_to_quittance, name='add_document_to_quittance'),
     #
     path('police/<int:police_id>/add_reglement', views.add_reglement, name='add_reglement'),
+    path('police/<int:police_id>/add_lettrage', views.add_lettrage, name='add_lettrage'),
     path('quittance/<int:quittance_id>', views.details_quittance, name='details_quittance'),
     path('police/<int:police_id>/avenants', PoliceAvenantsView.as_view(), name='police_avenants'),
     path('police/<int:police_id>/add_avenant', views.add_avenant, name='add_avenant'),
@@ -172,6 +174,7 @@ urlpatterns = [
 
     #
     path('annuler_quittance/', AnnulerQuittanceView.as_view(), name='annuler_quittance'),
+    path('add_annuler_quittance/', views.add_annuler_quittance, name='add_annuler_quittance'),
 ]
 
 
