@@ -537,7 +537,7 @@ class ParamProduitCompagnieInline(admin.TabularInline):
 
 class ProduitAdmin(admin.ModelAdmin):
     inlines = [ParamProduitCompagnieInline]
-    list_display = ('nom', 'branche')
+    list_display = ('code', 'nom', 'branche')
     list_per_page = 20
 
 class BrancheAdmin(admin.ModelAdmin):

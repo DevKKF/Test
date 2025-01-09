@@ -240,12 +240,14 @@ $(document).ready(function () {
                 $('.if_personne_physique input').attr('required', 'required');
                 $('.if_personne_physique select').attr('required', 'required');
                 $('#date_naissance').closest('.form-group').show();
+                $('#date_creation').closest('.form-group').hide();
                 break;
             case 2://personne morale
                 $('.if_personne_morale').show();
                 $('.if_personne_morale input').attr('required', 'required');
                 $('.if_personne_morale select').attr('required', 'required');
                 $('#date_naissance').closest('.form-group').hide();
+                $('#date_creation').closest('.form-group').show();
                 break;
         }
     }
@@ -271,12 +273,14 @@ $(document).ready(function () {
                 $('.if_personne_physique input').attr('required', 'required');
                 $('.if_personne_physique select').attr('required', 'required');
                 $('#date_naissance').closest('.form-group').show();
+                $('#date_creation').closest('.form-group').hide();
                 break;
             case 2://personne morale
                 $('.if_personne_morale').show();
                 $('.if_personne_morale input').attr('required', 'required');
                 $('.if_personne_morale select').attr('required', 'required');
                 $('#date_naissance').closest('.form-group').hide();
+                $('#date_creation').closest('.form-group').show();
                 break;
         }
     }
@@ -6920,49 +6924,68 @@ $(document).ready(function () {
         let href = $(this).data('href');
 
         $('#olea_std_dialog_box').load(href, function () {
-
-            //appliquer le mask de saisie sur les champs montant
+            // Appliquer le mask de saisie sur les champs montant
             AppliquerMaskSaisie();
 
-            $('#modal-reglement').attr('data-backdrop', 'static').attr('data-keyboard', false);
+            $('#modal-reglement')
+                .attr('data-backdrop', 'static')
+                .attr('data-keyboard', false)
+                .find('.modal-title')
+                .text(modal_title);
 
-            $('#modal-reglement').find('.modal-title').text(modal_title);
-            $('#modal-reglement').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
-            $('#modal-reglement').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+            $('#modal-reglement').find('#btn_valider').attr({
+                'data-model_name': model_name,
+                'data-href': href
+            });
 
-            //
+            $('#modal-reglement')
+                .find('.modal-dialog')
+                .addClass('modal-xl')
+                .removeClass('modal-lg');
+
             $('#modal-reglement').modal();
 
-            $(document).on('change', '.checkbox_quittance_a_regler', function () {
-                let input_montant_a_regler = $(this).closest('tr').find('.montant_a_regler');
-                let solde_quittance = parseFloat($(this).closest('tr').find('.solde_quittance').val()) || 0;
-                let input_solde_apres = $(this).closest('tr').find('.solde_apres');
+            // Activer ou désactiver le bouton en fonction des validations
+            function toggleSaveButton() {
+                let montant_total_a_regler = parseFloat($('.montant_total_a_regler').val()) || 0;
+                if (montant_total_a_regler > 0) {
+                    $('#btn_save_reglement').removeAttr('disabled');
+                } else {
+                    $('#btn_save_reglement').attr('disabled', 'true');
+                }
+            }
 
-                // Initialisation des valeurs
-                input_montant_a_regler.val(0);
-                input_solde_apres.val(solde_quittance);
+            // Gérer le clic sur les checkboxes
+            $(document).on('change', '.checkbox_quittance_a_regler', function () {
+                let row = $(this).closest('tr');
+                let input_montant_a_regler = row.find('.montant_a_regler');
+                let solde_quittance = parseFloat(row.find('.solde_quittance').val()) || 0;
+                let input_solde_apres = row.find('.solde_apres');
 
                 if (this.checked) {
-                    input_montant_a_regler.removeAttr('readonly');
-                    input_montant_a_regler.attr('required', true).val(solde_quittance);
-                    input_solde_apres.val(0); // Mise à jour du solde après
+                    input_montant_a_regler
+                        .removeAttr('readonly')
+                        .attr('required', true)
+                        .val(solde_quittance);
+                    input_solde_apres.val(0);
                 } else {
-                    input_montant_a_regler.attr('readonly', true);
-                    input_montant_a_regler.removeAttr('required').val(0);
-                    input_solde_apres.val(solde_quittance); // Réinitialisation du solde après
+                    input_montant_a_regler
+                        .attr('readonly', true)
+                        .removeAttr('required')
+                        .val(0);
+                    input_solde_apres.val(solde_quittance);
                 }
 
-                // Lancer les calculs après modification
                 calculer_montant_total_a_regler();
             });
 
-            // Gestion des montants à régler lors de la saisie ou du changement
+            // Gestion des montants à régler
             $(document).on('change keyup', '.montant_a_regler', function () {
+                let row = $(this).closest('tr');
                 let montant_a_regler = parseFloat($(this).val().replaceAll(' ', '')) || 0;
-                let solde_quittance = parseFloat($(this).closest('tr').find('.solde_quittance').val()) || 0;
-                let input_solde_apres = $(this).closest('tr').find('.solde_apres');
+                let solde_quittance = parseFloat(row.find('.solde_quittance').val()) || 0;
+                let input_solde_apres = row.find('.solde_apres');
 
-                // Validation du montant saisi
                 if (montant_a_regler > 0 && montant_a_regler <= solde_quittance) {
                     input_solde_apres.val(solde_quittance - montant_a_regler);
                 } else {
@@ -6970,22 +6993,30 @@ $(document).ready(function () {
                     input_solde_apres.val(solde_quittance);
                 }
 
-                // Lancer les calculs après modification
                 calculer_montant_total_a_regler();
             });
 
+            // Calcul du montant total à régler
+            function calculer_montant_total_a_regler() {
+                let montant_total_a_regler = 0;
 
+                $('.montant_a_regler').each(function () {
+                    let montant = parseFloat($(this).val().replaceAll(' ', '')) || 0;
+                    let solde_quittance = parseFloat($(this).closest('tr').find('.solde_quittance').val()) || 0;
 
-            //montant_a_regler
-            $(document).on('change keyup', '.handle_calculer_montant_total_a_regler', function () {
-                console.log('handle_calculer_montant_total_a_regler');
-                calculer_montant_total_a_regler();
+                    if (montant > 0 && montant <= solde_quittance) {
+                        montant_total_a_regler += montant;
+                    } else {
+                        $(this).val(0);
+                    }
+                });
 
-            });
+                $('.montant_total_a_regler').val(montant_total_a_regler);
+                toggleSaveButton();
+            }
 
-            //champs obligatoires variables selon le mode de règlement
+            // Changer le mode de règlement
             $(document).on('change', '#mode_reglement', function () {
-                //si espèce
                 if ($(this).val() == 1) {
                     $('#numero_piece').removeAttr('required');
                     $('#banque').removeAttr('required');
@@ -6993,13 +7024,11 @@ $(document).ready(function () {
                     $('#libelle_banque_required').html('');
                 } else {
                     $('#numero_piece').attr('required', true);
-                    // $('#banque').attr('required', true);
                     $('#libelle_numero_piece_required').html('*');
-                    // $('#libelle_banque_required').html('*');
                 }
-
             });
 
+            // Enregistrer le formulaire
             //enregistrement
             $('#btn_save_reglement').on('click', function () {
 
@@ -7016,6 +7045,7 @@ $(document).ready(function () {
                     btn_save_reglement.attr('disabled', true);
 
                     //demander confirmation
+
                     let n = noty({
                         text: 'Voulez-vous vraiment effectuer ce règlement ?',
                         type: 'warning',
@@ -7026,7 +7056,6 @@ $(document).ready(function () {
                             {
                                 addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
                                     $noty.close();
-
                                     //confirmation obtenu
                                     $.ajax({
                                         type: 'post',
@@ -7035,7 +7064,9 @@ $(document).ready(function () {
                                         success: function (response) {
 
                                             if (response.statut == 1) {
+
                                                 location.reload();
+
                                             } else {
 
                                                 let errors = JSON.parse(JSON.stringify(response.errors));
@@ -7099,43 +7130,11 @@ $(document).ready(function () {
 
                 }
 
-
             });
-
         });
-
     });
 
-    // Calcul du montant total à régler
-    function calculer_montant_total_a_regler() {
-        let montant_total_a_regler = 0;
-
-        $('.montant_a_regler').each(function () {
-            let montant_a_regler = parseFloat($(this).val().replaceAll(' ', '')) || 0;
-            let solde_quittance = parseFloat($(this).closest('tr').find('.solde_quittance').val()) || 0;
-
-            if (montant_a_regler > 0 && montant_a_regler <= solde_quittance) {
-                montant_total_a_regler += montant_a_regler;
-            } else {
-                $(this).val(0);
-                $(this).closest('tr').find('.solde_apres').val(solde_quittance);
-            }
-        });
-
-        // Mise à jour du champ total
-        $('.montant_total_a_regler').val(montant_total_a_regler);
-
-        // Activer ou désactiver le bouton de sauvegarde
-        if (montant_total_a_regler > 0) {
-            $('#btn_save_reglement').removeAttr('disabled');
-        } else {
-            $('#btn_save_reglement').attr('disabled', 'true');
-        }
-    }
-
-
     //********* FIN FAIRE UN REGLEMENT ***********//
-
 
     //********* FAIRE UN LETTRAGE ***********//
 
@@ -7232,7 +7231,7 @@ $(document).ready(function () {
                 $('#montant_acompte_cumul').val(montant_acompte_cumul.toFixed(2));
 
                 // Mise à jour du montant total à régler
-                calculer_montant_total_a_regler();
+                calculer_lettrage_montant_total_a_regler();
             });
 
             $(document).on('change', '.checkbox_acompte_a_utiliser', function () {
@@ -7396,7 +7395,7 @@ $(document).ready(function () {
     }
 
     // Fonction de calcul du montant total à régler
-    function calculer_montant_total_a_regler() {
+    function calculer_lettrage_montant_total_a_regler() {
         let montant_total_a_regler = 0;
 
         $('.montant_a_regler').each(function () {
@@ -8432,6 +8431,153 @@ $(document).ready(function () {
     });
 
     //********* FIN FAIRE UN REGLEMENT COMPAGNIE ***********//
+
+    //********* FAIRE UNE EXPORTATION DES QUITTANCES ***********//
+
+    $("#btnOpenDialogExporterQuittance").on('click', function () {
+
+        let model_name = $(this).data('model_name');
+        let modal_title = $(this).data('modal_title');
+        let href = $(this).data('href');
+
+        $('#olea_std_dialog_box').load(href, function () {
+
+            $('#modal-exporter_quittance').attr('data-backdrop', 'static').attr('data-keyboard', false);
+
+            $('#modal-exporter_quittance').find('.modal-title').text(modal_title);
+            $('#modal-exporter_quittance').find('#btn_valider').attr({ 'data-model_name': model_name, 'data-href': href });
+            $('#modal-exporter_quittance').find('.modal-dialog').addClass('modal-xl').removeClass('modal-lg');
+
+            $('#modal-exporter_quittance').modal();
+
+            // Désactivation initiale du bouton
+            $('#btn_save_exporter_quittance').prop('disabled', true);
+
+            // Validation du type de fichier au changement
+            $('#type_fichier').on('change', function () {
+                let typeFichier = $(this).val();
+                if (typeFichier) {
+                    $('#btn_save_exporter_quittance').prop('disabled', false);
+                } else {
+                    $('#btn_save_exporter_quittance').prop('disabled', true);
+                }
+            });
+
+            // Validation du formulaire avec jQuery Validation
+            let formulaire = $('#modal_form_exporter_quittance'); // Assurez-vous que c'est le bon ID
+
+            // Initialisation de la validation
+            formulaire.validate({
+                rules: {
+                    type_fichier: {
+                        required: true
+                    }
+                },
+                messages: {
+                    type_fichier: {
+                        required: "Veuillez choisir un type de fichier"
+                    }
+                },
+                errorPlacement: function (error, element) {
+                    error.appendTo(element.closest('.form-group'));
+                }
+            });
+
+            // Enregistrement
+            $('#btn_save_exporter_quittance').on('click', function () {
+
+                let btn_save_exporter_quittance = $(this);
+                let href = formulaire.attr('action');
+
+                // Vérification si le formulaire est valide avant soumission
+                if (formulaire.valid()) {
+
+                    // Désactiver le bouton Valider pour empêcher une double soumission du formulaire
+                    btn_save_exporter_quittance.attr('disabled', true);
+
+                    // Demander confirmation
+                    let n = noty({
+                        text: 'Voulez-vous vraiment effectuer cette exportation ?',
+                        type: 'warning',
+                        dismissQueue: true,
+                        layout: 'center',
+                        theme: 'defaultTheme',
+                        buttons: [
+                            {
+                                addClass: 'btn btn-primary', text: 'OUI', onClick: function ($noty) {
+                                    $noty.close();
+
+                                    // Confirmation obtenue
+                                    $.ajax({
+                                        type: 'post',
+                                        url: href,
+                                        data: formulaire.serialize(),
+                                        success: function (response) {
+
+                                            if (response.statut == 1) {
+
+                                                window.open('../generer_exportation_quittance/', '_blank');
+                                                //location.reload();
+
+                                            } else {
+
+                                                let errors = JSON.parse(JSON.stringify(response.errors));
+                                                let errors_list_to_display = '';
+                                                for (field in errors) {
+                                                    errors_list_to_display += '- ' + ucfirst(field) + ' : ' + errors[field] + '<br/>';
+                                                }
+
+                                                $('#modal-exporter_quittance .alert .message').html(errors_list_to_display);
+
+                                                $('#modal-exporter_quittance .alert ').fadeTo(2000, 500).slideUp(500, function () {
+                                                    $(this).slideUp(500);
+                                                }).removeClass('alert-success').addClass('alert-warning');
+
+                                            }
+
+                                        },
+                                        error: function (request, status, error) {
+
+                                            notifyWarning("Erreur lors de l'exportation");
+
+                                            btn_save_exporter_quittance.removeAttr('disabled');
+
+                                        }
+
+                                    });
+
+                                }
+                            },
+                            {
+                                addClass: 'btn btn-danger', text: 'Annuler', onClick: function ($noty) {
+                                    // Confirmation refusée
+                                    $noty.close();
+
+                                    btn_save_exporter_quittance.removeAttr('disabled');
+
+                                }
+                            }
+                        ]
+                    });
+                } else {
+                    // Si la validation échoue, désactivez le bouton et affichez un message d'avertissement
+                    $('label.error').css({ display: 'none', height: '0px' }).removeClass('error').text('');
+                    let validator = formulaire.validate();
+                    $.each(validator.errorMap, function (index, value) {
+                        console.log('Id: ' + index + ' Message: ' + value);
+                    });
+
+                    notifyWarning('Veuillez renseigner tous les champs obligatoires');
+                    btn_save_exporter_quittance.removeAttr('disabled');
+                }
+
+            });
+
+        });
+
+    });
+
+    //********* FIN FAIRE UNE EXPORTATION DES QUITTANCES ***********//
 
 
     //********** FAIRE UN REGLEMENT BORDEREAU D"ORDONNANCEMENT */

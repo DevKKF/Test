@@ -390,6 +390,14 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="{% url 'client_quittances' client.id %}" class="nav-link">
+                  <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                  <p>
+                    Quittances
+                  </p>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="{% url 'client_acomptes' client.id %}" class="nav-link">
                   <i class="nav-icon fas fa-funnel-dollar"></i>
                   <p>

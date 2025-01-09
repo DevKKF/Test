@@ -59,7 +59,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_('Assureur')}}</label>
                                 <div class="col-sm-6">
-                                    <span class="form-control">
+                                    <span class="form-control" title="{{ assureur_police.compagnie.nom|default_if_none:'' }}">
                                         {{ assureur_police.compagnie.nom|default_if_none:"" }}
                                     </span>
                                 </div>
@@ -70,26 +70,26 @@
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_('Branche')}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control">{{ police.produit.branche.nom|default_if_none:"" }}</span>
+                                    <span class="form-control" title="{{ police.produit.branche.nom|default_if_none:'' }}">{{ police.produit.branche.nom|default_if_none:""|slice:":37" }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_('Produit')}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control">{{ police.produit|default_if_none:"" }}</span>
+                                    <span class="form-control" title="{{ police.produit.nom|default_if_none:'' }}">{{ police.produit.nom|default_if_none:""|slice:":37" }}</span>
                                 </div>
                             </div>
                             <div class="form-group row d-none">
                                 <label class="col-sm-6 col-form-label">{{_("Type de prefinancement")}}</label>
                                 <div class="col-sm-6">
-                                <span class="form-control">{{ police.type_prefinancement|default_if_none:"" }}</span>
+                                <span class="form-control" title="{{ police.type_prefinancement|default_if_none:'' }}">{{ police.type_prefinancement|default_if_none:""|slice:":37" }}</span>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-6 col-form-label">{{_('Autre Assureur')}}</label>
                                 <div class="col-sm-6">
-                                    <span class="form-control">
-                                        {{ autre_assureur_police.compagnie.nom|default_if_none:"" }} - {{ autre_assureur_police.type_compagnie.libelle|default_if_none:"" }}
+                                    <span class="form-control" title="{{ autre_assureur_police.compagnie.nom|default_if_none:'' }} - {{ autre_assureur_police.type_compagnie.libelle|default_if_none:'' }}">
+                                        {{ autre_assureur_police.compagnie.nom|default_if_none:""|slice:":37" }} - {{ autre_assureur_police.type_compagnie.libelle|default_if_none:""|slice:":2" }}
                                     </span>
                                 </div>
                             </div>

@@ -334,6 +334,7 @@ def modifier_contact(request, contact_id):
 
         return render(request, 'client/modification_contact.html', context)
 
+
 @login_required
 def supprimer_contact(request):
     if request.method == "POST":
@@ -2488,14 +2489,12 @@ def sous_rubriques_by_rubrique(request, rubrique_id):
     return HttpResponse(actes_serialize, content_type='application/json')
 
 
-
 @login_required
 def regroupements_actes_by_rubrique(request, rubrique_id):
     actes = RegroupementActe.objects.filter(rubrique_id=rubrique_id, status=1).order_by('libelle')
     actes_serialize = serializers.serialize('json', actes)
 
     return HttpResponse(actes_serialize, content_type='application/json')
-
 
 
 @login_required
@@ -2755,11 +2754,11 @@ class PoliceQuittancesView(TemplateView):
         '''
 
         # filtrer les quittances impayés
+        quittances_payees = filter(lambda quittance: quittance.statut == StatutQuittance.PAYE, quittances)
         quittances_impayees = filter(lambda quittance: quittance.statut == StatutQuittance.IMPAYE, quittances)
         quittances_honoraires = filter(lambda quittance: quittance.type_quittance.code == "HONORAIRE", quittances)
         quittances_emissions = filter(lambda quittance: quittance.type_quittance.code == "EMISSION", quittances)
         quittances_ristournes = filter(lambda quittance: quittance.nature_quittance.code == "Ristourne", quittances)
-
         quittances_annulees = Quittance.objects.filter(police_id=police_id, statut_validite=StatutValiditeQuittance.ANNULEE, import_stats=False)
 
         # etat police = dernier motif
@@ -2777,7 +2776,7 @@ class PoliceQuittancesView(TemplateView):
         print("Police assureur : ", assureur_police)
 
         context_perso = {'police': police, 'client':client, 'types_quittances': types_quittances, 'quittances': quittances, 'documents': documents,
-                         'quittances_impayees': quittances_impayees, 'quittances_honoraires': quittances_honoraires, 'quittances_emissions':quittances_emissions, 'dernier_historique': dernier_historique, 'assureur_police': assureur_police, 'autre_assureur_police': autre_assureur_police,
+                         'quittances_payees': quittances_payees, 'quittances_impayees': quittances_impayees, 'quittances_honoraires': quittances_honoraires, 'quittances_emissions':quittances_emissions, 'dernier_historique': dernier_historique, 'assureur_police': assureur_police, 'autre_assureur_police': autre_assureur_police,
                          'quittances_ristournes': quittances_ristournes, 'quittances_annulees': quittances_annulees, 'etat_police': etat_police}
 
         context = {**context_original, **context_perso}
@@ -2841,7 +2840,7 @@ def details_quittance(request, quittance_id):
 
     taxes_quittances = TaxeQuittance.objects.filter(quittance_id=quittance_id)
 
-    reglements = Reglement.objects.filter(quittance_id=quittance_id, statut_validite=StatutValidite.VALIDE)
+    reglements = Reglement.objects.filter(quittance_id=quittance_id)
     documents = Document.objects.filter(quittance_id=quittance)
 
     # reglements = Quittance.objects.all()
@@ -3209,18 +3208,19 @@ def add_lettrage(request, police_id):
     modes_reglements = ModeReglement.objects.all()
     comptes_tresoreries = CompteTresorerie.objects.filter(status=True)
     banques = Banque.objects.filter(bureau=request.user.bureau, status=True)
-    quittances_impayees = Quittance.objects.filter(police_id=police_id, statut=StatutQuittance.IMPAYE,
-                                                   statut_validite=StatutValidite.VALIDE, import_stats=False)
-    acomptes = Acompte.objects.filter(client_id=police.client_id)
+    quittances_impayees = Quittance.objects.filter(police_id=police_id, statut=StatutQuittance.IMPAYE, statut_validite=StatutValidite.VALIDE, import_stats=False)
+    acomptes = Acompte.objects.filter(client_id=police.client_id, solde__gt=0)
 
     uuid_lettrage = uuid.uuid4()
     today = datetime.now(tz=timezone.utc)
 
     if request.method == 'POST':
+        uuid_lettrage = request.POST.get('uuid_lettrage')
         date_paiement = datetime.now(tz=timezone.utc)
         acomptes_utilises = request.POST.getlist('id_acompte')
         quittance_a_regler = request.POST.getlist('quittance_regle')
         montant_total_acomptes=0
+        montant_total_quittances=0
 
         # Conversion des montants reçus
         try:
@@ -3228,27 +3228,195 @@ def add_lettrage(request, police_id):
                 acompte = Acompte.objects.filter(id=acomptes).first()
                 if acompte:
                     montant_total_acomptes += Decimal(acompte.solde)
+
+            for quittance in quittance_a_regler:
+                quittance = Quittance.objects.filter(id=quittance).first()
+                if quittance:
+                    montant_total_quittances=Decimal(quittance.solde)
+
         except Exception as e:
             return JsonResponse(
                 {'statut': 0, 'message': 'Erreur dans le format des montants des acomptes.', 'erreur': str(e)})
 
-        # Initialisation des variables
-        montant_total_quittances = Decimal(0)
-        quittances_reglees = []
-        erreurs = []
+            # Vérifier si l'uuid n'existe pas déjà dans opération pour s'assurer que l'utilisateur n'as pas cliqué 2 fois
+        uuid_lettrage_existant = Operation.objects.filter(uuid=uuid_lettrage)
+        if not uuid_lettrage_existant:
 
-        print('acomptes_utilises', acomptes_utilises)
-        print('quittance_a_regler', quittance_a_regler)
-        print('montant_total_acomptes', montant_total_acomptes)
-        print('montant_total_quittances', montant_total_quittances)
+            # enregistrer les infos dans operation
+            nombre_quittances = 0
+            montant_total_regle = 0
+            operation = Operation.objects.create(montant_total=montant_total_regle,
+                                                 date_operation=date_paiement,
+                                                 created_by=request.user,
+                                                 uuid=uuid_lettrage)
+            operation.save()
 
-        response = {
-            'statut': 1,
-            'message': "Lettrage de compte effectué, veuillez vérifier !",
-            'data': {}
-        }
+            if montant_total_acomptes == montant_total_quittances:
+                # Cas où le total des acomptes est exactement égal au total des quittances
+                for id_acompte in acomptes_utilises:
+                    acompte = Acompte.objects.get(id=id_acompte)
+                    acompte.solde = Decimal(0)
+                    acompte.save()
 
-        return JsonResponse(response)
+                for id_quittance in quittance_a_regler:
+                    quittance = Quittance.objects.get(id=id_quittance)
+                    quittance.montant_regle = quittance.montant_regle + quittance.solde
+                    quittance.solde = Decimal(0)
+                    quittance.statut = StatutQuittance.PAYE
+                    quittance.updated_at = datetime.now(tz=timezone.utc)
+                    quittance.save()
+
+                    montant_total_regle += quittance.montant_regle
+                    nombre_quittances = nombre_quittances + 1
+
+                    #Création de la ligne de règlement
+                    tx_com_courtage = (quittance.commission_courtage * 100) / quittance.prime_ttc
+                    tx_com_intermediaire = (quittance.commission_intermediaires * 100) / quittance.prime_ttc
+
+                    montant_com_courtage = (tx_com_courtage / 100) * quittance.montant_regle
+                    montant_com_intermediaire = (tx_com_intermediaire / 100) * quittance.montant_regle
+                    montant_compagnie = quittance.montant_regle - montant_com_courtage
+
+                    reglement = Reglement.objects.create(quittance_id=quittance.id,
+                                                         montant=quittance.montant_regle,
+                                                         montant_compagnie=montant_compagnie,
+                                                         compagnie=quittance.compagnie,
+                                                         montant_com_courtage=montant_com_courtage,
+                                                         montant_com_intermediaire=montant_com_intermediaire,
+                                                         date_paiement=date_paiement,
+                                                         created_by=request.user,
+                                                         bureau=request.user.bureau)
+                    reglement.save()
+                    # mettre à jour son numéro
+                    reglement.numero = 'R' + str(Date.today().year) + str(reglement.pk).zfill(6)
+                    reglement.save()
+
+                    # Lier l'opération au règlement
+                    operation_reglement = OperationReglement.objects.create(operation=operation, reglement=reglement, created_by=request.user)
+                    operation_reglement.save()
+
+                    print("Numéro règlement : ", reglement.numero)
+                    print("montant_com_courtage : ", montant_com_courtage)
+                    print("montant_com_intermediaire : ", montant_com_intermediaire)
+                    print("montant_compagnie : ", montant_compagnie)
+
+                # mettre à jour le total dans operation
+                operation.montant_total = montant_total_regle
+                operation.nombre_quittances = nombre_quittances
+                operation.numero = 'OP' + str(Date.today().year) + str(operation.pk).zfill(6)
+                operation.save()
+
+            elif montant_total_acomptes > montant_total_quittances:
+                # Cas où les acomptes sont supérieurs aux quittances
+                excedent = montant_total_acomptes - montant_total_quittances
+
+                for id_quittance in quittance_a_regler:
+                    quittance = Quittance.objects.get(id=id_quittance)
+                    quittance.montant_regle = quittance.montant_regle + quittance.solde
+                    quittance.solde = Decimal(0)
+                    quittance.statut = StatutQuittance.PAYE
+                    quittance.updated_at = datetime.now(tz=timezone.utc)
+                    quittance.save()
+
+                    montant_total_regle += quittance.montant_regle
+                    nombre_quittances = nombre_quittances + 1
+
+                    # Création de la ligne de règlement
+                    tx_com_courtage = (quittance.commission_courtage * 100) / quittance.prime_ttc
+                    tx_com_intermediaire = (quittance.commission_intermediaires * 100) / quittance.prime_ttc
+
+                    montant_com_courtage = (tx_com_courtage / 100) * quittance.montant_regle
+                    montant_com_intermediaire = (tx_com_intermediaire / 100) * quittance.montant_regle
+                    montant_compagnie = quittance.montant_regle - montant_com_courtage
+
+                    reglement = Reglement.objects.create(quittance_id=quittance.id,
+                                                         montant=quittance.montant_regle,
+                                                         montant_compagnie=montant_compagnie,
+                                                         compagnie=quittance.compagnie,
+                                                         montant_com_courtage=montant_com_courtage,
+                                                         montant_com_intermediaire=montant_com_intermediaire,
+                                                         date_paiement=date_paiement,
+                                                         created_by=request.user,
+                                                         bureau=request.user.bureau)
+                    reglement.save()
+                    # mettre à jour son numéro
+                    reglement.numero = 'R' + str(Date.today().year) + str(reglement.pk).zfill(6)
+                    reglement.save()
+
+                    # Lier l'opération au règlement
+                    operation_reglement = OperationReglement.objects.create(operation=operation, reglement=reglement,
+                                                                            created_by=request.user)
+                    operation_reglement.save()
+
+                    print("Numéro règlement : ", reglement.numero)
+                    print("montant_com_courtage : ", montant_com_courtage)
+                    print("montant_com_intermediaire : ", montant_com_intermediaire)
+                    print("montant_compagnie : ", montant_compagnie)
+                    print('excedent sur acompte', excedent)
+
+                    # mettre à jour le total dans operation
+                operation.montant_total = montant_total_regle
+                operation.nombre_quittances = nombre_quittances
+                operation.numero = 'OP' + str(Date.today().year) + str(operation.pk).zfill(6)
+                operation.save()
+
+                # Récupérer uniquement la dernière ligne d'acompte coché
+                dernier_acompte_id = acomptes_utilises[-1]  # Dernier ID dans la liste
+                dernier_acompte = Acompte.objects.get(id=dernier_acompte_id)
+
+                # Appliquer l'excédent uniquement au dernier acompte
+                if dernier_acompte.solde <= excedent:
+                    excedent -= dernier_acompte.solde
+                    dernier_acompte.solde = Decimal(0)
+                else:
+                    dernier_acompte.solde = excedent
+                    excedent = Decimal(0)
+                dernier_acompte.save()
+
+                # Remettre à jour tous les autres acomptes à zéro (hors mis le dernier acompte)
+                for id_acompte in acomptes_utilises[:-1]:
+                    acompte = Acompte.objects.get(id=id_acompte)
+                    acompte.solde = Decimal(0)
+                    acompte.save()
+
+            else:
+                # Cas où les acomptes sont inférieurs aux quittances
+                insuffisance = montant_total_quittances - montant_total_acomptes
+
+                for id_acompte in acomptes_utilises:
+                    acompte = Acompte.objects.get(id=id_acompte)
+                    acompte.solde = Decimal(0)  # L'acompte est totalement consommé
+                    acompte.save()
+
+                for id_quittance in quittance_a_regler:
+                    quittance = Quittance.objects.get(id=id_quittance)
+                    if insuffisance > 0:
+                        if quittance.solde <= insuffisance:
+                            insuffisance -= quittance.solde
+                            quittance.solde = Decimal(0)  # La quittance est totalement réglée
+                        else:
+                            quittance.solde -= insuffisance  # Régler partiellement la quittance
+                            insuffisance = Decimal(0)
+                        quittance.save()
+                    else:
+                        break
+
+            response = {
+                'statut': 1,
+                'message': "Lettrage de compte effectué, veuillez vérifier !",
+                'data': {}
+            }
+
+            return JsonResponse(response)
+
+        else:
+            response = {
+                'statut': 0,
+                'message': "Lettrage de compte déjà effectué, veuillez vérifier !",
+                'data': {}
+            }
+
+            return JsonResponse(response)
 
     else:
 
@@ -6321,6 +6489,7 @@ def details_beneficiaire(request, police_id, aliment_id):
                    'cant_change_his_formule': cant_change_his_formule, 'today': today, 'formulegarantie': formulegarantie,
                    'pays':pays, 'civilites': civilites, 'qualites_beneficiaires':qualite_beneficiaires, 'adherent_principal_famille': adherent_principal_famille, 'police_echue': police_echue})
 
+
 # ajouter membre famille d'un beneficiaire
 def police_add_membre_famille_beneficiaire(request, police_id, aliment_id):
 
@@ -6459,7 +6628,7 @@ def police_add_membre_famille_beneficiaire(request, police_id, aliment_id):
         }
 
         return JsonResponse(response)
-#
+
 
 #
 def add_carte(request, aliment_id):
@@ -7753,6 +7922,82 @@ class AcompteClientView(TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
+
+
+#Liste des quittance du client
+@method_decorator(login_required, name='dispatch')
+class QuittancesClientView(TemplateView):
+    permission_required = "production.view_clients"
+    template_name = 'client/client_quittances.html'
+    model = Client
+
+    def get(self, request, client_id, *args, **kwargs):
+        context_original = self.get_context_data(**kwargs)
+
+
+        clients = Client.objects.filter(id=client_id, bureau=request.user.bureau)
+        if clients:
+            client = clients.first()
+
+            quittances = Quittance.objects.filter(police__client_id=client_id)
+
+            # filtrer les quittances avec des statuts
+            quittances_payees = Quittance.objects.filter(police__client_id=client_id, statut=StatutQuittance.PAYE, import_stats=False)
+            quittances_impayees = Quittance.objects.filter(police__client_id=client_id, statut=StatutQuittance.IMPAYE, import_stats=False)
+            quittances_honoraires = Quittance.objects.filter(police__client_id=client_id, type_quittance__code="HONORAIRE", import_stats=False)
+            quittances_emissions = Quittance.objects.filter(police__client_id=client_id, type_quittance__code="EMISSION", import_stats=False)
+            quittances_ristournes = Quittance.objects.filter(police__client_id=client_id, nature_quittance__code="Ristourne", import_stats=False)
+            quittances_annulees = Quittance.objects.filter(police__client_id=client_id, statut_validite=StatutValiditeQuittance.ANNULEE, import_stats=False)
+
+            context_perso = {
+                'client': client,
+                'quittances': quittances,
+                'quittances_payees': quittances_payees,
+                'quittances_impayees': quittances_impayees,
+                'quittances_honoraires': quittances_honoraires,
+                'quittances_emissions': quittances_emissions,
+                'quittances_ristournes': quittances_ristournes,
+                'quittances_annulees': quittances_annulees,
+            }
+
+            context = {**context_original, **context_perso}
+
+            return self.render_to_response(context)
+
+        else:
+            return redirect("clients")
+
+
+    def post(self):
+        pass
+
+    def get_context_data(self, **kwargs):
+
+        pprint(kwargs)
+        return {
+            **super().get_context_data(**kwargs),
+            **admin.site.each_context(self.request),
+            "opts": self.model._meta,
+        }
+
+
+@login_required
+def exporter_quittance(request, client_id):
+    client = Client.objects.get(id=client_id)
+    if request.method == 'POST':
+
+        response = {
+            'statut': 1,
+            'message': "Lettrage de compte effectué, veuillez vérifier !",
+            'data': {}
+        }
+
+        return JsonResponse(response)
+
+    else:
+
+        return render(request, 'police/modal_exporter_quittance.html',
+                      {'client': client})
 
 
 #Liste des documents électronique du client

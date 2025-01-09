@@ -128,7 +128,7 @@
                             <td class="dtr-control" tabindex="0">
                                 <a href="{% url 'police.details' data.police.id %}">{{ data.police.numero|default_if_none:"" }}</a>
                             </td>
-                            <td class="">{{ data.police.produit|default_if_none:"" }}</td>
+                            <td class="">{{ data.police.produit.nom|default_if_none:"" }}</td>
                             <td class="">
                                 {{ data.assureur_police.compagnie.nom|default_if_none:"" }}
                             </td>

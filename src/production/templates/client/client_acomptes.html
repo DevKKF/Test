@@ -210,7 +210,7 @@
                         <td class="">{{ acompte.periode_fin|date:'d/m/Y'|default_if_none:"" }}</td>
                         <td class="text-right">{{ acompte.debit|default_if_none:"0"|money_field }}</td>
                         <td class="text-right">{{ acompte.credit|default_if_none:"0"|money_field }}</td>
-                        <td class="text-right f-bold">{{ acompte.solde|default_if_none:"0"|money_field }}</td>
+                        <td class="text-right">{{ acompte.solde|default_if_none:"0"|money_field }}</td>
                         <td class="text-center">
                             {% if not acompte.quittance_id %}
                                 <span class="badge badge-danger text-white btn_supprimer_acompte" data-acompte_id="{{ acompte.id }}" onclick="supprimer_acompte({{ acompte.id }})" style="cursor:pointer;"><i class="fa fa-trash"></i></span>&nbsp;&nbsp;&nbsp;
