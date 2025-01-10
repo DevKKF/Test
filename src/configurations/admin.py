@@ -1184,7 +1184,6 @@ admin.site.register(Compagnie, CompagnieAdmin)
 # admin.site.register(TypeActe)
 admin.site.register(Prestataire, PrestataireAdmin)
 admin.site.register(TypePrestataire, TypePrestataireAdmin)
-# admin.site.register(Acte)
 admin.site.register(CategorieAffection)
 # admin.site.register(Affection)
 admin.site.register(Profession, ProfessionAdmin)
@@ -1327,5 +1326,3 @@ admin.site.register(User, CustomUserAdmin)
 #admin.site.register(TypeDocument,TypeDocumentAdmin) #à réactiver plus tard
 #admin.site.register(Mouvement) #à réactiver plus tard
 #admin.site.register(Motif, MotifAdmin) #à réactiver plus tard
-
-# admin.site.register(BusinessUnit)

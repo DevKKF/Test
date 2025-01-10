@@ -146,6 +146,8 @@ class Migration(migrations.Migration):
                 ('groupe_international', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, to='configurations.groupeinter')),
                 ('langue', models.ForeignKey(null=True, on_delete=django.db.models.deletion.RESTRICT, to='configurations.langue')),
                 ('pays', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, to='configurations.pays')),
+                ('type_client', models.ForeignKey(null=True, on_delete=django.db.models.deletion.RESTRICT, to='configurations.typeclient')),
+                ('type_personne', models.ForeignKey(null=True, on_delete=django.db.models.deletion.RESTRICT, to='configurations.typepersonne')),
             ],
             options={
                 'verbose_name': 'Client',
@@ -444,6 +446,14 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': "Secteurs d'activité",
                 'db_table': 'secteur_activite',
             },
+        ),
+        migrations.CreateModel(
+            name='TypeCourrier',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('nom', models.CharField(max_length=100, unique=True)),
+                ('template_path', models.CharField(max_length=255)),
+            ],
         ),
         migrations.CreateModel(
             name='TypeDocument',
@@ -1102,11 +1112,12 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('designation', models.CharField(max_length=255)),
                 ('lien_fichier', models.CharField(blank=True, max_length=50, null=True)),
-                ('service', models.CharField(choices=[('production', 'Production'), ('sinistre', 'Sinistre'), ('comptabilite', 'Comptabilité')], max_length=50)),
-                ('status', models.CharField(choices=[('Actif', 'Actif'), ('Inactive', 'Inactive')], default='Inactif', max_length=10)),
+                ('service', models.CharField(max_length=50)),
+                ('status', models.CharField(default='Inactif', max_length=10)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('produit', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, to='configurations.produit')),
+                ('type_courrier', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='production.typecourrier')),
             ],
             options={
                 'db_table': 'production_courrier',

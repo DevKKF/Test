@@ -626,6 +626,11 @@ label:not(.form-check-label):not(.custom-file-label) {
   font-weight: 200 !important;
 }
 
+
+.date{
+    color: red;
+}
+
 .btn-primary{
 	color: #fff;
 	background-color: #F16623;

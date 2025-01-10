@@ -557,7 +557,7 @@ class BureauTaxe(models.Model):
         verbose_name_plural = 'Taxes appliquées'
 
 
-# une sorte de taxe qui vient prelever comme l'AIB au Benin au lieu d'ajouter comme la TVA 
+# une sorte de taxe qui vient prelever comme l'AIB au Benin au lieu d'ajouter comme la TVA
 class Retenue(models.Model):
     bureau = models.ForeignKey(Bureau, null=True, on_delete=models.RESTRICT)
     secteur = models.ForeignKey(Secteur, on_delete=models.RESTRICT, blank=True, null=True)

@@ -5,7 +5,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from api.models import InfoActe
 from configurations.models import KeyValueData, User, TypePrestataire, Prestataire, Acte, Bureau, ModeReglement, \
     TypeActe, Civilite, QualiteBeneficiaire, Pays, Profession
-from production.models import Aliment, Carte, Client, FormuleGarantie, Bareme, CarteDigitalDematerialisee, Courrier
+from production.models import Aliment, Carte, Client, FormuleGarantie, Bareme, CarteDigitalDematerialisee
 from sinistre.models import Sinistre, DemandeRemboursementMobile
 
 from grh.models import Prospect
@@ -77,10 +77,10 @@ class ClientSerializer(ModelSerializer):
         # depth = 3
         # extra_kwargs = {'user_extranet': {'write_only': True}}
 
-class CourrierSerializer(ModelSerializer):
-    class Meta:
-        model = Courrier
-        fields = "__all__"
+# class CourrierSerializer(ModelSerializer):
+#     class Meta:
+#         model = Courrier
+#         fields = "__all__"
 
 
 class FormuleGarantieSerializer(ModelSerializer):

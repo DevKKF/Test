@@ -840,7 +840,7 @@ class HistoriqueAliment(models.Model):
 
 # les jointures sont faibles,
 # si le bareme concerne toute la police, alors uniquement la police sera renseigné, collège et qualite_beneficiaire resteront vides,
-# s'il concerne un college en particulier alors college sera renseigné
+#s'il concerne un college en particulier alors college sera renseigné
 class Bareme(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.RESTRICT)
     deleted_by = models.ForeignKey(User, related_name="deleted_by", null=True, on_delete=models.RESTRICT)
@@ -2073,6 +2073,12 @@ class CarteDigitalDematerialisee(models.Model):
         verbose_name_plural = 'Cartes Digital Dématérialisées'
 
 
+
+class TypeCourrier(models.Model):
+    nom = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        db_table = 'production_typecourrier'
 # Les choix pour le champ service
 SERVICE_CHOICES = [
     ('production', 'Production'),
@@ -2089,10 +2095,9 @@ STATUS_CHOICES = [
 
 class Courrier(models.Model):
     designation = models.CharField(max_length=255)
-    lien_fichier = models.CharField(max_length=50, blank=True, null=True)
-    service = models.CharField(max_length=50, choices=SERVICE_CHOICES)
-    produit = models.ForeignKey(Produit, blank=True, null=True, on_delete=models.RESTRICT)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Inactif')
+    service = models.CharField(max_length=50, )
+    status = models.CharField(max_length=10, default='Inactif')
+    type_courrier = models.ForeignKey(TypeCourrier, blank=True, null=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -2100,5 +2105,8 @@ class Courrier(models.Model):
     def __str__(self):
         return f" {self.designation} - {self.service} - {self.status} - {self.created_at} "
 
+
     class Meta:
         db_table = "production_courrier"
+
+

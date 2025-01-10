@@ -53,8 +53,8 @@
                          <td>{{ business.created_at|date:"d/m/Y" }}</td>
 
                          <td>
-                             <span class="btn badge btn-sm btn-complement-rouge rounded-pill btn-modal-modifier_courrier" title="Modifier" data-href="#" style="color:white;font-weight:normal;"><i class="fa fa-pencil"></i> {{_('Modifier')}}</span>&nbsp;&nbsp;&nbsp;
-                             <span class="badge badge-danger btn_supprimer_courrier" data-courrier_id="#" style="cursor:pointer;"><i class="fa fa-trash"></i> </span>&nbsp;
+                             <span class="btn badge btn-sm btn-complement-rouge rounded-pill btn-modal-modifier_business" title="Modifier" data-href="{% url 'modifier_business' business.id %}" style="color:white;font-weight:normal;"><i class="fa fa-pencil"></i> {{_('Modifier')}}</span>&nbsp;&nbsp;&nbsp;
+                             <span class="badge badge-danger btn_supprimer_business" data-business_id="{{ business.id }}" style="cursor:pointer;"><i class="fa fa-trash"></i> </span>&nbsp;
 
                         </td>
                     </tr>

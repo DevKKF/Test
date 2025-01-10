@@ -20,7 +20,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.forms import model_to_dict
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.template.backends.django import Template
 from django.urls import reverse
 from django.utils import timezone
@@ -41,7 +41,7 @@ from configurations.models import ActionLog, Prescripteur, PrescripteurPrestatai
 from inov import settings
 # Create your views here.
 from production.models import TarifPrestataireClient, Client, Aliment, AlimentFormule, Mouvement, MouvementAliment, \
-    Carte, Quittance, Reglement
+    Carte, Quittance, Reglement, Courrier
 from production.templatetags.my_filters import money_field
 from shared.enum import PasswordType, Statut, StatutValidite, BaseCalculTM, StatutPaiementSinistre, \
     SatutBordereauDossierSinistres, StatutSinistre
@@ -3905,6 +3905,75 @@ def add_business(request):
 
 
 
+def modifier_businessunit(request, business_id):
+    business = get_object_or_404(BusinessUnit, id=business_id)
+
+    if request.method == 'POST':
+
+        business_before = business
+        pprint(business_before)
+
+        # Récupérer les champs envoyés par le formulaire
+        libelle = request.POST.get('libelle')
+        status = request.POST.get('status')
+
+        # Mettre à jour les champs
+        business.libelle = libelle
+        business.status = status
+
+        # Sauvegarder les modifications
+        business.save()
+
+        # Log d'action (si nécessaire)
+        ActionLog.objects.create(
+            done_by=request.user,
+            action="update",
+            description="Modification d'un businessunit",
+            table="business",
+            row=business.pk
+        )
+
+        # Retourner une réponse JSON pour AJAX
+        return JsonResponse({
+            'statut': 1,
+            'message': "Courrier modifié avec succès !"
+        })
+
+    else:
+        business = BusinessUnit.objects.all()  # Options pour les services et statuts
+        return render(request, 'BusinessUnit/modal_modifier_business.html', {
+            'business': business,
+        })
+
+
+
+
+@login_required()
+def supprimer_business(request):
+    if request.method == "POST":
+        business_id = request.POST.get('business_id')
+
+        try:
+            business = BusinessUnit.objects.get(id=business_id)
+            business.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Businessunit supprimé avec succès !",
+            }
+
+        except BusinessUnit.DoesNotExist:
+            response = {
+                'statut': 0,
+                'message': "businessunit introuvable !",
+            }
+
+        return JsonResponse(response)
+
+    return JsonResponse({'statut': 0, 'message': "Requête invalide !"}, status=400)
+
+
+
 
 
 
@@ -4062,19 +4131,48 @@ class CategorieView(PermissionRequiredMixin, TemplateView):
 
 #-------------------------------Davise--------------------------------------
 
-class DeviseView(PermissionRequiredMixin, TemplateView):
-    template_name = 'Devise/devise.html'
-    permission_required = "configurations.view_devise"
-    model = Devise
+# class DeviseView(PermissionRequiredMixin, TemplateView):
+#     template_name = 'Devise/devise.html'
+#     permission_required = "configurations.view_devise"
+#     model = Devise
+#
+#     def get(self, request, *args, **kwargs):
+#         context_original = self.get_context_data(**kwargs)
+#
+#         devise = Devise.objects.all()
+#         utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
+#                                            is_active=True).order_by('last_name')
+#
+#         context_perso = {'devises': devise, 'utilisateurs': utilisateurs}
+#
+#         context = {**context_original, **context_perso}
+#
+#         return self.render_to_response(context)
+#
+#     def get_context_data(self, **kwargs):
+#         pprint(kwargs)
+#         return {
+#             **super().get_context_data(**kwargs),
+#             **admin.site.each_context(self.request),
+#             "opts": self.model._meta,
+
+
+
+
+
+class ViewCourrier(PermissionRequiredMixin, TemplateView):
+    template_name = 'courriers.html'
+    permission_required = "configurations.view_courrier"
+    model = Courrier
 
     def get(self, request, *args, **kwargs):
         context_original = self.get_context_data(**kwargs)
 
-        devise = Devise.objects.all()
+        courriers = Courrier.objects.all()
         utilisateurs = User.objects.filter(bureau=request.user.bureau, type_utilisateur__code="INTERNE",
                                            is_active=True).order_by('last_name')
 
-        context_perso = {'devises': devise, 'utilisateurs': utilisateurs}
+        context_perso = {'courriers': courriers, 'utilisateurs': utilisateurs}
 
         context = {**context_original, **context_perso}
 
@@ -4087,3 +4185,120 @@ class DeviseView(PermissionRequiredMixin, TemplateView):
             **admin.site.each_context(self.request),
             "opts": self.model._meta,
         }
+
+
+
+
+@login_required()
+def add_courrier(request):
+    if request.method == 'POST':
+        # Récupération des données depuis la requête
+        designation = request.POST.get('designation')
+        service = request.POST.get('service')
+        status = request.POST.get('status')
+
+        # Vérifie que toutes les données requises sont présentes
+        if not all([designation, service, status]):
+            return JsonResponse({
+                'statut': 0,
+                'message': "Veuillez remplir tous les champs requis.",
+            }, status=400)
+
+
+    courrier_created = Courrier.objects.create(
+            designation = request.POST.get('designation'),
+            service = request.POST.get('service'),
+            status = request.POST.get('status')
+        )
+
+
+    response = {
+            'statut': 1,
+            'message': "Enregistrement effectuée avec succès !",
+            'data': {
+                'designation': courrier_created.designation,
+                'service':courrier_created.service,
+                'status': courrier_created.status,
+                'created_at': courrier_created.created_at,
+            }
+        }
+
+    return JsonResponse(response)
+
+
+
+
+
+def modifier_courrier(request, courrier_id):
+
+    courrier = get_object_or_404(Courrier, id=courrier_id)
+
+    if request.method == 'POST':
+
+        courrier_before = courrier
+        pprint(courrier_before)
+
+        # Récupérer les champs envoyés par le formulaire
+        designation = request.POST.get('designation')
+        service =request.POST.get('service')
+        status = request.POST.get('statut')
+
+
+
+        # Mettre à jour les champs
+        # courrier.produit = produit
+        courrier.designation = designation
+        # courrier.lien_fichier = lien_fichier
+        courrier.service = service
+        courrier.status = status
+
+        # Sauvegarder les modifications
+        courrier.save()
+
+        # Log d'action (si nécessaire)
+        ActionLog.objects.create(
+            done_by=request.user,
+            action="update",
+            description="Modification d'un courrier",
+            table="courrier",
+            row=courrier.pk,
+        )
+
+        # Retourner une réponse JSON pour AJAX
+        return JsonResponse({
+            'statut': 1,
+            'message': "Courrier modifié avec succès !"
+        })
+
+    else:
+        courriers = Courrier.objects.all()  # Options pour les services et statuts
+        return render(request, 'modal_courrier_update.html', {
+            'courrier': courrier,
+
+        })
+
+
+@login_required()
+def supprimer_courrier(request):
+    if request.method == "POST":
+        courrier_id = request.POST.get('courrier_id')
+
+        try:
+            courrier = Courrier.objects.get(id=courrier_id)
+            courrier.delete()
+
+            response = {
+                'statut': 1,
+                'message': "Courrier supprimé avec succès !",
+            }
+
+        except Courrier.DoesNotExist:
+            response = {
+                'statut': 0,
+                'message': "Courrier introuvable !",
+            }
+
+        return JsonResponse(response)
+
+    return JsonResponse({'statut': 0, 'message': "Requête invalide !"}, status=400)
+

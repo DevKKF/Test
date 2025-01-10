@@ -1,7 +1,7 @@
 <div  class="modal fade"  id="modal-courrier" aria-hidden="true" data-backdrop="static" data-keyboard="false" style="display: none">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
-			<form enctype="multipart/form-data" id="form_add_courrier" action="{% url 'add_courrier' police.id%}" method="post">
+			<form enctype="multipart/form-data" id="form_add_courrier" action="{% url 'add_courrier' %}" method="POST">
 			{% csrf_token %}
 			 <div class="modal-header">
                     <h4 class="modal-title">{{_("CREATION D'UN COURRIER ")}}</h4>
@@ -30,14 +30,6 @@
 											<input type="text" class="form-control" name="designation" id="designation" value="" autocomplete="off" required/>
 										</div>
 									</div>
-
-                                    <div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_('Lien du fichier')}} <span class="required">*</span></label>
-										<div class="col-sm-7">
-											<input type="text" class="form-control" name="lien_fichier" value="" autocomplete="off" required/>
-										</div>
-									</div>
-
 								</div>
 								<div class="vl"></div>
 								<div class="col-md-5" style="border-left:0px;">
@@ -50,17 +42,6 @@
 												<option value="Production" >Production</option>
 												<option value="Sinistre">Sinistre</option>
 												<option value="Comptabilité">Comptabilité</option>
-											</select>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label class="col-sm-5 col-form-label">{{_("Produit")}} <span></span></label>
-										<div class="col-sm-7">
-											<select class="form-control" name="produit"  autocomplete="off" required>
-												<option value="">{{_('Choisir')}}</option>
-												{% for produit in produits %}
-												<option value="{{ produit.id }}">{{ produit.nom }}</option>
-												{% endfor %}
 											</select>
 										</div>
 									</div>
